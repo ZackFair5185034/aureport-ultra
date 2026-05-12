@@ -23,6 +23,12 @@ logs/
 !**/src/main/**/target/*.jar
 !**/src/test/**/target/*.jar
 
+# Claude Code
+.claude/
+
+# OMC
+.omc/
+
 # IDE - IntelliJ IDEA
 .idea/
 *.iws
