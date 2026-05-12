@@ -13,6 +13,6 @@ public class FangSongFontRegister implements FontRegister {
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/fangsong/SIMFANG.TTF";
+        return "com/aureport/ultra/font/fangsong/SIMFANG.TTF";
     }
 }

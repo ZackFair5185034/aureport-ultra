@@ -1,4 +1,4 @@
-package com.aureport.ultra.font.couriernew;
+package com.aureport.ultra.font.songti;
 
 import com.aureport.ultra.core.export.pdf.font.FontRegister;
 
@@ -6,13 +6,13 @@ import com.aureport.ultra.core.export.pdf.font.FontRegister;
  * @author Jacky.gao
  * @since 2014年5月7日
  */
-public class CourierNewFontRegister implements FontRegister {
+public class SongTiFontRegister implements FontRegister {
 
     public String getFontName() {
-        return "Courier New";
+        return "宋体";
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/couriernew/COUR.TTF";
+        return "com/aureport/ultra/font/songti/SIMSUN.TTC";
     }
 }

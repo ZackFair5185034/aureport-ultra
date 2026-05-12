@@ -40,6 +40,7 @@
         <poi-scratchpad.version>5.2.5</poi-scratchpad.version>
         <ooxml-schemas.version>1.4</ooxml-schemas.version>
         <zxing-core.version>3.3.1</zxing-core.version>
+        <servlet-api.version>4.0.1</servlet-api.version>
     </properties>
 
 

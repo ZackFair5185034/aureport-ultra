@@ -1,18 +1,19 @@
-package com.aureport.ultra.font.kaiti;
+package com.aureport.ultra.font.arial;
 
 import com.aureport.ultra.core.export.pdf.font.FontRegister;
+
 
 /**
  * @author Jacky.gao
  * @since 2014年5月7日
  */
-public class KaiTiFontRegister implements FontRegister {
+public class ArialFontRegister implements FontRegister {
 
     public String getFontName() {
-        return "楷体";
+        return "Arial";
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/kaiti/SIMKAI.TTF";
+        return "com/aureport/ultra/font/arial/ARIAL.TTF";
     }
 }

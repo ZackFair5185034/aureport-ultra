@@ -24,10 +24,10 @@ logs/
 !**/src/test/**/target/*.jar
 
 # Claude Code
-.claude/
+**/.claude/
 
 # OMC
-.omc/
+**/.omc/
 
 # IDE - IntelliJ IDEA
 .idea/

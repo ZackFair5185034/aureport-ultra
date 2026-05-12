@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.luck.cloud</groupId>
+  <groupId>com.aureport.ultra</groupId>
   <artifactId>aureport-ultra-server</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
@@ -17,6 +17,7 @@
     <antlr4-runtime.version>4.5.3</antlr4-runtime.version>
     <dameng.version>8.1.3.140</dameng.version>
     <commons-logging.version>1.2</commons-logging.version>
+    <servlet-api.version>4.0.1</servlet-api.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
     <itextpdf.version>5.5.13.3</itextpdf.version>
     <dom4j.version>2.1.4</dom4j.version>

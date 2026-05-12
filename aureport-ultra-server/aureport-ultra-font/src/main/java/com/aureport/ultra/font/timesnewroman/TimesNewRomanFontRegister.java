@@ -13,6 +13,6 @@ public class TimesNewRomanFontRegister implements FontRegister {
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/timesnewroman/TIMES.TTF";
+        return "com/aureport/ultra/font/timesnewroman/TIMES.TTF";
     }
 }

@@ -13,6 +13,6 @@ public class ImpactFontRegister implements FontRegister {
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/impact/IMPACT.TTF";
+        return "com/aureport/ultra/font/impact/IMPACT.TTF";
     }
 }

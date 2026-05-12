@@ -1,4 +1,4 @@
-package com.aureport.ultra.font.heiti;
+package com.aureport.ultra.font.couriernew;
 
 import com.aureport.ultra.core.export.pdf.font.FontRegister;
 
@@ -6,13 +6,13 @@ import com.aureport.ultra.core.export.pdf.font.FontRegister;
  * @author Jacky.gao
  * @since 2014年5月7日
  */
-public class HeiTiFontRegister implements FontRegister {
+public class CourierNewFontRegister implements FontRegister {
 
     public String getFontName() {
-        return "黑体";
+        return "Courier New";
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/heiti/SIMHEI.TTF";
+        return "com/aureport/ultra/font/couriernew/COUR.TTF";
     }
 }

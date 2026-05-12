@@ -3,11 +3,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.luck.cloud</groupId>
+    <groupId>com.aureport.ultra</groupId>
     <artifactId>aureport-ultra-server</artifactId>
     <version>1.0.0</version>
   </parent>
-  <groupId>com.luck.cloud</groupId>
+  <groupId>com.aureport.ultra</groupId>
   <artifactId>aureport-ultra-web</artifactId>
   <version>1.0.0</version>
   <dependencies>
@@ -48,12 +48,12 @@
       <artifactId>commons-beanutils-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.luck.cloud</groupId>
+      <groupId>com.aureport.ultra</groupId>
       <artifactId>aureport-ultra-core</artifactId>
       <version>${revision}</version>
     </dependency>
     <dependency>
-      <groupId>com.luck.cloud</groupId>
+      <groupId>com.aureport.ultra</groupId>
       <artifactId>aureport-ultra-font</artifactId>
       <version>${revision}</version>
     </dependency>

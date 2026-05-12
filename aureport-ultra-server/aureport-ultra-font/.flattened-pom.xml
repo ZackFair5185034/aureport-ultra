@@ -3,41 +3,18 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.luck.cloud</groupId>
+    <groupId>com.aureport.ultra</groupId>
     <artifactId>aureport-ultra-server</artifactId>
     <version>1.0.0</version>
   </parent>
-  <groupId>com.luck.cloud</groupId>
+  <groupId>com.aureport.ultra</groupId>
   <artifactId>aureport-ultra-font</artifactId>
   <version>1.0.0</version>
   <name>UReport2 Font Project</name>
   <url>https://github.com/youseries/ureport/tree/master/ureport2-font</url>
-  <organization>
-    <name>Bstek</name>
-    <url>http://www.bstek.com</url>
-  </organization>
-  <licenses>
-    <license>
-      <name>The Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-    </license>
-  </licenses>
-  <developers>
-    <developer>
-      <name>Gaojie</name>
-      <email>jacky.gao@bstek.com</email>
-      <organization>Bstek</organization>
-      <organizationUrl>http://www.bstek.com</organizationUrl>
-    </developer>
-  </developers>
-  <scm>
-    <connection>https://github.com/youseries/ureport.git</connection>
-    <developerConnection>https://github.com/youseries/ureport.git</developerConnection>
-    <url>https://github.com/youseries/ureport</url>
-  </scm>
   <dependencies>
     <dependency>
-      <groupId>com.luck.cloud</groupId>
+      <groupId>com.aureport.ultra</groupId>
       <artifactId>aureport-ultra-core</artifactId>
       <version>${revision}</version>
     </dependency>

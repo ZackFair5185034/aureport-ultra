@@ -13,6 +13,6 @@ public class YaheiFontRegister implements FontRegister {
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/yahei/msyh.ttc";
+        return "com/aureport/ultra/font/yahei/msyh.ttc";
     }
 }

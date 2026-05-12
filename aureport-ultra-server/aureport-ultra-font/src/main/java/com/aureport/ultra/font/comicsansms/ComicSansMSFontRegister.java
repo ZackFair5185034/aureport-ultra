@@ -13,6 +13,6 @@ public class ComicSansMSFontRegister implements FontRegister {
     }
 
     public String getFontPath() {
-        return "com/luck/report/font/comicsansms/COMIC.TTF";
+        return "com/aureport/ultra/font/comicsansms/COMIC.TTF";
     }
 }
