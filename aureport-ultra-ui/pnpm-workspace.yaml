@@ -1,0 +1,4 @@
+allowBuilds:
+  core-js: true
+  cssnano: true
+  yorkie: true

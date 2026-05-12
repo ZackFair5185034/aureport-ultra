@@ -1,0 +1,77 @@
+/*******************************************************************************
+ * Copyright 2017 Bstek
+ *
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ ******************************************************************************/
+package com.aureport.ultra.core.chart;
+
+import com.aureport.ultra.core.cache.CacheUtils;
+import com.aureport.ultra.core.model.Cell;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+/**
+ * @author Jacky.gao
+ * @since 2017年6月16日
+ */
+public class ChartData {
+    private String id;
+    private String json;
+    @JsonIgnore
+    private String base64Data;
+    @JsonIgnore
+    private int width;
+    @JsonIgnore
+    private int height;
+
+    public ChartData(String json, Cell cell) {
+        this.json = json;
+        this.id = cell.getName();
+    }
+
+    public String getJson() {
+        return json;
+    }
+
+    public void setBase64Data(String base64Data) {
+        this.base64Data = base64Data;
+    }
+
+    public String retriveBase64Data() {
+        if (base64Data != null) {
+            return base64Data;
+        }
+        ChartData data = CacheUtils.getChartData(id);
+        if (data != null && data != this) {
+            return data.base64Data;
+        }
+        return base64Data;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public String getId() {
+        return id;
+    }
+}
