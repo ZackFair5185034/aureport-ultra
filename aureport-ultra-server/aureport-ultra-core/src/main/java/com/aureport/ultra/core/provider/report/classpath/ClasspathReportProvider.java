@@ -34,25 +34,50 @@ public class ClasspathReportProvider implements ReportProvider, ApplicationConte
 
     @Override
     public InputStream loadReport(String file) {
+        String resourcePath = file;
+        if (file.startsWith("classpath*:")) {
+            resourcePath = file.substring(11);
+        } else if (file.startsWith("classpath:")) {
+            resourcePath = file.substring(10);
+        }
+
+        InputStream inputStream = loadFromClassLoader(resourcePath);
+        if (inputStream != null) {
+            return inputStream;
+        }
+
+        // fallback: try Spring's resource resolution
         Resource resource = applicationContext.getResource(file);
         try {
             return resource.getInputStream();
         } catch (IOException e) {
-            String newFileName = null;
+            // try classpath*: prefix as fallback
             if (file.startsWith("classpath:")) {
-                newFileName = "classpath*:" + file.substring(10, file.length());
-            } else if (file.startsWith("classpath*:")) {
-                newFileName = "classpath:" + file.substring(11, file.length());
-            }
-            if (newFileName != null) {
+                String newFileName = "classpath*:" + file.substring(10);
                 try {
-                    return applicationContext.getResource(file).getInputStream();
+                    Resource fallbackResource = applicationContext.getResource(newFileName);
+                    return fallbackResource.getInputStream();
                 } catch (IOException ex) {
-                    throw new ReportException(e);
+                    throw new ReportException("加载报表文件 " + file + " 失败");
                 }
             }
-            throw new ReportException(e);
+            throw new ReportException("加载报表文件 " + file + " 失败: " + e.getMessage());
         }
+    }
+
+    private InputStream loadFromClassLoader(String resourcePath) {
+        // Remove leading slash if present
+        if (resourcePath.startsWith("/")) {
+            resourcePath = resourcePath.substring(1);
+        }
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
+        if (is == null) {
+            is = getClass().getClassLoader().getResourceAsStream(resourcePath);
+        }
+        if (is == null) {
+            is = ClassLoader.getSystemResourceAsStream(resourcePath);
+        }
+        return is;
     }
 
     @Override

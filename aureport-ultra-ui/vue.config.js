@@ -13,7 +13,7 @@ module.exports = {
     proxy: {
       '/api': {
         target: API_BASE_URL,
-        pathRewrite: { '^/api': '/aureport-ultra' },
+        pathRewrite: { '^/api': '/report' },
         ws: true,
         changeOrigin: true
       }
