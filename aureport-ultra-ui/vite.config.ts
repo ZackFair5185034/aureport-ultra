@@ -45,7 +45,7 @@ export default defineConfig({
     port: Number(process.env.VITE_DEV_PORT) || 8080,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+        target: 'http://localhost:18080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/report'),
       },

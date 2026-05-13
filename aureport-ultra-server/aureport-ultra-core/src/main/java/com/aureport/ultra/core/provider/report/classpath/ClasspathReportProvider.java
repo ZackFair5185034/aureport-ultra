@@ -82,7 +82,7 @@ public class ClasspathReportProvider implements ReportProvider, ApplicationConte
 
     @Override
     public String getPrefix() {
-        return "classpath";
+        return "classpath:";
     }
 
     @Override
