@@ -5,38 +5,29 @@
       icon="icon-cloud-upload"
       @click="visible = true"
   >
-    <ImportDialog 
-      :visible="visible" 
+    <ImportDialog
+      :visible="visible"
       @update:visible="visible = $event"
       @import-success="handleImportSuccess"
     />
   </u-button>
 </template>
 
-<script>
-import ImportDialog from '@/views/report/designer/tool-bar/import-tool/import-dialog/index.vue';
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'ImportTool',
-  components: {
-    UButton,
-    ImportDialog
-  },
-  data() {
-    return {
-      visible: false
-    };
-  },
-  methods: {
-    handleImportSuccess() {
-      const routeData = this.$router.resolve({
-        name: 'Designer',
-      });
-      window.open(routeData.href, "_self");
-    }
-  }
-};
+defineOptions({ name: 'ImportTool' })
+
+const router = useRouter()
+const visible = ref(false)
+
+function handleImportSuccess() {
+  const routeData = router.resolve({
+    name: 'Designer',
+  })
+  window.open(routeData.href, "_self")
+}
 </script>
 
 <style scoped>

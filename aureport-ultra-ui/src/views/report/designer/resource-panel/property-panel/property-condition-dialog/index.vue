@@ -1,6 +1,6 @@
 <template>
   <UDialog
-    :title="$t('dialog.propCondition.title')"
+    :title="t('dialog.propCondition.title')"
     width="1200px"
     top="50px"
     :visible="visible"
@@ -8,7 +8,7 @@
   >
     <div class="condition-body-container">
       <fieldset class="fieldset-small">
-        <legend class="legend-style">{{ $t('dialog.propCondition.config') }}</legend>
+        <legend class="legend-style">{{ t('dialog.propCondition.config') }}</legend>
         <condition-item
             :property-conditions="localPropertyConditions"
             :selected-item-index="selectedItemIndex"
@@ -21,7 +21,7 @@
       </fieldset>
 
       <fieldset class="fieldset-medium">
-        <legend class="legend-style">{{ $t('dialog.propCondition.conditionConfig') }}</legend>
+        <legend class="legend-style">{{ t('dialog.propCondition.conditionConfig') }}</legend>
         <condition-content
           :property-conditions="localPropertyConditions"
           :selected-item="selectedItem"
@@ -39,246 +39,225 @@
         class="fieldset-large"
         v-show="showPropertyGroup"
       >
-        <legend class="legend-style">{{ $t('dialog.propCondition.propConfig') }}</legend>
+        <legend class="legend-style">{{ t('dialog.propCondition.propConfig') }}</legend>
         <condition-config
           :item="selectedItem"
           @property-changed="onPropertyChanged"
         />
       </fieldset>
     </div>
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { setDirty } from '@/utils/table.js';
-import ConditionItem from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-item/index.vue';
-import ConditionContent from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-content/index.vue';
-import ConditionConfig from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-config/index.vue';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import { mapGetters } from 'vuex';
+<script setup lang="ts">
+import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { setDirty } from '@/utils/table.js'
+import ConditionItem from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-item/index.vue'
+import ConditionContent from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-content/index.vue'
+import ConditionConfig from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-config/index.vue'
 
-export default {
-  name: 'ConditionBody',
-  components: {
-    UButton,
-    ConditionItem,
-    ConditionContent,
-    ConditionConfig,
-    UDialog
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    datasetName: {
-      type: String,
-      default: ''
-    },
-    conditionPropertyItems: {
-      type: Array,
-      default: () => []
-    },
-    propertyConditions: {
-      type: Array,
-      default: () => []
-    }
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  data() {
-    return {
-      selectedItem: null,
-      selectedItemIndex: -1,
-      showPropertyGroup: false,
-      localPropertyConditions: [],
-      localDatasetName: '',
-      currentConditions: [],
-      resetConditionSelection: true
-    };
-  },
-  watch: {
-    propertyConditions: {
-      handler(newVal) {
-        this.localPropertyConditions = [...newVal];
-      },
-      deep: true,
-      immediate: true
-    },
-    visible(newVal) {
-      if (newVal) {
-        this.localDatasetName = this.datasetName;
-        this.localPropertyConditions.splice(0, this.localPropertyConditions.length);
-        this.conditionPropertyItems.forEach(item => {
-          this.localPropertyConditions.push(item);
-        });
+defineOptions({ name: 'ConditionBody' })
 
-        if (this.localPropertyConditions.length > 0) {
-          this.selectFirstItem();
-        } else {
-          this.clearSelection();
-        }
-      }
-    }
-  },
-  methods: {
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context)
 
-    onItemAdded(newItem) {
-      // 将新项添加到本地数据副本中
-      this.localPropertyConditions.push(newItem);
-      // 向上传递事件
-      this.$emit('item-added', newItem);
-      setDirty();
-    },
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  datasetName?: string
+  conditionPropertyItems?: any[]
+  propertyConditions?: any[]
+}>(), {
+  visible: false,
+  datasetName: '',
+  conditionPropertyItems: () => [],
+  propertyConditions: () => []
+})
 
-    onItemUpdated(item) {
-      // 找到对应的项目并更新
-      const index = this.localPropertyConditions.findIndex(existingItem => existingItem.id === item.id);
-      if (index !== -1) {
-        // 使用Vue.set或直接替换整个对象以确保响应性
-        this.$set(this.localPropertyConditions, index, item);
-      }
-      // 向上传递事件
-      this.$emit('item-updated', item);
-      setDirty();
-    },
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'saveAfter', value: any[]): void
+  (e: 'item-added', value: any): void
+  (e: 'item-updated', value: any): void
+  (e: 'item-deleted', value: number): void
+}>()
 
-    onItemDeleted(index) {
-      if (index >= 0 && index < this.localPropertyConditions.length) {
-        const deletedItem = this.localPropertyConditions[index];
-        this.localPropertyConditions.splice(index, 1);
+const propGroup = ref<HTMLFieldSetElement | null>(null)
+const selectedItem = ref<any>(null)
+const selectedItemIndex = ref(-1)
+const showPropertyGroup = ref(false)
+const localPropertyConditions = ref<any[]>([])
+const localDatasetName = ref('')
+const currentConditions = ref<any[]>([])
+const resetConditionSelection = ref(true)
 
-        this.$emit('item-deleted', index);
+watch(() => props.propertyConditions, (newVal) => {
+  localPropertyConditions.value = [...newVal]
+}, { deep: true, immediate: true })
 
-        if (this.selectedItem && this.selectedItem.id === deletedItem.id) {
-          if (this.localPropertyConditions.length > 0) {
-            this.$nextTick(() => {
-              this.selectedItemIndex = 0;
-            });
-          } else {
-            this.selectedItem = null;
-            this.selectedItemIndex = -1;
-            this.showPropertyGroup = false;
-            this.currentConditions = [];
-            this.resetConditionSelection = true;
-          }
-        }
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    localDatasetName.value = props.datasetName
+    localPropertyConditions.value.splice(0, localPropertyConditions.value.length)
+    props.conditionPropertyItems.forEach(item => {
+      localPropertyConditions.value.push(item)
+    })
 
-        setDirty();
-      }
-    },
-
-    onItemSelected(item) {
-      this.selectedItem = item;
-
-      if (!item) {
-        this.showPropertyGroup = false;
-        this.currentConditions = [];
-        this.resetConditionSelection = true;
-        return;
-      }
-      this.showPropertyGroup = true;
-
-      if (!item.conditions) {
-        item.conditions = [];
-      }
-      this.currentConditions = [...item.conditions];
-      this.resetConditionSelection = false;
-      setDirty();
-    },
-
-    onPropertyChanged(updatedItem) {
-      if (updatedItem) {
-        const index = this.localPropertyConditions.findIndex(item => item.name === updatedItem.name);
-        if (index !== -1) {
-          const currentConditions = this.selectedItem ? this.selectedItem.conditions : [];
-
-          this.$set(this.localPropertyConditions, index, updatedItem);
-
-          if (currentConditions && currentConditions.length > 0) {
-            this.localPropertyConditions[index].conditions = currentConditions;
-          }
-        }
-      }
-      setDirty();
-    },
-
-    onConditionAdded(newCondition) {
-      if (this.selectedItem) {
-        if (!this.selectedItem.conditions) {
-          this.selectedItem.conditions = [];
-        }
-        this.selectedItem.conditions.push(newCondition);
-        this.currentConditions = [...this.selectedItem.conditions];
-      }
-      setDirty();
-    },
-
-    onConditionUpdated(updatedCondition) {
-      if (this.selectedItem && this.selectedItem.conditions) {
-        const index = this.selectedItem.conditions.findIndex(c => c.id === updatedCondition.id);
-        if (index !== -1) {
-          this.selectedItem.conditions.splice(index, 1, updatedCondition);
-          this.currentConditions = [...this.selectedItem.conditions];
-        }
-      }
-      setDirty();
-    },
-
-    onConditionDeleted(condition) {
-      if (this.selectedItem && this.selectedItem.conditions) {
-        const index = this.selectedItem.conditions.findIndex(c => c.id === condition.id);
-        if (index !== -1) {
-          this.selectedItem.conditions.splice(index, 1);
-          this.currentConditions = [...this.selectedItem.conditions];
-        }
-      }
-      setDirty();
-    },
-
-    onItemIndexChanged(index) {
-      this.selectedItemIndex = index;
-    },
-
-    selectFirstItem() {
-      if (this.localPropertyConditions.length > 0) {
-        this.selectedItemIndex = 0;
-      }
-    },
-
-    clearSelection() {
-      this.selectedItem = null;
-      this.selectedItemIndex = -1;
-      this.showPropertyGroup = false;
-      this.currentConditions = [];
-      this.resetConditionSelection = true;
-    },
-
-    // 对话框控制方法
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
-
-    handleOk() {
-      this.$emit('update:visible', false);
-
-      const conditionsToReturn = this.localPropertyConditions.map(item => {
-        return JSON.parse(JSON.stringify(item));
-      });
-
-      this.$emit('saveAfter', conditionsToReturn);
+    if (localPropertyConditions.value.length > 0) {
+      selectFirstItem()
+    } else {
+      clearSelection()
     }
   }
-};
+})
+
+function onItemAdded(newItem: any) {
+  localPropertyConditions.value.push(newItem)
+  emit('item-added', newItem)
+  setDirty()
+}
+
+function onItemUpdated(item: any) {
+  const index = localPropertyConditions.value.findIndex(existingItem => existingItem.id === item.id)
+  if (index !== -1) {
+    localPropertyConditions.value[index] = item
+  }
+  emit('item-updated', item)
+  setDirty()
+}
+
+function onItemDeleted(index: number) {
+  if (index >= 0 && index < localPropertyConditions.value.length) {
+    const deletedItem = localPropertyConditions.value[index]
+    localPropertyConditions.value.splice(index, 1)
+
+    emit('item-deleted', index)
+
+    if (selectedItem.value && selectedItem.value.id === deletedItem.id) {
+      if (localPropertyConditions.value.length > 0) {
+        nextTick(() => {
+          selectedItemIndex.value = 0
+        })
+      } else {
+        selectedItem.value = null
+        selectedItemIndex.value = -1
+        showPropertyGroup.value = false
+        currentConditions.value = []
+        resetConditionSelection.value = true
+      }
+    }
+
+    setDirty()
+  }
+}
+
+function onItemSelected(item: any) {
+  selectedItem.value = item
+
+  if (!item) {
+    showPropertyGroup.value = false
+    currentConditions.value = []
+    resetConditionSelection.value = true
+    return
+  }
+  showPropertyGroup.value = true
+
+  if (!item.conditions) {
+    item.conditions = []
+  }
+  currentConditions.value = [...item.conditions]
+  resetConditionSelection.value = false
+  setDirty()
+}
+
+function onPropertyChanged(updatedItem: any) {
+  if (updatedItem) {
+    const index = localPropertyConditions.value.findIndex(item => item.name === updatedItem.name)
+    if (index !== -1) {
+      const currentConditionsData = selectedItem.value ? selectedItem.value.conditions : []
+
+      localPropertyConditions.value[index] = updatedItem
+
+      if (currentConditionsData && currentConditionsData.length > 0) {
+        localPropertyConditions.value[index].conditions = currentConditionsData
+      }
+    }
+  }
+  setDirty()
+}
+
+function onConditionAdded(newCondition: any) {
+  if (selectedItem.value) {
+    if (!selectedItem.value.conditions) {
+      selectedItem.value.conditions = []
+    }
+    selectedItem.value.conditions.push(newCondition)
+    currentConditions.value = [...selectedItem.value.conditions]
+  }
+  setDirty()
+}
+
+function onConditionUpdated(updatedCondition: any) {
+  if (selectedItem.value && selectedItem.value.conditions) {
+    const index = selectedItem.value.conditions.findIndex((c: any) => c.id === updatedCondition.id)
+    if (index !== -1) {
+      selectedItem.value.conditions.splice(index, 1, updatedCondition)
+      currentConditions.value = [...selectedItem.value.conditions]
+    }
+  }
+  setDirty()
+}
+
+function onConditionDeleted(condition: any) {
+  if (selectedItem.value && selectedItem.value.conditions) {
+    const index = selectedItem.value.conditions.findIndex((c: any) => c.id === condition.id)
+    if (index !== -1) {
+      selectedItem.value.conditions.splice(index, 1)
+      currentConditions.value = [...selectedItem.value.conditions]
+    }
+  }
+  setDirty()
+}
+
+function onItemIndexChanged(index: number) {
+  selectedItemIndex.value = index
+}
+
+function selectFirstItem() {
+  if (localPropertyConditions.value.length > 0) {
+    selectedItemIndex.value = 0
+  }
+}
+
+function clearSelection() {
+  selectedItem.value = null
+  selectedItemIndex.value = -1
+  showPropertyGroup.value = false
+  currentConditions.value = []
+  resetConditionSelection.value = true
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+function handleOk() {
+  emit('update:visible', false)
+
+  const conditionsToReturn = localPropertyConditions.value.map(item => {
+    return JSON.parse(JSON.stringify(item))
+  })
+
+  emit('saveAfter', conditionsToReturn)
+}
 </script>
 
 <style scoped>

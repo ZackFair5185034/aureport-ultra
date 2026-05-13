@@ -1,17 +1,114 @@
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+defineOptions({ name: 'ButtonGroup' })
+
+interface MenuItem {
+  text: string
+  icon?: string
+  iconStyle?: Record<string, string>
+  class?: string
+  disabled?: boolean
+  action?: (item: MenuItem) => void
+}
+
+const props = withDefaults(defineProps<{
+  iconClass?: string
+  iconStyle?: Record<string, string>
+  buttonText?: string
+  showText?: boolean
+  buttonStyle?: Record<string, string>
+  title?: string
+  customClass?: string
+  hasDropdown?: boolean
+  menuItems?: MenuItem[]
+  maxMenuHeight?: number
+}>(), {
+  iconClass: '',
+  iconStyle: () => ({ color: '#0e90d2' }),
+  buttonText: '',
+  showText: false,
+  buttonStyle: () => ({ border: 'none' }),
+  title: '',
+  customClass: '',
+  hasDropdown: true,
+  menuItems: () => [],
+  maxMenuHeight: 300,
+})
+
+const emit = defineEmits<{
+  'button-click': []
+  'dropdown-toggle': [value: boolean]
+  'dropdown-close': []
+  'menu-item-click': [item: MenuItem]
+}>()
+
+const isDropdownOpen = ref(false)
+const dropdown = ref<HTMLElement | null>(null)
+const mainButton = ref<HTMLElement | null>(null)
+
+function toggleDropdown() {
+  if (!props.hasDropdown) {
+    emit('button-click')
+    return
+  }
+  isDropdownOpen.value = !isDropdownOpen.value
+  emit('dropdown-toggle', isDropdownOpen.value)
+}
+
+function closeDropdown() {
+  isDropdownOpen.value = false
+  emit('dropdown-close')
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (mainButton.value && !mainButton.value.contains(event.target as Node)) {
+    closeDropdown()
+  }
+}
+
+function handleMenuItemClick(item: MenuItem) {
+  if (item.disabled) return
+  emit('menu-item-click', item)
+  if (item.action && typeof item.action === 'function') {
+    item.action(item)
+  }
+  closeDropdown()
+}
+
+onMounted(() => {
+  if (props.hasDropdown) {
+    document.addEventListener('click', handleClickOutside)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (props.hasDropdown) {
+    document.removeEventListener('click', handleClickOutside)
+  }
+})
+</script>
+
 <template>
   <div class="dropdown-buttons" :class="customClass">
-    <u-button
+    <UButton
+      ref="mainButton"
       type="info"
       :style="buttonStyle"
       :title="title"
       :icon="iconClass"
       @click="toggleDropdown"
-      ref="mainButton"
     >
       <span v-if="showText" class="button-text">{{ buttonText }}</span>
       <span v-if="hasDropdown" class="caret"></span>
-    </u-button>
-    <ul v-if="hasDropdown" class="dropdown-menu" role="menu" :style="{ display: isDropdownOpen ? 'block' : 'none', maxHeight: maxMenuHeight + 'px', overflowY: 'auto' }" ref="dropdown">
+    </UButton>
+    <ul
+      v-if="hasDropdown"
+      ref="dropdown"
+      class="dropdown-menu"
+      role="menu"
+      :style="{ display: isDropdownOpen ? 'block' : 'none', maxHeight: maxMenuHeight + 'px', overflowY: 'auto' }"
+    >
       <li v-for="(item, index) in menuItems" :key="index" :class="item.class">
         <a href="javascript:void(0)" @click="handleMenuItemClick(item)" style="text-decoration: none">
           <i v-if="item.icon" :class="item.icon" :style="item.iconStyle"></i> {{ item.text }}
@@ -20,123 +117,6 @@
     </ul>
   </div>
 </template>
-
-<script>
-import UButton from "@/components/button/index.vue";
-
-export default {
-  name: 'ButtonGroup',
-  components: {UButton},
-  props: {
-    // 主按钮图标类名
-    iconClass: {
-      type: String,
-      default: ''
-    },
-    // 主按钮图标样式
-    iconStyle: {
-      type: Object,
-      default: () => ({ color: '#0e90d2' })
-    },
-    // 主按钮文本
-    buttonText: {
-      type: String,
-      default: ''
-    },
-    // 是否显示文本
-    showText: {
-      type: Boolean,
-      default: false
-    },
-    // 主按钮样式
-    buttonStyle: {
-      type: Object,
-      default: () => ({
-        border: 'none'
-      })
-    },
-    // 工具提示
-    title: {
-      type: String,
-      default: ''
-    },
-    // 自定义类名
-    customClass: {
-      type: String,
-      default: ''
-    },
-    // 是否有下拉菜单
-    hasDropdown: {
-      type: Boolean,
-      default: true
-    },
-    // 下拉菜单项
-    menuItems: {
-      type: Array,
-      default: () => []
-    },
-    // 下拉菜单最大高度
-    maxMenuHeight: {
-      type: Number,
-      default: 300
-    }
-  },
-  data() {
-    return {
-      isDropdownOpen: false
-    };
-  },
-  mounted() {
-    if (this.hasDropdown) {
-      // 添加点击外部关闭下拉菜单的事件监听
-      document.addEventListener('click', this.handleClickOutside);
-    }
-  },
-  beforeDestroy() {
-    if (this.hasDropdown) {
-      // 移除事件监听
-      document.removeEventListener('click', this.handleClickOutside);
-    }
-  },
-  methods: {
-    toggleDropdown() {
-      if (!this.hasDropdown) {
-        // 如果没有下拉菜单，直接触发点击事件
-        this.$emit('button-click');
-        return;
-      }
-      this.isDropdownOpen = !this.isDropdownOpen;
-      this.$emit('dropdown-toggle', this.isDropdownOpen);
-    },
-    closeDropdown() {
-      this.isDropdownOpen = false;
-      this.$emit('dropdown-close');
-    },
-    handleClickOutside(event) {
-      // 检查点击是否在下拉菜单外部
-      if (this.$el && !this.$el.contains(event.target)) {
-        this.closeDropdown();
-      }
-    },
-    handleMenuItemClick(item) {
-      if (item.disabled) {
-        return;
-      }
-
-      // 触发菜单项点击事件，传递菜单项数据
-      this.$emit('menu-item-click', item);
-
-      // 如果菜单项有自定义的处理函数，则调用它
-      if (item.action && typeof item.action === 'function') {
-        item.action(item);
-      }
-
-      // 关闭下拉菜单
-      this.closeDropdown();
-    }
-  }
-};
-</script>
 
 <style scoped>
 .dropdown-buttons {
@@ -191,7 +171,6 @@ export default {
   text-decoration: none;
   background-color: transparent;
   background-image: none;
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
   cursor: not-allowed;
 }
 
@@ -210,12 +189,4 @@ export default {
 .button-text {
   margin-left: 5px;
 }
-
-.btn-group .btn + .btn,
-.btn-group .btn + .btn-group,
-.btn-group .btn-group + .btn,
-.btn-group .btn-group + .btn-group {
-  margin-left: -1px;
-}
 </style>
-

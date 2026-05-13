@@ -98,223 +98,165 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import DatabaseTree from './database-tree/index.vue';
-import SpringTree from './spring-tree/index.vue';
-import BuildinTree from './buildin-tree/index.vue';
-import DatasourceDialog from './datasource-dialog/index.vue';
-import SpringDialog from './spring-dialog/index.vue';
-import BuildinDatasourceSelectDialog from './buildin-datasource-select-dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import {deepCopy} from "@/components/utils";
-import { updateReportDef } from '@/utils/contextActions.js';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, computed, watch, onMounted } from 'vue'
+import { useReportStore } from '@/stores/report'
+import { useI18n } from 'vue-i18n'
+import DatabaseTree from './database-tree/index.vue'
+import SpringTree from './spring-tree/index.vue'
+import BuildinTree from './buildin-tree/index.vue'
+import DatasourceDialog from './datasource-dialog/index.vue'
+import SpringDialog from './spring-dialog/index.vue'
+import BuildinDatasourceSelectDialog from './buildin-datasource-select-dialog/index.vue'
+import { deepCopy } from '@/components/utils'
+import { updateReportDef } from '@/utils/contextActions.js'
 
-export default {
-  name: 'DatasourcePanel',
-  components: {
-    UButton,
-    DatabaseTree,
-    SpringTree,
-    BuildinTree,
-    DatasourceDialog,
-    SpringDialog,
-    BuildinDatasourceSelectDialog
-  },
+defineOptions({ name: 'DatasourcePanel' })
 
-  data() {
-    return {
-      datasources: [],
-      buildinDialogVisible: false,
-      datasourceDialogVisible: false,
-      currentDatasource: null,
-      springDialogVisible: false,
-      currentSpringDatasource: null
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext || {};
-    },
-    // 分离不同类型的数据源以便渲染
-    jdbcDatasources() {
-      return this.datasources.filter(ds => ds.type === 'jdbc');
-    },
-    springDatasources() {
-      return this.datasources.filter(ds => ds.type === 'spring');
-    },
-    buildinDatasources() {
-      return this.datasources.filter(ds => ds.type === 'buildin');
-    },
+const { t } = useI18n()
+const store = useReportStore()
 
-  },
-  watch: {
-    context: {
-      handler(newContext) {
-        if (newContext && newContext.reportDef) {
-          this.initializeDatasources();
-        }
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    // 初始化数据源
-    this.initializeDatasources();
-  },
-  methods: {
-    /**
-     * 初始化数据源
-     */
-    initializeDatasources() {
-      const context = this.context;
-      if (!context) return;
+const treeContainer = ref<HTMLDivElement | null>(null)
+const datasourceDialog = ref<any>(null)
+const springDialog = ref<any>(null)
+const buildinDialog = ref<any>(null)
 
-      const reportDef = context.reportDef;
-      if (!reportDef) return;
+const datasources = ref<any[]>([])
+const datasourceDialogVisible = ref(false)
+const currentDatasource = ref<any>(null)
+const springDialogVisible = ref(false)
+const currentSpringDatasource = ref<any>(null)
+const buildinDialogVisible = ref(false)
 
-      if (!reportDef.datasources) {
-        const newReportDef = deepCopy(reportDef);
-        newReportDef.datasources = [];
-        updateReportDef(newReportDef);
-      }
+const context = computed(() => store.context || {})
 
-      this.datasources = reportDef.datasources || [];
-    },
+const jdbcDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'jdbc'))
+const springDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'spring'))
+const buildinDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'buildin'))
 
-    /**
-     * 显示数据源对话框
-     */
-    showDatasourceDialog() {
-      this.currentDatasource = null;
-      this.datasourceDialogVisible = true;
-    },
-
-    /**
-     * 显示Spring对话框
-     */
-    showSpringDialog() {
-      this.currentSpringDatasource = null;
-      this.springDialogVisible = true;
-    },
-
-    /**
-     * 显示内置数据源对话框
-     */
-    showBuildinDialog() {
-      this.buildinDialogVisible = true;
-    },
-
-    /**
-     * 添加JDBC数据源
-     */
-    addJdbcDatasource(datasource) {
-      const newDatasource = {
-        name: datasource.name,
-        username: datasource.username,
-        password: datasource.password,
-        type: datasource.type || 'jdbc',
-        url: datasource.url,
-        driver: datasource.driver,
-        datasets: datasource.datasets || []
-      };
-
-      const newIndex = this.datasources.length;
-      this.$set(this.datasources, newIndex, newDatasource);
-
-      const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-      updateReportDef(reportDef);
-    },
-
-    /**
-     * 添加Spring数据源
-     */
-    addSpringDatasource(datasource) {
-      // 确保数据源对象有正确的属性
-      const newDatasource = {
-        name: datasource.name,
-        beanId: datasource.beanId,
-        type: datasource.type || 'spring',
-        datasets: datasource.datasets || []
-      };
-
-      const newIndex = this.datasources.length;
-      this.$set(this.datasources, newIndex, newDatasource);
-
-      const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-      updateReportDef(reportDef);
-    },
-
-    /**
-     * 添加内置数据源
-     */
-    addBuildinDatasource(datasource) {
-      // 确保数据源对象有正确的属性
-      const newDatasource = {
-        name: datasource.name,
-        type: datasource.type || 'buildin',
-        datasets: datasource.datasets || []
-      };
-
-      const newIndex = this.datasources.length;
-      this.$set(this.datasources, newIndex, newDatasource);
-
-      const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-      updateReportDef(reportDef);
-    },
-
-    /**
-     * 移除数据源
-     */
-    removeDatasource(name) {
-      const index = this.datasources.findIndex(d => d.name === name);
-      if (index !== -1) {
-        this.datasources.splice(index, 1);
-
-        const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-        updateReportDef(reportDef);
-      }
-    },
-
-    /**
-     * 更新数据源
-     */
-    updateDatasource(data) {
-      // 查找并更新匹配的数据源
-      const index = this.datasources.findIndex(ds => ds.name === data.oldName);
-      if (index !== -1) {
-        this.$set(this.datasources, index, { ...this.datasources[index], ...data });
-      }
-
-      const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-      updateReportDef(reportDef);
-    },
-
-    /**
-     * 更新 Spring 数据源的数据集
-     */
-    updateSpringDatasets(datasource, datasets) {
-      // 更新数据源的数据集
-      datasource.datasets = datasets;
-      const reportDef = { ...this.context.reportDef, datasources: this.datasources };
-      updateReportDef(reportDef);
-    },
-
-    /**
-     * 构建面板（兼容旧接口）
-     */
-    buildPanel() {
-      return [{
-        appendChild: (el) => {
-          if (this.$refs.treeContainer) {
-            this.$refs.treeContainer.appendChild(el);
-          }
-        }
-      }];
-    }
+watch(context, (newContext) => {
+  if (newContext && newContext.reportDef) {
+    initializeDatasources()
   }
-};
+}, { immediate: true })
+
+onMounted(() => {
+  initializeDatasources()
+})
+
+function initializeDatasources() {
+  const ctx = context.value
+  if (!ctx) return
+
+  const reportDef = ctx.reportDef
+  if (!reportDef) return
+
+  if (!reportDef.datasources) {
+    const newReportDef = deepCopy(reportDef)
+    newReportDef.datasources = []
+    updateReportDef(newReportDef)
+  }
+
+  datasources.value = reportDef.datasources || []
+}
+
+function showDatasourceDialog() {
+  currentDatasource.value = null
+  datasourceDialogVisible.value = true
+}
+
+function showSpringDialog() {
+  currentSpringDatasource.value = null
+  springDialogVisible.value = true
+}
+
+function showBuildinDialog() {
+  buildinDialogVisible.value = true
+}
+
+function addJdbcDatasource(datasource: any) {
+  const newDatasource = {
+    name: datasource.name,
+    username: datasource.username,
+    password: datasource.password,
+    type: datasource.type || 'jdbc',
+    url: datasource.url,
+    driver: datasource.driver,
+    datasets: datasource.datasets || []
+  }
+
+  const newIndex = datasources.value.length
+  datasources.value[newIndex] = newDatasource
+
+  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function addSpringDatasource(datasource: any) {
+  const newDatasource = {
+    name: datasource.name,
+    beanId: datasource.beanId,
+    type: datasource.type || 'spring',
+    datasets: datasource.datasets || []
+  }
+
+  const newIndex = datasources.value.length
+  datasources.value[newIndex] = newDatasource
+
+  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function addBuildinDatasource(datasource: any) {
+  const newDatasource = {
+    name: datasource.name,
+    type: datasource.type || 'buildin',
+    datasets: datasource.datasets || []
+  }
+
+  const newIndex = datasources.value.length
+  datasources.value[newIndex] = newDatasource
+
+  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function removeDatasource(name: string) {
+  const index = datasources.value.findIndex((d: any) => d.name === name)
+  if (index !== -1) {
+    datasources.value.splice(index, 1)
+
+    const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+    updateReportDef(reportDef)
+  }
+}
+
+function updateDatasource(data: any) {
+  const index = datasources.value.findIndex((ds: any) => ds.name === data.oldName)
+  if (index !== -1) {
+    datasources.value[index] = { ...datasources.value[index], ...data }
+  }
+
+  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function updateSpringDatasets(datasource: any, datasets: any[]) {
+  datasource.datasets = datasets
+  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function buildPanel() {
+  return [{
+    appendChild: (el: HTMLElement) => {
+      if (treeContainer.value) {
+        treeContainer.value.appendChild(el)
+      }
+    }
+  }]
+}
 </script>
 
 <style scoped>

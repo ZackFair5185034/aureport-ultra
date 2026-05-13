@@ -1,5 +1,5 @@
 <template>
-  <div class="ud-toolbar" :style="toolbarStyle" ref="toolbar">
+  <div class="ud-toolbar" style="position: relative" ref="toolbar">
     <div class="ud-toolbar-title">
       <div class="file-info">
         {{ fileName }}
@@ -37,111 +37,39 @@
   </div>
 </template>
 
-<script>
-import ImportTool from '@/views/report/designer/tool-bar/import-tool/index.vue';
-import SaveTool from '@/views/report/designer/tool-bar/save-tool/index.vue';
-import SaveAsTool from '@/views/report/designer/tool-bar/save-as-tool/index.vue';
-import PreviewTool from '@/views/report/designer/tool-bar/preview-tool/index.vue';
-import PreviewPageTool from '@/views/report/designer/tool-bar/preview-page-tool/index.vue';
-import OpenTool from '@/views/report/designer/tool-bar/open-tool/index.vue';
-import UndoTool from '@/views/report/designer/tool-bar/undo-tool/index.vue';
-import RedoTool from '@/views/report/designer/tool-bar/redo-tool/index.vue';
-import AlignLeftTool from '@/views/report/designer/tool-bar/align-left-tool/index.vue';
-import AlignTopTool from '@/views/report/designer/tool-bar/align-tool/index.vue';
-import MergeTool from '@/views/report/designer/tool-bar/merge-tool/index.vue';
-import FontFamilyTool from '@/views/report/designer/tool-bar/font-family-tool/index.vue';
-import FontSizeTool from '@/views/report/designer/tool-bar/font-size-tool/index.vue';
-import BoldTool from '@/views/report/designer/tool-bar/bold-tool/index.vue';
-import ItalicTool from '@/views/report/designer/tool-bar/italic-tool/index.vue';
-import UnderlineTool from '@/views/report/designer/tool-bar/underline-tool/index.vue';
-import BgColorTool from '@/views/report/designer/tool-bar/bg-color-tool/index.vue';
-import FontColorTool from '@/views/report/designer/tool-bar/font-color-tool/index.vue';
-import CrosstabTool from '@/views/report/designer/tool-bar/crosstab-tool/index.vue';
-import ImageTool from '@/views/report/designer/tool-bar/image-tool/index.vue';
-import ChartTool from '@/views/report/designer/tool-bar/chart-tool/index.vue';
-import ZxingTool from '@/views/report/designer/tool-bar/zxing-tool/index.vue';
-import SearchFormSwitchTool from '@/views/report/designer/tool-bar/search-form-switch-tool/index.vue';
-import SettingsTool from '@/views/report/designer/tool-bar/settings-tool/index.vue';
-import BorderTool from "@/views/report/designer/tool-bar/border-tool/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useReportStore } from '@/stores/report'
 
-export default {
-  name: 'TopToolBar',
-  components: {
-    BorderTool,
-    ImportTool,
-    SaveTool,
-    SaveAsTool,
-    PreviewTool,
-    PreviewPageTool,
-    OpenTool,
-    UndoTool,
-    RedoTool,
-    AlignLeftTool,
-    AlignTopTool,
-    MergeTool,
-    FontFamilyTool,
-    FontSizeTool,
-    BoldTool,
-    ItalicTool,
-    UnderlineTool,
-    FontColorTool,
-    BgColorTool,
-    CrosstabTool,
-    ImageTool,
-    ChartTool,
-    ZxingTool,
-    SearchFormSwitchTool,
-    SettingsTool
-  },
-  props: {
-    selectedCells: {
-      type: Object,
-      default: () => ({
-        rowIndex: null,
-        colIndex: null,
-        row2Index: null,
-        col2Index: null
-      })
-    }
-  },
-  computed: {
-    /**
-     * 获取context
-     */
-    context: function() {
-      return this.$store.getters['report/getContext'] || {}
-    },
+defineOptions({ name: 'TopToolBar' })
 
-    /**
-     * 获取fileName
-     */
-    fileName: function() {
-      const fileName = this.$store.getters['report/getFileName']
-      if(fileName){
-        return decodeURIComponent(fileName);
-      }else{
-        return 'Blank';
-      }
-    }
-  },
-  watch: {
-    fileName: {
-      handler(val) {
-        document.title = val;
-      },
-      immediate: true
-    }
-  },
-  data() {
-    return {
-      toolbarStyle: {
-        position: 'relative',
-      }
-    };
-  },
-  methods: {
+const store = useReportStore()
+const toolbarStyle = ref({
+  position: 'relative' as const,
+})
+
+const props = withDefaults(defineProps<{
+  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+}>(), {
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+})
+
+const context = computed(() => {
+  return store.context || {}
+})
+
+const fileName = computed(() => {
+  const fileName = store.fileName
+  if (fileName) {
+    return decodeURIComponent(fileName)
+  } else {
+    return 'Blank'
   }
-};
+})
+
+watch(fileName, (val) => {
+  document.title = val
+}, { immediate: true })
 </script>
 
 <style scoped>

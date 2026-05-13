@@ -29,11 +29,13 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
+import {useI18n} from 'vue-i18n'
 import {Chart, registerables} from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import {loadReportData, loadHtml} from '@/api/preview'
-import {buildChartDatas} from '@/views/report/preview/utils/chart.js'
+import {buildChartDatas} from '@/views/report/preview/utils/chart'
 
 import SearchBox from '@/views/report/preview/search-box/index.vue';
 import ToolBox from '@/views/report/preview/tool-box/index.vue';
@@ -41,323 +43,327 @@ import {updateUrlParams} from '@/utils/url';
 
 import {isMobile, showAlert} from "@/utils/comnon";
 import showLoading from "@/components/loading/instance";
-import {$t} from "@/locales";
+import {$t, setLocale as setAppLocale} from "@/locales";
 
 Chart.register(...registerables, ChartDataLabels);
 
-export default {
-  name: 'PreviewPage',
-  components: {
-    ToolBox,
-    SearchBox
-  },
-  data() {
-    return {
-      reportData: null,
-      currentReportName: '',
-      totalPage: 0,
-      currentPage: 1,
-      searchFormParameters: {},
-      searchFormConfig: null,
-      reportPath: '',
-      mode: '',
-      toolsInfo: null,
-      pageIndex: null,
-      extraParams: {},
-      isShowSearchForm: true
-    }
-  },
-  computed: {
-    pageEnable() {
-      return this.pageIndex != null && parseInt(this.pageIndex) > 0;
-    },
-    isRenderSearchForm(){
-      return !!(this.searchFormConfig?.fields?.length)
-    }
-  },
-  async mounted() {
-    let that = this;
-    this.parseParamsFromUrl();
-    window.addEventListener('popstate', this.handlePopState);
-    this.initReport().then(() => {
-      that.isShowSearchForm = that.isRenderSearchForm
-    })
-  },
-  beforeDestroy() {
-    window.removeEventListener('popstate', this.handlePopState);
-  },
-  methods: {
-    toggleCollapse() {
-      this.isShowSearchForm = !this.isShowSearchForm;
-    },
+defineOptions({ name: 'PreviewPage' });
 
-    async initReport() {
-      const reportData = await this.fetchPageData(this.pageIndex);
-      if (!reportData) return;
+const { t } = useI18n();
 
-      this.setWebTitle();
-      this.searchFormConfig = reportData.searchForm;
-      this.injectReportStyle(reportData.style);
-      this.initFunctions();
+const emit = defineEmits<{
+  (e: 'ready', data: { reportData: unknown }): void;
+  (e: 'error', err: unknown): void;
+}>();
 
-      this.$emit('ready', { reportData });
-    },
+// data
+const reportData = ref<any>(null);
+const currentReportName = ref('');
+const totalPage = ref(0);
+const currentPage = ref(1);
+const searchFormParameters = ref({});
+const searchFormConfig = ref<any>(null);
+const reportPath = ref('');
+const mode = ref('');
+const toolsInfo = ref<string | null>(null);
+const pageIndex = ref<string | number | null>(null);
+const extraParams = ref<Record<string, string>>({});
+const isShowSearchForm = ref(true);
 
-    setWebTitle() {
-      this.currentReportName = this.extraParams._title || this.reportPath;
-      if (this.currentReportName) {
-        this.currentReportName = decodeURIComponent(this.currentReportName);
-      }
-      if (this.currentReportName.endsWith('.ureport.xml')) {
-        this.currentReportName = this.currentReportName.replace('.ureport.xml', '');
-      }
-      document.title = this.currentReportName;
-    },
+// computed
+const pageEnable = computed(() => {
+  return pageIndex.value != null && parseInt(String(pageIndex.value)) > 0;
+});
 
-    async loadPageData(pageIndex) {
-      const reportData = await this.fetchPageData(pageIndex);
-      if (!reportData) return;
-      this.renderReportContent(reportData);
-    },
+const isRenderSearchForm = computed(() => {
+  return !!(searchFormConfig.value?.fields?.length);
+});
 
-    async fetchPageData(pageIndex) {
-      const loadingInstance = showLoading({
-        text: $t('preview.loading.report'),
-      });
-      try {
-        const params = this.getReportParams(pageIndex);
-        const reportData = await loadHtml(params);
-        reportData.tools = this.computeTools();
-        Object.freeze(reportData);
-        this.reportData = reportData;
-        this.currentPage = parseInt(reportData.pageIndex || pageIndex) || 1;
-        this.totalPage = this.extractTotalPage(reportData);
-        return reportData;
-      } catch (error) {
-        if (error.msg) {
-          showAlert($t('preview.error.loadReportFail') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert($t('preview.error.loadReportFail'));
-        }
+// methods
+function toggleCollapse() {
+  isShowSearchForm.value = !isShowSearchForm.value;
+}
 
-        this.$emit('error', error);
-        return null;
-      } finally {
-        loadingInstance.close();
-      }
-    },
+async function initReport() {
+  const result = await fetchPageData(pageIndex.value);
+  if (!result) return;
 
-    async handleFormSubmit(formData) {
-      this.searchFormParameters = formData;
-      try {
-        await this.loadAndRenderReport({ resetToFirstPage: this.pageEnable });
-      } catch (error) {
-        console.error('提交搜索表单失败:', error);
-      }
-    },
+  setWebTitle();
+  searchFormConfig.value = result.searchForm;
+  injectReportStyle(result.style);
+  initFunctions();
 
-    async loadAndRenderReport(options = {}) {
-      const { resetToFirstPage = false } = options;
+  emit('ready', { reportData: result });
+}
 
-      let pageIndex;
-      if (resetToFirstPage) {
-        this.currentPage = 1;
-        pageIndex = 1;
-      } else if (this.totalPage > 0 && this.currentPage) {
-        if (this.currentPage > this.totalPage) {
-          this.currentPage = 1;
-        }
-        pageIndex = this.currentPage;
-      }
+function setWebTitle() {
+  currentReportName.value = extraParams.value._title || reportPath.value;
+  if (currentReportName.value) {
+    currentReportName.value = decodeURIComponent(currentReportName.value);
+  }
+  if (currentReportName.value.endsWith('.ureport.xml')) {
+    currentReportName.value = currentReportName.value.replace('.ureport.xml', '');
+  }
+  document.title = currentReportName.value;
+}
 
-      const params = this.getReportParams(pageIndex);
-      const report = await loadReportData(params);
-      this.renderReportContent(report);
+async function loadPageData(pageIdx: number | string | null) {
+  const result = await fetchPageData(pageIdx);
+  if (!result) return;
+  renderReportContent(result);
+}
 
-      this.totalPage = this.extractTotalPage(report);
-      this.currentPage = report.pageIndex || this.currentPage;
-
-      const totalPageLabel = document.getElementById('totalPageLabel');
-      if (totalPageLabel) {
-        totalPageLabel.textContent = this.totalPage;
-      }
-      return report;
-    },
-
-    parseParamsFromUrl() {
-      const searchParams = new URLSearchParams(window.location.search);
-      this.reportPath = searchParams.get('reportPath') || '';
-      this.mode = searchParams.get('mode') || '';
-      this.toolsInfo = searchParams.get('_t');
-      this.pageIndex = searchParams.get('_i');
-      this.extraParams = {};
-      const localKeys = ['_i', '_t', '_r', '_n', 'mode', 'reportPath'];
-      for (const [key, value] of searchParams) {
-        if (!localKeys.includes(key)) {
-          this.extraParams[key] = value;
-        }
-      }
-    },
-
-    handlePopState() {
-      const oldPageIndex = this.pageIndex;
-      this.parseParamsFromUrl();
-      if (oldPageIndex !== this.pageIndex) {
-        this.loadPageData(this.pageIndex || 1);
-      }
-    },
-
-    getReportParams(pageIndex) {
-      if (!this.reportPath) {
-        throw new Error(this.$t('preview.error.fileParamMissing'));
-      }
-
-      const params = { reportPath: this.reportPath };
-
-      if (this.mode) params.mode = this.mode;
-      if (pageIndex != null) params._i = pageIndex;
-      if (this.toolsInfo != null) params._t = this.toolsInfo;
-
-      Object.assign(params, this.extraParams);
-      this.mergeSearchFormParams(params);
-
-      return params;
-    },
-
-    mergeSearchFormParams(target) {
-      if (!this.searchFormParameters) return;
-      Object.keys(this.searchFormParameters).forEach(key => {
-        if (this.searchFormParameters[key]) {
-          target[key] = this.searchFormParameters[key];
-        }
-      });
-    },
-
-    renderReportContent(reportData) {
-      const tableContainer = document.getElementById('report-table');
-      if (tableContainer) {
-        tableContainer.innerHTML = reportData.content;
-      }
-      buildChartDatas(reportData.chartDatas);
-    },
-
-    extractTotalPage(reportData) {
-      return reportData.totalPageWithCol || reportData.totalPage || 0;
-    },
-
-    computeTools() {
-      const isMobileDevice = isMobile();
-      const allOff = { show: false, print: false, pdfPrint: false, pdfPreviewPrint: false, pdf: false, word: false, excel: false, pagingExcel: false, sheetPagingExcel: false, paging: false };
-      const allOn = { show: true, print: true, pdfPrint: true, pdfPreviewPrint: true, pdf: true, word: true, excel: true, pagingExcel: true, sheetPagingExcel: true, paging: true };
-
-      if (isMobileDevice) return allOff;
-
-      if (this.toolsInfo == null || this.toolsInfo === '') return allOn;
-      if (String(this.toolsInfo) === '0') return allOff;
-
-      const tools = { ...allOff, show: true };
-      const map = {
-        '1': 'print',
-        '2': 'pdfPrint',
-        '3': 'pdfPreviewPrint',
-        '4': 'pdf',
-        '5': 'word',
-        '6': 'excel',
-        '7': 'pagingExcel',
-        '8': 'sheetPagingExcel',
-        '9': 'paging'
-      };
-      String(this.toolsInfo).split(',').forEach(key => { if (map[key]) tools[map[key]] = true; });
-      return tools;
-    },
-
-    injectReportStyle(style) {
-      let styleElement = document.getElementById('report-table-style');
-      if (!styleElement) {
-        styleElement = document.createElement('style');
-        styleElement.id = 'report-table-style';
-        document.head.appendChild(styleElement);
-      }
-      styleElement.textContent = style || '';
-    },
-
-    async refreshReport(second) {
-      try {
-        await this.loadAndRenderReport({ resetToFirstPage: false });
-      } catch (error) {
-        console.error('刷新数据失败:', error);
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg,  { useHTMLString: true });
-        } else {
-          showAlert(this.$t('dialog.save.fail'));
-        }
-      } finally {
-        setTimeout(() => this.refreshReport(second), second);
-      }
-    },
-
-    intervalRefresh(value, totalPage) {
-      if (!value) return;
-      this.totalPage = totalPage;
-      const second = value * 1000;
-      setTimeout(() => this.refreshReport(second), second);
-    },
-
-    handlePageChange(pageIndex) {
-      updateUrlParams({ _i: pageIndex }, true);
-      this.pageIndex = pageIndex;
-
-      if (pageIndex != null) {
-        this.loadPageData(pageIndex);
-      } else {
-        this.initReport();
-      }
-    },
-
-    initFunctions() {
-      setTimeout(() => {
-        if (this.reportData.intervalRefreshValue > 0) {
-          this.intervalRefresh(this.reportData.intervalRefreshValue, this.totalPage);
-        }
-        if (this.reportData.chartDatas && this.reportData.chartDatas.length > 0) {
-          buildChartDatas(this.reportData.chartDatas);
-        }
-      }, 500);
-    },
-
-    handlePageEnableChange(pageEnable) {
-      if (pageEnable) {
-        this.handlePageChange(1);
-      } else {
-        updateUrlParams({ _i: null });
-        this.pageIndex = null;
-        this.initReport();
-      }
-    },
-
-    refresh() {
-      this.parseParamsFromUrl();
-      this.initReport();
-    },
-
-    setReportPath(path) {
-      updateUrlParams({ reportPath: path });
-      this.reportPath = path;
-      if (path) this.initReport();
-    },
-
-    setParams(params) {
-      updateUrlParams(params);
-      this.parseParamsFromUrl();
-      this.initReport();
-    },
-
-    setLocale(locale) {
-      this.$i18n.locale = locale;
+async function fetchPageData(pageIdx: string | number | null) {
+  const loadingInstance = showLoading({
+    text: $t('preview.loading.report'),
+  });
+  try {
+    const params = getReportParams(pageIdx);
+    const result: any = await loadHtml(params);
+    result.tools = computeTools();
+    Object.freeze(result);
+    reportData.value = result;
+    currentPage.value = parseInt(result.pageIndex || pageIdx as any) || 1;
+    totalPage.value = extractTotalPage(result);
+    return result;
+  } catch (err) {
+    const error = err as any;
+    if (error.msg) {
+      showAlert($t('preview.error.loadReportFail') + t('colon') + error.msg, { useHTMLString: true });
+    } else {
+      showAlert(t('preview.error.loadReportFail'));
     }
 
+    emit('error', error);
+    return null;
+  } finally {
+    loadingInstance.close();
   }
 }
+
+async function handleFormSubmit(formData: any) {
+  searchFormParameters.value = formData;
+  try {
+    await loadAndRenderReport({ resetToFirstPage: pageEnable.value });
+  } catch (error) {
+    console.error('提交搜索表单失败:', error);
+  }
+}
+
+async function loadAndRenderReport(options: { resetToFirstPage?: boolean } = {}) {
+  const { resetToFirstPage = false } = options;
+
+  let pageIdx: number | undefined;
+  if (resetToFirstPage) {
+    currentPage.value = 1;
+    pageIdx = 1;
+  } else if (totalPage.value > 0 && currentPage.value) {
+    if (currentPage.value > totalPage.value) {
+      currentPage.value = 1;
+    }
+    pageIdx = currentPage.value;
+  }
+
+  const params = getReportParams(pageIdx);
+  const report: any = await loadReportData(params);
+  renderReportContent(report);
+
+  totalPage.value = extractTotalPage(report);
+  currentPage.value = report.pageIndex || currentPage.value;
+
+  const totalPageLabel = document.getElementById('totalPageLabel');
+  if (totalPageLabel) {
+    totalPageLabel.textContent = String(totalPage.value);
+  }
+  return report;
+}
+
+function parseParamsFromUrl() {
+  const searchParams = new URLSearchParams(window.location.search);
+  reportPath.value = searchParams.get('reportPath') || '';
+  mode.value = searchParams.get('mode') || '';
+  toolsInfo.value = searchParams.get('_t');
+  pageIndex.value = searchParams.get('_i');
+  extraParams.value = {} as Record<string, string>;
+  const localKeys = ['_i', '_t', '_r', '_n', 'mode', 'reportPath'];
+  for (const [key, value] of searchParams) {
+    if (!localKeys.includes(key)) {
+      extraParams.value[key] = value;
+    }
+  }
+}
+
+function handlePopState() {
+  const oldPageIndex = pageIndex.value;
+  parseParamsFromUrl();
+  if (oldPageIndex !== pageIndex.value) {
+    loadPageData(pageIndex.value || 1);
+  }
+}
+
+function getReportParams(pageIdx: string | number | null | undefined) {
+  if (!reportPath.value) {
+    throw new Error(t('preview.error.fileParamMissing'));
+  }
+
+  const params: Record<string, any> = { reportPath: reportPath.value };
+
+  if (mode.value) params.mode = mode.value;
+  if (pageIdx != null) params._i = pageIdx;
+  if (toolsInfo.value != null) params._t = toolsInfo.value;
+
+  Object.assign(params, extraParams.value);
+  mergeSearchFormParams(params as any);
+
+  return params;
+}
+
+function mergeSearchFormParams(target: Record<string, any>) {
+  if (!searchFormParameters.value) return;
+  Object.keys(searchFormParameters.value).forEach((key: string) => {
+    if ((searchFormParameters.value as Record<string, any>)[key]) {
+      target[key] = (searchFormParameters.value as Record<string, any>)[key];
+    }
+  });
+}
+
+function renderReportContent(reportDataObj: any) {
+  const tableContainer = document.getElementById('report-table');
+  if (tableContainer) {
+    tableContainer.innerHTML = reportDataObj.content;
+  }
+  buildChartDatas(reportDataObj.chartDatas);
+}
+
+function extractTotalPage(reportDataObj: any): number {
+  return reportDataObj.totalPageWithCol || reportDataObj.totalPage || 0;
+}
+
+function computeTools() {
+  const isMobileDevice = isMobile();
+  const allOff = { show: false, print: false, pdfPrint: false, pdfPreviewPrint: false, pdf: false, word: false, excel: false, pagingExcel: false, sheetPagingExcel: false, paging: false };
+  const allOn = { show: true, print: true, pdfPrint: true, pdfPreviewPrint: true, pdf: true, word: true, excel: true, pagingExcel: true, sheetPagingExcel: true, paging: true };
+
+  if (isMobileDevice) return allOff;
+
+  if (toolsInfo.value == null || toolsInfo.value === '') return allOn;
+  if (String(toolsInfo.value) === '0') return allOff;
+
+  const tools = { ...allOff, show: true };
+  const map: Record<string, string> = {
+    '1': 'print',
+    '2': 'pdfPrint',
+    '3': 'pdfPreviewPrint',
+    '4': 'pdf',
+    '5': 'word',
+    '6': 'excel',
+    '7': 'pagingExcel',
+    '8': 'sheetPagingExcel',
+    '9': 'paging'
+  };
+  String(toolsInfo.value).split(',').forEach(key => { if (map[key]) (tools as any)[map[key]] = true; });
+  return tools;
+}
+
+function injectReportStyle(style?: string) {
+  let styleElement = document.getElementById('report-table-style');
+  if (!styleElement) {
+    styleElement = document.createElement('style');
+    styleElement.id = 'report-table-style';
+    document.head.appendChild(styleElement);
+  }
+  styleElement.textContent = style || '';
+}
+
+async function refreshReport(second: number) {
+  try {
+    await loadAndRenderReport({ resetToFirstPage: false });
+  } catch (err) {
+    const error = err as any;
+    console.error('刷新数据失败:', error);
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true });
+    } else {
+      showAlert(t('dialog.save.fail'));
+    }
+  } finally {
+    setTimeout(() => refreshReport(second), second);
+  }
+}
+
+function intervalRefresh(value: number, totalPageVal: number) {
+  if (!value) return;
+  totalPage.value = totalPageVal;
+  const second = value * 1000;
+  setTimeout(() => refreshReport(second), second);
+}
+
+function handlePageChange(newPageIndex: string | number | null) {
+  updateUrlParams({ _i: newPageIndex }, true);
+  pageIndex.value = newPageIndex;
+
+  if (newPageIndex != null) {
+    loadPageData(newPageIndex);
+  } else {
+    initReport();
+  }
+}
+
+function initFunctions() {
+  setTimeout(() => {
+    if (reportData.value?.intervalRefreshValue > 0) {
+      intervalRefresh(reportData.value.intervalRefreshValue, totalPage.value);
+    }
+    if (reportData.value?.chartDatas?.length > 0) {
+      buildChartDatas(reportData.value.chartDatas);
+    }
+  }, 500);
+}
+
+function handlePageEnableChange(pageEnabled: boolean) {
+  if (pageEnabled) {
+    handlePageChange(1);
+  } else {
+    updateUrlParams({ _i: null });
+    pageIndex.value = null;
+    initReport();
+  }
+}
+
+function refresh() {
+  parseParamsFromUrl();
+  initReport();
+}
+
+function setReportPath(path: string) {
+  updateUrlParams({ reportPath: path });
+  reportPath.value = path;
+  if (path) initReport();
+}
+
+function setParams(params: Record<string, any>) {
+  updateUrlParams(params);
+  parseParamsFromUrl();
+  initReport();
+}
+
+function setLocale(locale: string) {
+  setAppLocale(locale);
+}
+
+// lifecycle
+onMounted(async () => {
+  parseParamsFromUrl();
+  window.addEventListener('popstate', handlePopState);
+  await initReport();
+  isShowSearchForm.value = isRenderSearchForm.value;
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('popstate', handlePopState);
+});
+
+defineExpose({ parseParamsFromUrl, initReport, refresh, handlePageChange });
 </script>
 
 <style scoped>

@@ -9,31 +9,30 @@
   </transition>
 </template>
 
-<script>
-export default {
-  data() {
-    return {};
-  },
-  methods: {
-    enter(el) {
-      el.style.height = "auto";
-      let endWidth = window.getComputedStyle(el).height;
-      el.style.height = "0px";
-      el.offsetHeight;
+<script setup lang="ts">
+defineOptions({ name: 'AutoHeight' })
 
-      el.style.height = endWidth;
-    },
-    afterEnter(el) {
-      el.style.height = null;
-    },
-    leave(el) {
-      el.style.height = window.getComputedStyle(el).height;
-      el.offsetHeight; // force repaint
-      el.style.height = "0px";
-    },
-    afterLeave(el) {
-      el.style.height = null;
-    }
-  }
-};
+function enter(el: Element) {
+  const htmlEl = el as HTMLElement
+  htmlEl.style.height = 'auto'
+  const endWidth = window.getComputedStyle(htmlEl).height
+  htmlEl.style.height = '0px'
+  htmlEl.offsetHeight
+  htmlEl.style.height = endWidth
+}
+
+function afterEnter(el: Element) {
+  ;(el as HTMLElement).style.height = ''
+}
+
+function leave(el: Element) {
+  const htmlEl = el as HTMLElement
+  htmlEl.style.height = window.getComputedStyle(htmlEl).height
+  htmlEl.offsetHeight
+  htmlEl.style.height = '0px'
+}
+
+function afterLeave(el: Element) {
+  ;(el as HTMLElement).style.height = ''
+}
 </script>

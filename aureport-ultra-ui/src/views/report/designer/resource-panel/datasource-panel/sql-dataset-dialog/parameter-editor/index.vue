@@ -12,36 +12,34 @@
   </div>
 </template>
 
-<script>
-import ParameterTable from '@/views/report/designer/resource-panel/datasource-panel/parameter-table/index.vue';
+<script setup lang="ts">
+import ParameterTable from '@/views/report/designer/resource-panel/datasource-panel/parameter-table/index.vue'
 
-export default {
-  name: 'ParameterEditor',
-  props: {
-    parameters: {
-      type: Array,
-      default: () => []
-    }
-  },
-  components: {
-    ParameterTable
-  },
-  // 移除直接修改子组件props的watch监听器，子组件的data prop会通过Vue的响应式系统自动更新
-  methods: {
-    handleAddParameter(newParam) {
-      this.$emit('add-parameter', newParam);
-    },
-    handleEditParameter(index, updatedParam) {
-      this.$emit('edit-parameter', index, updatedParam);
-    },
-    handleRemoveParameter(index) {
-      this.$emit('remove-parameter', index);
-    },
-    handleUpdate() {
-      this.$emit('update');
-    }
-  }
-};
+defineOptions({ name: 'ParameterEditor' })
+
+const props = defineProps<{
+  parameters: any[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'add-parameter', param: any): void
+  (e: 'edit-parameter', index: number, param: any): void
+  (e: 'remove-parameter', index: number): void
+  (e: 'update'): void
+}>()
+
+function handleAddParameter(newParam: any) {
+  emit('add-parameter', newParam)
+}
+function handleEditParameter(index: number, updatedParam: any) {
+  emit('edit-parameter', index, updatedParam)
+}
+function handleRemoveParameter(index: number) {
+  emit('remove-parameter', index)
+}
+function handleUpdate() {
+  emit('update')
+}
 </script>
 
 <style scoped>

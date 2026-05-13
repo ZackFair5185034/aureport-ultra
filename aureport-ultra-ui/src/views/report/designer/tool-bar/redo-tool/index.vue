@@ -8,24 +8,22 @@
   </u-button>
 </template>
 
-<script>
-import { undoManager } from '@/utils/table.js';
-import { showAlert } from '@/utils/comnon.js';
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { undoManager } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon.js'
 
-export default {
-  name: 'RedoTool',
-  components: {UButton},
-  methods: {
-    handleClick() {
-      if (undoManager.hasRedo()) {
-        undoManager.redo();
-      } else {
-        showAlert(this.$t('tools.redo.noRedo'));
-      }
-    }
+defineOptions({ name: 'RedoTool' })
+
+const { t } = useI18n()
+
+function handleClick() {
+  if (undoManager.hasRedo()) {
+    undoManager.redo()
+  } else {
+    showAlert(t('tools.redo.noRedo'))
   }
-};
+}
 </script>
 
 <style scoped>

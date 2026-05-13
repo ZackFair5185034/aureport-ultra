@@ -1,278 +1,213 @@
 <template>
   <div class="u-tree">
-    <tree-node
-      v-for="item in copyData"
-      :key="item.value"
+    <UTreeNode
+      v-for="(item, index) in copyData"
+      :key="index"
       :node="item"
       :show-checkbox="showCheckbox"
       :lazy="lazy"
       :level="1"
       :load="load"
-      :nodeKey="nodeKey"
-    >
-    </tree-node>
+      :node-key="nodeKey"
+    />
     <div class="u-tree-empty" v-if="!hasData">
       {{ emptyText }}
     </div>
   </div>
 </template>
 
-<script>
-import { deepCopy } from "../utils";
+<script setup lang="ts">
+import { ref, computed, watch, provide, nextTick, useSlots, h, type VNode } from 'vue'
+import { deepCopy } from '../utils'
 
-import Emitter from "../mixins/emitter";
-import treeNode from "./tree-node.vue";
+defineOptions({ name: 'UTree' })
 
-export default {
-  components: {
-    treeNode
-  },
-  name: "UTree",
-  mixins: [Emitter],
-  data() {
-    return {
-      // 子节点列表
-      nodes: [],
-      copyData: []
-    };
-  },
-  props: {
-    // 树的数据
-    data: {
-      type: Array,
-      default: () => []
-    },
-    // 节点是否可以被选择
-    showCheckbox: {
-      type: Boolean,
-      default: false
-    },
-    // 节点是否为懒加载
-    lazy: {
-      type: Boolean,
-      default: false
-    },
-    // 懒加载函数
-    load: {
-      type: Function
-    },
-    // 默认展开的节点
-    defaultExpandedKeys: {
-      type: Array,
-      default() {
-        return [];
-      }
-    },
-    // 默认选中的节点
-    defaultCheckedKeys: {
-      type: Array,
-      default() {
-        return [];
-      }
-    },
-    // 节点的key字段名
-    nodeKey: {
-      type: String
-    },
-    // 自定义的渲染函数
-    renderContent: {
-      type: Function
-    },
-    // 节点过滤函数
-    filterNodeMethod: {
-      type: Function
-    },
-    // data为空时的显示
-    emptyText: {
-      type: String,
-      default: "暂无数据"
-    }
-  },
-  watch: {
-    data: {
-      handler(newVal) {
-        if (this.lazy) {
-          this.lazyLoadData();
-        } else {
-          this.cloneData(newVal);
-        }
-      },
-      immediate: true
-    }
-  },
-  computed: {
-    hasData() {
-      return this.copyData && this.copyData.length > 0;
-    }
-  },
-  created() {
-    this.$on("on-tree-node-add", node => {
-      // 将tree的引用接入到node上
-      node.tree = this;
-      this.nodes.push(node);
-      this.checkUpNodeState(node);
-      this.$set(node.node, "visible", true);
-    });
+export interface TreeNodeData {
+  [key: string]: unknown
+  label?: string
+  value?: unknown
+  checked?: boolean
+  indeterminate?: boolean
+  disabled?: boolean
+  expand?: boolean
+  visible?: boolean
+  children?: TreeNodeData[]
+  isLeaf?: boolean
+  loaded?: boolean
+}
 
-    this.$on("on-tree-node-expand", node => {});
+export interface TreeNodeRef {
+  node: TreeNodeData
+  handleExpand: (val?: boolean) => void
+  handleCheck: (val: unknown) => void
+}
 
-    this.$on("on-tree-node-check", node => {});
-  },
-  methods: {
-    /**
-     * @description 对象深拷贝
-     * @param {object} data
-     * @returns {object} 拷贝后的对象
-     */
-    cloneData(data) {
-      this.copyData = deepCopy(data);
-    },
-    /**
-     * @description 检查子节点状态
-     */
-    checkUpNodeState(treeNode) {
-      // 设置默认展开和默认选中需要用户传入nodeKey
-      if (!this.nodeKey) return;
-      // 检查是否为默认展开的节点
-      if (this.defaultExpandedKeys && this.defaultExpandedKeys.length > 0) {
-        this.defaultExpandedKeys.includes(treeNode.node[this.nodeKey]) &&
-          this.$nextTick(() => {
-            treeNode.handleExpand(true);
-          });
-      }
+export interface TreeContext {
+  showCheckbox: boolean
+  lazy: boolean
+  load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
+  nodeKey?: string
+  renderContent?: (h: Function, context: { node: unknown; data: unknown }) => unknown
+  defaultExpandedKeys: unknown[]
+  defaultCheckedKeys: unknown[]
+  registerTreeNode: (ref: TreeNodeRef) => void
+  renderNodeContent: (treeNode: unknown, node: TreeNodeData) => VNode
+}
 
-      // 检查是否为默认选中的节点
-      if (this.defaultCheckedKeys && this.defaultCheckedKeys.length > 0) {
-        if (this.defaultCheckedKeys.includes(treeNode.node[this.nodeKey])) {
-          this.$nextTick(() => {
-            treeNode.handleCheck(true);
-          });
-        }
+const props = withDefaults(defineProps<{
+  data?: Record<string, unknown>[]
+  showCheckbox?: boolean
+  lazy?: boolean
+  load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
+  defaultExpandedKeys?: unknown[]
+  defaultCheckedKeys?: unknown[]
+  nodeKey?: string
+  renderContent?: (h: Function, context: { node: unknown; data: unknown }) => unknown
+  filterNodeMethod?: (value: string, node: Record<string, unknown>) => boolean
+  emptyText?: string
+}>(), {
+  data: () => [],
+  showCheckbox: false,
+  lazy: false,
+  defaultExpandedKeys: () => [],
+  defaultCheckedKeys: () => [],
+  emptyText: '暂无数据',
+})
 
-        // this.defaultCheckedKeys.includes(node[this.nodeKey]) &&
-        //   this.$set(node, "checked", true);
-      }
-    },
-    /**
-     * @description 数据懒加载
-     */
-    lazyLoadData() {
-      this.load(
-        {
-          level: 0
-        },
-        data => {
-          this.copyData = deepCopy(data);
-        }
-      );
-    },
-    /**
-     * @description 获取被选中的节点
-     * @param {boolean} leafOnly 是否只返回叶子节点，默认为false
-     * @returns {array} 被选中的节点
-     */
-    getCheckedNodes(leafOnly) {
-      let checkedNodes = this.nodes.reduce((total, cell) => {
-        if (leafOnly) {
-          cell.node.checked &&
-            (!cell.node.children || cell.node.isLeaf) &&
-            total.push({
-              [this.nodeKey]: cell.node[this.nodeKey],
-              label: cell.node.label
-            });
-        } else {
-          cell.node.checked &&
-            total.push({
-              [this.nodeKey]: cell.node[this.nodeKey],
-              label: cell.node.label
-            });
-        }
-        return total;
-      }, []);
-      return checkedNodes;
-    },
-    /**
-     * @description 获取被选中的节点组成的数组
-     * @param {boolean} leafOnly 是否只返回叶子节点，默认为false
-     * @returns {array} 被选中节点值组成的数组
-     */
-    getCheckedKeys(leafOnly) {
-      let checkedKeys = this.nodes.reduce((total, cell) => {
-        if (leafOnly) {
-          cell.node.checked &&
-            (!cell.node.children || cell.node.isLeaf) &&
-            total.push(cell.node[this.nodeKey]);
-        } else {
-          cell.node.checked && total.push(cell.node[this.nodeKey]);
-        }
-        return total;
-      }, []);
+const slots = useSlots() as Record<string, ((args: Record<string, unknown>) => VNode[]) | undefined>
 
-      return checkedKeys;
-    },
-    /**
-     * @description 设置目前勾选的节点，使用此方法必须设置 node-key 属性
-     * @param {array} nodes 接收勾选节点数据的数组
-     */
-    setCheckedNodes(nodes) {
-      // 1. [] => {}
-      const nodesMap = nodes.reduce((total, cell) => {
-        total[cell[this.nodeKey]] = true;
-        return total;
-      }, {});
-      // 2. 清空所有选择状态
-      this.nodes.forEach(cell => {
-        cell.handleCheck(false);
-      });
+const nodes = ref<TreeNodeRef[]>([])
+const copyData = ref<TreeNodeData[]>([])
 
-      // 2. 循环处理
-      this.nodes.forEach(cell => {
-        const checked = !!nodesMap[cell.node[this.nodeKey]];
-        !cell.node.checked && cell.handleCheck(checked);
-      });
-    },
-    /**
-     * @description 通过 keys 设置目前勾选的节点，使用此方法必须设置 node-key 属性
-     * @param {array} keys 勾选节点的 key 的数组
-     * @param {boolean} leafOnly 是否只设置叶子节点，默认为false
-     */
-    setCheckedKeys(keys, leafOnly) {
-      // 1. [] => {}
-      const keysMap = keys.reduce((total, cell) => {
-        total[cell] = true;
-        return total;
-      }, {});
+const hasData = computed(() => copyData.value.length > 0)
 
-      // 2. 清空所有选择状态
-      this.nodes.forEach(cell => {
-        cell.handleCheck(false);
-      });
+function registerTreeNode(ref: TreeNodeRef) {
+  nodes.value.push(ref)
+  checkUpNodeState(ref)
+  ref.node.visible = true
+}
 
-      // 3. 循环处理
-      this.nodes.forEach(cell => {
-        let checked = !!keysMap[cell.node[this.nodeKey]];
+function renderNodeContent(treeNode: unknown, node: TreeNodeData): VNode {
+  const defaultSlot = slots.default
+  if (defaultSlot) {
+    const vnodes = defaultSlot({ node: treeNode, data: node })
+    return vnodes.length > 1 ? h('span', {}, vnodes) : vnodes[0]
+  }
+  if (props.renderContent) {
+    return props.renderContent(h, { node: treeNode, data: node }) as VNode
+  }
+  return h('span', String(node.label ?? ''))
+}
 
-        if (leafOnly) {
-          checked =
-            !!keysMap[cell.node[this.nodeKey]] &&
-            (!cell.node.children || cell.node.isLeaf);
-        }
-        !cell.node.checked && cell.handleCheck(checked);
-      });
-    },
-    /**
-     * @description 过滤
-     */
-    filter(val) {
-      this.filterNodeMethod &&
-        this.nodes.forEach(cell => {
-          this.$set(
-            cell.node,
-            "visible",
-            this.filterNodeMethod(val, cell.node)
-          );
-        });
+const treeContext: TreeContext = {
+  get showCheckbox() { return props.showCheckbox },
+  get lazy() { return props.lazy },
+  get load() { return props.load },
+  get nodeKey() { return props.nodeKey },
+  get renderContent() { return props.renderContent },
+  get defaultExpandedKeys() { return props.defaultExpandedKeys },
+  get defaultCheckedKeys() { return props.defaultCheckedKeys },
+  registerTreeNode,
+  renderNodeContent,
+}
+provide('treeContext', treeContext)
+
+function checkUpNodeState(treeNode: TreeNodeRef) {
+  if (!props.nodeKey) return
+  if (props.defaultExpandedKeys.length > 0) {
+    const key = treeNode.node[props.nodeKey]
+    if (key !== undefined && props.defaultExpandedKeys.includes(key)) {
+      nextTick(() => {
+        treeNode.handleExpand(true)
+      })
     }
   }
-};
+  if (props.defaultCheckedKeys.length > 0) {
+    const key = treeNode.node[props.nodeKey]
+    if (key !== undefined && props.defaultCheckedKeys.includes(key)) {
+      nextTick(() => {
+        treeNode.handleCheck(true)
+      })
+    }
+  }
+}
+
+function getCheckedNodes(leafOnly?: boolean) {
+  return nodes.value.reduce<Record<string, unknown>[]>((total, cell) => {
+    if (cell.node.checked && (!leafOnly || !cell.node.children || cell.node.isLeaf)) {
+      total.push({
+        [props.nodeKey as string]: cell.node[props.nodeKey as string],
+        label: cell.node.label,
+      })
+    }
+    return total
+  }, [])
+}
+
+function getCheckedKeys(leafOnly?: boolean) {
+  return nodes.value.reduce<unknown[]>((total, cell) => {
+    if (cell.node.checked && (!leafOnly || !cell.node.children || cell.node.isLeaf)) {
+      total.push(cell.node[props.nodeKey as string])
+    }
+    return total
+  }, [])
+}
+
+function setCheckedNodes(checkedNodes: Record<string, unknown>[]) {
+  const nodesMap: Record<string, boolean> = {}
+  checkedNodes.forEach(cell => {
+    nodesMap[String(cell[props.nodeKey as string])] = true
+  })
+  nodes.value.forEach(cell => {
+    cell.handleCheck(false)
+  })
+  nodes.value.forEach(cell => {
+    const key = String(cell.node[props.nodeKey as string])
+    const checked = !!nodesMap[key]
+    if (!cell.node.checked) {
+      cell.handleCheck(checked)
+    }
+  })
+}
+
+function setCheckedKeys(keys: unknown[], leafOnly?: boolean) {
+  const keysMap: Record<string, boolean> = {}
+  keys.forEach(cell => {
+    keysMap[String(cell)] = true
+  })
+  nodes.value.forEach(cell => {
+    cell.handleCheck(false)
+  })
+  nodes.value.forEach(cell => {
+    let checked = !!keysMap[String(cell.node[props.nodeKey as string])]
+    if (leafOnly) {
+      checked = checked && (!cell.node.children || Boolean(cell.node.isLeaf))
+    }
+    if (!cell.node.checked) {
+      cell.handleCheck(checked)
+    }
+  })
+}
+
+function filter(val: string) {
+  if (props.filterNodeMethod) {
+    nodes.value.forEach(cell => {
+      cell.node.visible = props.filterNodeMethod!(val, cell.node as Record<string, unknown>)
+    })
+  }
+}
+
+watch(() => props.data, (newVal) => {
+  if (props.lazy) {
+    if (props.load) {
+      props.load({ level: 0 }, data => {
+        copyData.value = deepCopy(data) as TreeNodeData[]
+      })
+    }
+  } else {
+    copyData.value = deepCopy(newVal || []) as TreeNodeData[]
+  }
+}, { immediate: true, deep: true })
+
+defineExpose({ getCheckedNodes, getCheckedKeys, setCheckedNodes, setCheckedKeys, filter })
 </script>

@@ -1,109 +1,83 @@
+<script setup lang="ts">
+import { computed, inject } from 'vue'
+import type { RadioGroupContext } from '../radio-group/index.vue'
+
+defineOptions({ name: 'URadio' })
+
+const props = withDefaults(defineProps<{
+  modelValue?: string | number | boolean
+  label?: string | number | boolean
+  disabled?: boolean
+  border?: boolean
+  size?: 'large' | 'medium' | 'small' | 'mini'
+}>(), {
+  modelValue: '',
+  label: '',
+  disabled: false,
+  border: false,
+  size: 'medium',
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string | number | boolean]
+  change: [value: boolean]
+}>()
+
+const radioGroup = inject<RadioGroupContext>('radioGroupContext')
+
+const selected = computed(() => {
+  if (radioGroup) return radioGroup.modelValue === props.label
+  return props.modelValue === props.label
+})
+
+const myDisabled = computed(() => radioGroup?.disabled ?? false)
+const isButton = computed(() => radioGroup?.button ?? false)
+
+function onClick() {
+  if (props.disabled || myDisabled.value) return
+  if (!selected.value) {
+    emit('change', true)
+  }
+  if (radioGroup) {
+    radioGroup.onSelect(props.label)
+  } else {
+    emit('update:modelValue', props.label)
+  }
+}
+</script>
+
 <template>
   <label
-      class="u-radio"
-      :class="{
+    class="u-radio"
+    :class="{
       'u-radio-selected': selected,
       'u-radio-disabled': disabled || myDisabled,
       [`u-radio-${size}-border`]: border,
-      [`u-radio-${size}-button`]: button,
-      'u-radio-selected-button': selected && button,
+      [`u-radio-${size}-button`]: isButton,
+      'u-radio-selected-button': selected && isButton,
     }"
   >
     <input
-        class="u-radio-input"
-        type="radio"
-        @click="onClick"
-        :disabled="disabled || myDisabled"
+      class="u-radio-input"
+      type="radio"
+      @click="onClick"
+      :disabled="disabled || myDisabled"
     />
     <span
-        class="u-radio-icon"
-        :class="{
+      class="u-radio-icon"
+      :class="{
         'u-radio-icon-selected': selected,
         'u-radio-icon-disabled': disabled || myDisabled,
-        'u-radio-icon-button': button
+        'u-radio-icon-button': isButton,
       }"
-    >
-    </span>
+    />
     <span class="u-radio-label">
       <slot>{{ label }}</slot>
     </span>
   </label>
 </template>
 
-<script>
-// 工具函数，用于判断传入的值是否符合条件
-import { oneOf } from '../utils'
-import Emitter from '../mixins/emitter'
-
-export default {
-  name: 'URadio',
-  mixins: [Emitter],
-  data() {
-    return {
-      selected: false, // 是否被选中
-      myDisabled: false, // 内部的禁用属性，交由父级控制
-      button: false, // 按钮样式
-    }
-  },
-  props: {
-    value: {
-      type: [String, Number, Boolean],
-      default: '',
-    },
-    label: {
-      type: [String, Number, Boolean],
-      default: '',
-    },
-    // 禁用状态
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // 是否绘制边框
-    border: {
-      type: Boolean,
-      default: false,
-    },
-    // 尺寸
-    size: {
-      validator(value) {
-        return oneOf(value, ['large', 'medium', 'small', 'mini'])
-      },
-      type: String,
-      default: 'medium',
-    },
-  },
-  watch: {
-    // 初始化判断是否已被选中
-    value: {
-      handler(newVal) {
-        this.selected = this.value && this.value === this.label
-      },
-      immediate: true,
-    },
-  },
-  mounted() {
-    // 通知myRadioGroup组件调用on-radio-add方法，参数为当前radio实例
-    this.dispatch('URadioGroup', 'on-radio-add', this)
-  },
-  beforeDestroy() {
-    // 移除时，调用myRadioGroup组件的on-radio-remove方法
-    this.dispatch('URadioGroup', 'on-radio-remove', this)
-  },
-  methods: {
-    onClick() {
-      if (!this.selected) {
-        this.$emit("change", true);
-      }
-      this.selected = true
-      this.$emit('input', this.label)
-      this.dispatch('URadioGroup', 'on-radio-select', this)
-    },
-  },
-}
-</script>
 <style scoped>
-
 .u-radio {
   display: inline-block;
   box-sizing: border-box;

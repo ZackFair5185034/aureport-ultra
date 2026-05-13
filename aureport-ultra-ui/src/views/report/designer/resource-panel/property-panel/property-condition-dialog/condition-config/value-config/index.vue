@@ -3,14 +3,14 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="newValueChecked" @change="onNewValueChange">
-          {{ $t('dialog.propCondition.newValue') }}
+          {{ t('dialog.propCondition.newValue') }}
         </u-checkbox>
       </div>
       <span v-show="newValueChecked" style="margin-left: 10px;">
         <div class="u-inline">
           <u-input
               v-model="localNewValue"
-              :placeholder="$t('dialog.propCondition.newValuePlaceholder')"
+              :placeholder="t('dialog.propCondition.newValuePlaceholder')"
               style="width: 268px;"
               @change="onNewValueInputChange"
           />
@@ -21,7 +21,7 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="formatChecked" @change="onFormatChange">
-          {{ $t('dialog.propCondition.format') }}
+          {{ t('dialog.propCondition.format') }}
         </u-checkbox>
       </div>
       <span v-show="formatChecked" style="margin-left: 10px;">
@@ -38,120 +38,85 @@
   </div>
 </template>
 
-<script>
-import UInput from '@/components/input/index.vue';
-import UCheckbox from '@/components/checkbox/index.vue';
-import VueSimpleSuggest from 'vue-simple-suggest';
-import 'vue-simple-suggest/dist/styles.css';
-import configOptions from '../constants/config-options.js';
+<script setup lang="ts">
+import { ref, watch, onBeforeMount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import VueSimpleSuggest from 'vue-simple-suggest'
+import 'vue-simple-suggest/dist/styles.css'
+// @ts-ignore
+import configOptions from '../constants/config-options.js'
 
-export default {
-  name: 'ValueConfig',
-  components: {
-    UInput,
-    UCheckbox,
-    VueSimpleSuggest
-  },
-  props: {
-    cellStyle: {
-      type: Object,
-      default: () => ({})
-    },
-    newValue: {
-      type: String,
-      default: ''
+defineOptions({ name: 'ValueConfig' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  cellStyle?: any
+  newValue?: string
+}>(), {
+  cellStyle: () => ({}),
+  newValue: ''
+})
+
+const emit = defineEmits<{
+  (e: 'value-change', value: any): void
+}>()
+
+const newValueChecked = ref(false)
+const localNewValue = ref('')
+const formatChecked = ref(false)
+const format = ref('')
+const suggestionList = ref<any[]>([])
+
+onBeforeMount(() => {
+  suggestionList.value = configOptions.getSuggestionList()
+})
+
+watch(() => props.cellStyle, (newVal) => {
+  loadValueProperties(newVal)
+}, { immediate: true, deep: true })
+
+watch(() => props.newValue, (newVal) => {
+  if (newVal != null && newVal !== '') {
+    newValueChecked.value = true
+    if (newVal !== localNewValue.value) {
+      localNewValue.value = newVal
     }
-  },
-  data() {
-    return {
-      newValueChecked: false,
-      localNewValue: '',
-
-      formatChecked: false,
-      format: '',
-
-      suggestionList: []
-    };
-  },
-  created() {
-    this.suggestionList = configOptions.getSuggestionList();
-  },
-  watch: {
-    cellStyle: {
-      handler(newVal) {
-        this.loadValueProperties(newVal);
-      },
-      immediate: true,
-      deep: true
-    },
-    newValue: {
-      handler(newVal) {
-        if (newVal != null && newVal !== '') {
-          this.newValueChecked = true;
-          if (newVal !== this.localNewValue) {
-            this.localNewValue = newVal;
-          }
-        } else if (newVal === null) {
-          this.newValueChecked = false;
-          this.localNewValue = '';
-        }
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    loadValueProperties(cellStyle) {
-      if (!cellStyle) return;
-
-      this.formatChecked = cellStyle.format != null;
-      this.format = this.formatChecked ? cellStyle.format : '';
-    },
-
-    onNewValueChange() {
-      if (this.newValueChecked) {
-        this.$emit('value-change', {
-          type: 'newValue',
-          checked: true,
-          value: this.localNewValue || ''
-        });
-      } else {
-        this.$emit('value-change', {
-          type: 'newValue',
-          checked: false,
-          value: null
-        });
-      }
-    },
-
-    onNewValueInputChange() {
-      if (this.newValueChecked) {
-        this.$emit('value-change', {
-          type: 'newValue',
-          checked: true,
-          value: this.localNewValue
-        });
-      }
-    },
-
-    onFormatChange() {
-      this.$emit('value-change', {
-        type: 'format',
-        checked: this.formatChecked,
-        value: this.formatChecked ? this.format : null
-      });
-    },
-
-    onFormatInputChange() {
-      if (this.formatChecked) {
-        this.$emit('value-change', {
-          type: 'format',
-          checked: true,
-          value: this.format
-        });
-      }
-    }
+  } else if (newVal === null) {
+    newValueChecked.value = false
+    localNewValue.value = ''
   }
-};
+}, { immediate: true })
+
+function loadValueProperties(cellStyle: any) {
+  if (!cellStyle) return
+  formatChecked.value = cellStyle.format != null
+  format.value = formatChecked.value ? cellStyle.format : ''
+}
+
+function onNewValueChange() {
+  if (newValueChecked.value) {
+    emit('value-change', { type: 'newValue', checked: true, value: localNewValue.value || '' })
+  } else {
+    emit('value-change', { type: 'newValue', checked: false, value: null })
+  }
+}
+
+function onNewValueInputChange() {
+  if (newValueChecked.value) {
+    emit('value-change', { type: 'newValue', checked: true, value: localNewValue.value })
+  }
+}
+
+function onFormatChange() {
+  emit('value-change', { type: 'format', checked: formatChecked.value, value: formatChecked.value ? format.value : null })
+}
+
+function onFormatInputChange() {
+  if (formatChecked.value) {
+    emit('value-change', { type: 'format', checked: true, value: format.value })
+  }
+}
 </script>
 
 <style scoped>

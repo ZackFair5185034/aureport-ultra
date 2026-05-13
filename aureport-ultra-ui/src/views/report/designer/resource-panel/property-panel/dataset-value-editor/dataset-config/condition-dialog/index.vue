@@ -1,6 +1,6 @@
 <template>
   <UDialog
-    :title="$t('dialog.condition.config')"
+    :title="t('dialog.condition.config')"
     width="500px"
     :visible="visible"
     :z-index="20000"
@@ -8,7 +8,7 @@
   >
     <div class="dialog-content" >
       <u-form ref="form" :label-width="120">
-        <u-form-item :label="$t('dialog.condition.relationship')" v-show="showJoinGroup">
+        <u-form-item :label="t('dialog.condition.relationship')" v-show="showJoinGroup">
           <u-select
             v-model="joinValue"
             :clearable="true"
@@ -22,7 +22,7 @@
           </u-select>
         </u-form-item>
 
-        <u-form-item :label="$t('dialog.condition.propertyName')">
+        <u-form-item :label="t('dialog.condition.propertyName')">
           <u-select
             v-model="propertyValue"
             :clearable="true"
@@ -36,7 +36,7 @@
           </u-select>
         </u-form-item>
 
-        <u-form-item :label="$t('dialog.condition.op')">
+        <u-form-item :label="t('dialog.condition.op')">
           <u-select
             v-model="operatorValue"
             :clearable="true"
@@ -50,7 +50,7 @@
           </u-select>
         </u-form-item>
 
-        <u-form-item :label="$t('dialog.condition.valueExpr')">
+        <u-form-item :label="t('dialog.condition.valueExpr')">
           <u-input
             v-model="valueExpr"
             style="width:240px;"
@@ -61,191 +61,162 @@
       </u-form>
     </div>
 
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UButton from '@/components/button/index.vue';
-import UInput from '@/components/input/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
-import { conditionScriptValidation } from '@/api/designer';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon'
+import { conditionScriptValidation } from '@/api/designer'
 
-export default {
-  name: 'ConditionDialog',
-  components: {
-    UDialog,
-    USelect,
-    UOption,
-    UButton,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    fields: {
-      type: Array,
-      default: () => []
-    },
-    condition: {
-      type: Object,
-      default: null
-    },
-    conditions: {
-      type: Array,
-      default: () => []
-    }
-  },
-  data() {
-    return {
-      showJoinGroup: false,
-      joinValue: 'and',
-      propertyValue: '',
-      operatorValue: '==',
-      valueExpr: ''
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.initDialogData();
-      }
-    },
-    condition: {
-      handler() {
-        if (this.visible) {
-          this.initDialogData();
-        }
-      },
-      deep: true
-    },
-    fields: {
-      handler() {
-        if (this.visible) {
-          this.initDialogData();
-        }
-      },
-      deep: true
-    },
-    conditions: {
-      handler() {
-        if (this.visible) {
-          this.initDialogData();
-        }
-      },
-      deep: true
-    }
-  },
-  computed: {
-    // 关系选项
-    joinOptions() {
-      return [
-        { value: 'and', label: this.$t('dialog.condition.and') },
-        { value: 'or', label: this.$t('dialog.condition.or') }
-      ];
-    },
-    // 属性选项
-    propertyOptions() {
-      return this.fields.map(field => ({
-        value: field.name,
-        label: field.name
-      }));
-    },
-    // 操作符选项
-    operatorOptions() {
-      return [
-        { value: '>', label: this.$t('dialog.condition.greatThen') },
-        { value: '>=', label: this.$t('dialog.condition.greatEquals') },
-        { value: '<', label: this.$t('dialog.condition.lessThen') },
-        { value: '<=', label: this.$t('dialog.condition.lessEquals') },
-        { value: '==', label: this.$t('dialog.condition.equals') },
-        { value: '!=', label: this.$t('dialog.condition.notEquals') },
-        { value: 'in', label: this.$t('dialog.condition.in') },
-        { value: 'like', label: this.$t('dialog.condition.like') }
-      ];
-    }
-  },
-  methods: {
-    initDialogData() {
-      const fields = this.fields || [];
-      const condition = this.condition;
+defineOptions({ name: 'ConditionDialog' })
 
-      // 设置是否显示关系选择组
-      if (condition) {
-        this.showJoinGroup = !!condition.join;
-      } else {
-        this.showJoinGroup = this.conditions && this.conditions.length > 0;
-      }
+const { t } = useI18n()
 
-      // 设置默认值
-      if (condition) {
-        this.joinValue = condition.join || 'and';
-        this.propertyValue = condition.left || '';
-        this.operatorValue = condition.operation || condition.op || '==';
-        this.valueExpr = condition.right || '';
-      } else {
-        this.joinValue = 'and';
-        this.propertyValue = fields && fields.length > 0 ? fields[0].name : '';
-        this.operatorValue = '==';
-        this.valueExpr = '';
-      }
-    },
-    handleOk() {
-      if (!this.propertyValue) {
-        showAlert(this.$t('dialog.condition.selectProperty'));
-        return;
-      }
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  fields?: any[]
+  condition?: any
+  conditions?: any[]
+}>(), {
+  visible: false,
+  fields: () => [],
+  condition: null,
+  conditions: () => []
+})
 
-      if (!this.operatorValue) {
-        showAlert(this.$t('dialog.condition.selectOp'));
-        return;
-      }
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'saveAfter', value: any): void
+}>()
 
-      if (!this.valueExpr) {
-        showAlert(this.$t('dialog.condition.inputExpr'));
-        return;
-      }
+const showJoinGroup = ref(false)
+const joinValue = ref('and')
+const propertyValue = ref('')
+const operatorValue = ref('==')
+const valueExpr = ref('')
 
-      const conditionData = {
-        left: this.propertyValue,
-        operation: this.operatorValue,
-        right: this.valueExpr,
-        join: this.showJoinGroup ? this.joinValue : null,
-        isEdit: !!this.condition
-      };
+const joinOptions = computed(() => [
+  { value: 'and', label: t('dialog.condition.and') },
+  { value: 'or', label: t('dialog.condition.or') }
+])
 
-      this.$emit('saveAfter', conditionData);
-      this.handleClose();
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
-    async validateExpression() {
-      if (!this.valueExpr) return;
-      const val = this.valueExpr;
-      try {
-        const errors = await conditionScriptValidation(val);
-        if (errors && errors.length > 0) {
-          await showAlert(`${val} ${this.$t('dialog.condition.exprError')}`);
-        }
-      } catch (error) {
-        console.error('Error validating expression:', error);
-      }
-    }
+const propertyOptions = computed(() =>
+  props.fields.map((field: any) => ({
+    value: field.name,
+    label: field.name
+  }))
+)
+
+const operatorOptions = computed(() => [
+  { value: '>', label: t('dialog.condition.greatThen') },
+  { value: '>=', label: t('dialog.condition.greatEquals') },
+  { value: '<', label: t('dialog.condition.lessThen') },
+  { value: '<=', label: t('dialog.condition.lessEquals') },
+  { value: '==', label: t('dialog.condition.equals') },
+  { value: '!=', label: t('dialog.condition.notEquals') },
+  { value: 'in', label: t('dialog.condition.in') },
+  { value: 'like', label: t('dialog.condition.like') }
+])
+
+function initDialogData() {
+  const fields = props.fields || []
+  const condition = props.condition
+
+  if (condition) {
+    showJoinGroup.value = !!condition.join
+  } else {
+    showJoinGroup.value = props.conditions && props.conditions.length > 0
   }
-};
+
+  if (condition) {
+    joinValue.value = condition.join || 'and'
+    propertyValue.value = condition.left || ''
+    operatorValue.value = condition.operation || condition.op || '=='
+    valueExpr.value = condition.right || ''
+  } else {
+    joinValue.value = 'and'
+    propertyValue.value = fields && fields.length > 0 ? fields[0].name : ''
+    operatorValue.value = '=='
+    valueExpr.value = ''
+  }
+}
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    initDialogData()
+  }
+})
+
+watch(() => props.condition, () => {
+  if (props.visible) {
+    initDialogData()
+  }
+}, { deep: true })
+
+watch(() => props.fields, () => {
+  if (props.visible) {
+    initDialogData()
+  }
+}, { deep: true })
+
+watch(() => props.conditions, () => {
+  if (props.visible) {
+    initDialogData()
+  }
+}, { deep: true })
+
+function handleOk() {
+  if (!propertyValue.value) {
+    showAlert(t('dialog.condition.selectProperty'))
+    return
+  }
+
+  if (!operatorValue.value) {
+    showAlert(t('dialog.condition.selectOp'))
+    return
+  }
+
+  if (!valueExpr.value) {
+    showAlert(t('dialog.condition.inputExpr'))
+    return
+  }
+
+  const conditionData = {
+    left: propertyValue.value,
+    operation: operatorValue.value,
+    right: valueExpr.value,
+    join: showJoinGroup.value ? joinValue.value : null,
+    isEdit: !!props.condition
+  }
+
+  emit('saveAfter', conditionData)
+  handleClose()
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+async function validateExpression() {
+  if (!valueExpr.value) return
+  const val = valueExpr.value
+  try {
+    const errors = await conditionScriptValidation(val) as any[]
+    if (errors && errors.length > 0) {
+      await showAlert(`${val} ${t('dialog.condition.exprError')}`)
+    }
+  } catch (error) {
+    console.error('Error validating expression:', error)
+  }
+}
 </script>
 
 <style scoped>

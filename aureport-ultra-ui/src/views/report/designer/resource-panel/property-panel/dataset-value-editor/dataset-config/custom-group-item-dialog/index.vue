@@ -9,7 +9,7 @@
   >
     <div class="dialog-content">
       <u-form ref="form" :label-width="80">
-        <u-form-item :label="$t('dialog.groupItem.name')">
+        <u-form-item :label="t('dialog.groupItem.name')">
           <u-input
             v-model="name"
             ref="nameInput"
@@ -19,100 +19,92 @@
         </u-form-item>
       </u-form>
     </div>
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon'
 
-export default {
-  name: 'GroupItemDialog',
-  components: {
-    UButton,
-    UDialog,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    groupItem: {
-      type: Object,
-      default: null
-    },
-    operation: {
-      type: String,
-      default: 'add'
-    }
-  },
-  data() {
-    return {
-      name: ''
-    };
-  },
-  computed: {
-    dialogTitle() {
-      return this.operation === 'add'
-        ? this.$t('dialog.groupItem.addItem')
-        : this.$t('dialog.groupItem.editItem');
-    }
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.name = this.groupItem?.name || '';
-      }
-    }
-  },
-  mounted() {
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    handleOk() {
-      if (!this.name.trim()) {
-        showAlert(this.$t('dialog.groupItem.nameTip'));
-        return;
-      }
+defineOptions({ name: 'GroupItemDialog' })
 
-      const updatedGroupItem = this.groupItem ? { ...this.groupItem, name: this.name } : null;
+const { t } = useI18n()
 
-      this.$emit('saveAfter', {
-        operation: this.operation,
-        groupItem: updatedGroupItem
-      });
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  groupItem?: any
+  operation?: string
+}>(), {
+  visible: false,
+  groupItem: null,
+  operation: 'add'
+})
 
-      this.handleClose();
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
-    handleClosed() {
-      this.name = '';
-    },
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'saveAfter', value: any): void
+}>()
+
+const name = ref('')
+
+const dialogTitle = computed(() =>
+  props.operation === 'add'
+    ? t('dialog.groupItem.addItem')
+    : t('dialog.groupItem.editItem')
+)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    name.value = props.groupItem?.name || ''
+  }
+})
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function handleOk() {
+  if (!name.value.trim()) {
+    showAlert(t('dialog.groupItem.nameTip'))
+    return
+  }
+
+  const updatedGroupItem = props.groupItem ? { ...props.groupItem, name: name.value } : null
+
+  emit('saveAfter', {
+    operation: props.operation,
+    groupItem: updatedGroupItem
+  })
+
+  handleClose()
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+function handleClosed() {
+  name.value = ''
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
     }
   }
-};
+}
 </script>
 <style scoped>
 </style>

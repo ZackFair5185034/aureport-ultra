@@ -1,6 +1,6 @@
 <template>
   <UDialog
-    :title="$t('dialog.urlParam.title')"
+    :title="t('dialog.urlParam.title')"
     width="660px"
     :visible="visible"
     :z-index="20000"
@@ -11,16 +11,16 @@
            <u-button
              type="info"
              @click="handleAdd"
-             :title="$t('dialog.urlParam.add')"
+             :title="t('dialog.urlParam.add')"
              icon="icon-plus-circle"
            />
        </div>
       <table class="data-table" style="margin-top: 5px">
         <thead>
           <tr style="background-color: #eeeeee; height: 30px;">
-            <td style="width: 150px;"><span>{{ $t('dialog.urlParam.name') }}</span></td>
-            <td style="width: 350px;"><span>{{ $t('dialog.urlParam.expr') }}</span></td>
-            <td style="width: 100px;"><span>{{ $t('dialog.urlParam.op') }}</span></td>
+            <td style="width: 150px;"><span>{{ t('dialog.urlParam.name') }}</span></td>
+            <td style="width: 350px;"><span>{{ t('dialog.urlParam.expr') }}</span></td>
+            <td style="width: 100px;"><span>{{ t('dialog.urlParam.op') }}</span></td>
           </tr>
         </thead>
         <tbody>
@@ -31,14 +31,14 @@
               <u-button
                   type="info"
                   icon="icon-edit"
-                  :title="$t('dialog.urlParam.edit')"
+                  :title="t('dialog.urlParam.edit')"
                   @click="handleEdit(param)"
                   style="border: none">
               </u-button>
               <u-button
                   type="info"
                   icon="icon-delete"
-                  :title="$t('dialog.urlParam.delete')"
+                  :title="t('dialog.urlParam.delete')"
                   @click="handleDelete(param, index)"
                   style="border: none;color: red">
               </u-button>
@@ -60,91 +60,86 @@
   </UDialog>
 </template>
 
-<script>
-import { showConfirm } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import URLParameterItemDialog from '@/views/report/designer/resource-panel/property-panel/url-parameter-dialog/url-parameter-item-dialog/index.vue';
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showConfirm } from '@/utils/comnon.js'
+import URLParameterItemDialog from '@/views/report/designer/resource-panel/property-panel/url-parameter-dialog/url-parameter-item-dialog/index.vue'
 
-export default {
-  name: 'URLParameterDialog',
-  components: {
-    UButton,
-    UDialog,
-    URLParameterItemDialog
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    parameters: {
-      type: Array,
-      default: () => []
-    }
-  },
-  emits: ['update:visible', 'saveAfter', 'parameters-change'],
-  data() {
-    return {
-      itemDialogVisible: false,
-      currentParamItem: null,
-      currentOperation: 'add'
-    };
-  },
-  computed: {
-    displayParameters() {
-      return this.parameters || [];
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    handleAdd() {
-      this.currentParamItem = { name: '', value: '' };
-      this.currentOperation = 'add';
-      this.itemDialogVisible = true;
-    },
-    handleEdit(param) {
-      this.currentParamItem = param;
-      this.currentOperation = 'edit';
-      this.itemDialogVisible = true;
-    },
-    handleSaveAfter({ paramItem, operation }) {
-      if (operation === 'add') {
-        this.$emit('parameters-change', [...this.parameters, paramItem]);
-      } else if (operation === 'edit' && this.currentParamItem) {
-        this.currentParamItem.name = paramItem.name;
-        this.currentParamItem.value = paramItem.value;
-        this.$emit('parameters-change', [...this.parameters]);
-      }
-      this.$emit('saveAfter', { paramItem, operation });
-    },
-    handleDelete(param, index) {
-      let that = this;
-      showConfirm(this.$t('dialog.urlParam.delTip')).then(() => {
-        const newParameters = [...this.parameters];
-        newParameters.splice(index, 1);
-        this.$emit('parameters-change', newParameters);
-      });
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+defineOptions({ name: 'URLParameterDialog' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  parameters?: any[]
+}>(), {
+  visible: false,
+  parameters: () => []
+})
+
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'saveAfter', value: { paramItem: any, operation: string }): void
+  (e: 'parameters-change', value: any[]): void
+}>()
+
+const itemDialogVisible = ref(false)
+const currentParamItem = ref<any>(null)
+const currentOperation = ref('add')
+
+const displayParameters = computed(() => props.parameters || [])
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function handleAdd() {
+  currentParamItem.value = { name: '', value: '' }
+  currentOperation.value = 'add'
+  itemDialogVisible.value = true
+}
+
+function handleEdit(param: any) {
+  currentParamItem.value = param
+  currentOperation.value = 'edit'
+  itemDialogVisible.value = true
+}
+
+function handleSaveAfter({ paramItem, operation }: { paramItem: any, operation: string }) {
+  if (operation === 'add') {
+    emit('parameters-change', [...props.parameters, paramItem])
+  } else if (operation === 'edit' && currentParamItem.value) {
+    currentParamItem.value.name = paramItem.name
+    currentParamItem.value.value = paramItem.value
+    emit('parameters-change', [...props.parameters])
+  }
+  emit('saveAfter', { paramItem, operation })
+}
+
+function handleDelete(param: any, index: number) {
+  showConfirm(t('dialog.urlParam.delTip')).then(() => {
+    const newParameters = [...props.parameters]
+    newParameters.splice(index, 1)
+    emit('parameters-change', newParameters)
+  })
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
     }
   }
-};
+}
 </script>
 
 <style scoped>

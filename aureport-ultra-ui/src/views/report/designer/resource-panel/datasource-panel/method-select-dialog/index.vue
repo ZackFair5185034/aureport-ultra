@@ -27,78 +27,72 @@
         </tbody>
       </table>
     </div>
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button type="info" @click="handleClose" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import {loadMethods} from '@/api/designer/index.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
-import {showAlert} from "@/utils/comnon";
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { loadMethods } from '@/api/designer/index.js'
+import { showAlert } from '@/utils/comnon'
 
-export default {
-  name: 'MethodSelectDialog',
-  components: {
-    UDialog,
-    UButton
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    beanId: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      loading: false,
-      methods: []
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal && this.beanId) {
-        this.methods = [];
-        this.loadMethods();
-      }
-    }
-  },
-  methods: {
-    closeDialog() {
-      this.$emit('close');
-    },
+defineOptions({ name: 'MethodSelectDialog' })
 
-    handleClose() {
-      this.closeDialog();
-    },
+const { t } = useI18n()
 
-    async loadMethods() {
-      this.loading = true;
-      try {
-        this.methods = await loadMethods(this.beanId);
-        this.loading = false;
-      } catch (error) {
-        this.loading = false;
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(`加载方法[${this.beanId}]失败`);
-        }
-      }
-    },
+const props = withDefaults(defineProps<{
+  visible: boolean
+  beanId: string
+}>(), {
+  visible: false,
+  beanId: ''
+})
 
-    selectMethod(methodItem) {
-      this.$emit('save', methodItem);
-      this.$emit('close');
+const emit = defineEmits<{
+  (e: 'save', method: string): void
+  (e: 'close'): void
+}>()
+
+const loading = ref(false)
+const methods = ref<string[]>([])
+
+watch(() => props.visible, (newVal) => {
+  if (newVal && props.beanId) {
+    methods.value = []
+    loadMethodsData()
+  }
+})
+
+function closeDialog() {
+  emit('close')
+}
+
+function handleClose() {
+  closeDialog()
+}
+
+async function loadMethodsData() {
+  loading.value = true
+  try {
+    methods.value = await loadMethods(props.beanId) as any
+    loading.value = false
+  } catch (error: any) {
+    loading.value = false
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(`加载方法[${props.beanId}]失败`)
     }
   }
-};
+}
+
+function selectMethod(methodItem: string) {
+  emit('save', methodItem)
+  emit('close')
+}
 </script>
 
 <style scoped>

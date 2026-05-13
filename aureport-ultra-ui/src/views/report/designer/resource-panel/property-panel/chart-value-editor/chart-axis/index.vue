@@ -3,32 +3,32 @@
     <u-form :label-width="100" labelPosition="left">
 
       <div class="property-quote">
-        {{ $t('chart.xAxis') }}
+        {{ t('chart.xAxis') }}
       </div>
 
-      <u-form-item class="property-label" :label="$t('chart.titleRotation')">
+      <u-form-item class="property-label" :label="t('chart.titleRotation')">
         <u-input-number
-          :title="$t('chart.angleScope')"
+          :title="t('chart.angleScope')"
           v-model="localXAxesConfig.rotation"
           @change="handleXAxesRotationChange"
         >
         </u-input-number>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.displayAxisTitle')">
+      <u-form-item class="property-label" :label="t('chart.displayAxisTitle')">
         <u-radio-group
           v-model="localXAxesConfig.scaleLabel.display"
           @change="handleXTitleDisplayChange"
         >
-          <u-radio v-for="option in [{ label: $t('chart.yes'), value: true }, { label: $t('chart.no'), value: false }]"
-                    :key="option.value"
+          <u-radio v-for="option in [{ label: t('chart.yes'), value: true }, { label: t('chart.no'), value: false }]"
+                    :key="String(option.value)"
                     :label="option.value">
             {{ option.label }}
           </u-radio>
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.axisTitle')" v-show="xTitleDisplay">
+      <u-form-item class="property-label" :label="t('chart.axisTitle')" v-show="xTitleDisplay">
         <u-input
           style="width: 250px;"
           v-model="localXAxesConfig.scaleLabel.labelString"
@@ -38,32 +38,32 @@
       </u-form-item>
 
       <div class="property-quote">
-        {{ $t('chart.yAxisConfig') }}
+        {{ t('chart.yAxisConfig') }}
       </div>
 
-      <u-form-item class="property-label" :label="$t('chart.titleRotation')">
+      <u-form-item class="property-label" :label="t('chart.titleRotation')">
         <u-input-number
-          :title="$t('chart.angleScope')"
+          :title="t('chart.angleScope')"
           v-model="localYAxesConfig.rotation"
           @change="handleYAxesRotationChange"
         >
         </u-input-number>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.displayAxisTitle')">
+      <u-form-item class="property-label" :label="t('chart.displayAxisTitle')">
         <u-radio-group
           v-model="localYAxesConfig.scaleLabel.display"
           @change="handleYTitleDisplayChange"
         >
-          <u-radio v-for="option in [{ label: $t('chart.yes'), value: true }, { label: $t('chart.no'), value: false }]"
-                    :key="option.value"
+          <u-radio v-for="option in [{ label: t('chart.yes'), value: true }, { label: t('chart.no'), value: false }]"
+                    :key="String(option.value)"
                     :label="option.value">
             {{ option.label }}
           </u-radio>
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.axisTitle')" v-show="yTitleDisplay">
+      <u-form-item class="property-label" :label="t('chart.axisTitle')" v-show="yTitleDisplay">
         <u-input
           style="width: 250px;"
           v-model="localYAxesConfig.scaleLabel.labelString"
@@ -73,10 +73,10 @@
       </u-form-item>
 
       <div v-if="false" class="property-quote">
-        {{ $t('chart.titleFormat') }}
+        {{ t('chart.titleFormat') }}
       </div>
 
-      <u-form-item v-if="false" class="property-label" :label="$t('chart.titleFormat')">
+      <u-form-item v-if="false" class="property-label" :label="t('chart.titleFormat')">
         <u-input
           style="width: 260px;"
           v-model="localFormat"
@@ -89,168 +89,131 @@
   </div>
 </template>
 
-<script>
-import URadioGroup from '@/components/radio-group/index.vue';
-import URadio from '@/components/radio/index.vue';
-import UInputNumber from '@/components/input-number/index.vue';
-import UInput from '@/components/input/index.vue';
-import UForm from "@/components/form/index.vue";
-import UFormItem from "@/components/form-item/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'Axis',
-  components: {
-    UForm,
-    UFormItem,
-    URadioGroup,
-    URadio,
-    UInputNumber,
-    UInput
-  },
-  props: {
-    xAxesConfig: {
-      type: Object,
-      default: () => ({
-        rotation: 0,
-        scaleLabel: {
-          display: false,
-          labelString: ''
-        }
-      })
-    },
-    yAxesConfig: {
-      type: Object,
-      default: () => ({
-        rotation: 0,
-        scaleLabel: {
-          display: false,
-          labelString: ''
-        }
-      })
-    },
-    format: {
-      type: String,
-      default: ''
+defineOptions({ name: 'Axis' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  xAxesConfig?: any
+  yAxesConfig?: any
+  format?: string
+}>(), {
+  xAxesConfig: () => ({
+    rotation: 0,
+    scaleLabel: {
+      display: false,
+      labelString: ''
     }
-  },
-  data() {
-    return {
-      localXAxesConfig: {
-        rotation: this.xAxesConfig.rotation,
-        scaleLabel: {
-          display: this.xAxesConfig.scaleLabel.display,
-          labelString: this.xAxesConfig.scaleLabel.labelString
-        }
-      },
-      localYAxesConfig: {
-        rotation: this.yAxesConfig.rotation,
-        scaleLabel: {
-          display: this.yAxesConfig.scaleLabel.display,
-          labelString: this.yAxesConfig.scaleLabel.labelString
-        }
-      },
-      localFormat: this.format
-    };
-  },
-  computed: {
-    xTitleDisplay() {
-      return this.localXAxesConfig.scaleLabel.display === 'true' ? true :
-             this.localXAxesConfig.scaleLabel.display === 'false' ? false :
-             this.localXAxesConfig.scaleLabel.display;
-    },
-    yTitleDisplay() {
-      return this.localYAxesConfig.scaleLabel.display === 'true' ? true :
-             this.localYAxesConfig.scaleLabel.display === 'false' ? false :
-             this.localYAxesConfig.scaleLabel.display;
+  }),
+  yAxesConfig: () => ({
+    rotation: 0,
+    scaleLabel: {
+      display: false,
+      labelString: ''
     }
-  },
-  watch: {
-    xAxesConfig: {
-      handler(newVal) {
-        this.localXAxesConfig = {
-          rotation: newVal.rotation,
-          scaleLabel: {
-            display: newVal.scaleLabel.display,
-            labelString: newVal.scaleLabel.labelString
-          }
-        };
-      },
-      deep: true
-    },
-    yAxesConfig: {
-      handler(newVal) {
-        this.localYAxesConfig = {
-          rotation: newVal.rotation,
-          scaleLabel: {
-            display: newVal.scaleLabel.display,
-            labelString: newVal.scaleLabel.labelString
-          }
-        };
-      },
-      deep: true
-    },
-    format(newVal) {
-      this.localFormat = newVal;
-    }
-  },
-  methods: {
-    /**
-     * 处理X轴旋转角度变化
-     */
-    handleXAxesRotationChange() {
-      this.$emit('update:xAxesConfig', this.localXAxesConfig);
-      this.$emit('axis-change', { type: 'x-rotation', value: this.localXAxesConfig.rotation });
-    },
+  }),
+  format: ''
+})
 
-    /**
-     * 处理X轴标题显示变化
-     */
-    handleXTitleDisplayChange(value) {
-      this.$emit('update:xAxesConfig', this.localXAxesConfig);
-      this.$emit('axis-change', { type: 'x-title-display', value });
-    },
+const emit = defineEmits<{
+  (e: 'update:xAxesConfig', value: any): void
+  (e: 'update:yAxesConfig', value: any): void
+  (e: 'update:format', value: string): void
+  (e: 'axis-change', value: any): void
+}>()
 
-    /**
-     * 处理X轴标题文本变化
-     */
-    handleXTitleTextChange() {
-      this.$emit('update:xAxesConfig', this.localXAxesConfig);
-      this.$emit('axis-change', { type: 'x-title-text', value: this.localXAxesConfig.scaleLabel.labelString });
-    },
+const localXAxesConfig = ref({
+  rotation: props.xAxesConfig.rotation,
+  scaleLabel: {
+    display: props.xAxesConfig.scaleLabel.display,
+    labelString: props.xAxesConfig.scaleLabel.labelString
+  }
+})
 
-    /**
-     * 处理Y轴旋转角度变化
-     */
-    handleYAxesRotationChange() {
-      this.$emit('update:yAxesConfig', this.localYAxesConfig);
-      this.$emit('axis-change', { type: 'y-rotation', value: this.localYAxesConfig.rotation });
-    },
+const localYAxesConfig = ref({
+  rotation: props.yAxesConfig.rotation,
+  scaleLabel: {
+    display: props.yAxesConfig.scaleLabel.display,
+    labelString: props.yAxesConfig.scaleLabel.labelString
+  }
+})
 
-    /**
-     * 处理Y轴标题显示变化
-     */
-    handleYTitleDisplayChange(value) {
-      this.$emit('update:yAxesConfig', this.localYAxesConfig);
-      this.$emit('axis-change', { type: 'y-title-display', value });
-    },
+const localFormat = ref(props.format)
 
-    /**
-     * 处理Y轴标题文本变化
-     */
-    handleYTitleTextChange() {
-      this.$emit('update:yAxesConfig', this.localYAxesConfig);
-      this.$emit('axis-change', { type: 'y-title-text', value: this.localYAxesConfig.scaleLabel.labelString });
-    },
+const xTitleDisplay = computed(() => {
+  return localXAxesConfig.value.scaleLabel.display === 'true' ? true :
+         localXAxesConfig.value.scaleLabel.display === 'false' ? false :
+         localXAxesConfig.value.scaleLabel.display
+})
 
-    /**
-     * 处理格式变化
-     */
-    handleFormatChange() {
-      this.$emit('update:format', this.localFormat);
-      this.$emit('axis-change', { type: 'format', value: this.localFormat });
+const yTitleDisplay = computed(() => {
+  return localYAxesConfig.value.scaleLabel.display === 'true' ? true :
+         localYAxesConfig.value.scaleLabel.display === 'false' ? false :
+         localYAxesConfig.value.scaleLabel.display
+})
+
+watch(() => props.xAxesConfig, (newVal) => {
+  localXAxesConfig.value = {
+    rotation: newVal.rotation,
+    scaleLabel: {
+      display: newVal.scaleLabel.display,
+      labelString: newVal.scaleLabel.labelString
     }
   }
-};
+}, { deep: true })
+
+watch(() => props.yAxesConfig, (newVal) => {
+  localYAxesConfig.value = {
+    rotation: newVal.rotation,
+    scaleLabel: {
+      display: newVal.scaleLabel.display,
+      labelString: newVal.scaleLabel.labelString
+    }
+  }
+}, { deep: true })
+
+watch(() => props.format, (newVal) => {
+  localFormat.value = newVal
+})
+
+function handleXAxesRotationChange() {
+  emit('update:xAxesConfig', localXAxesConfig.value)
+  emit('axis-change', { type: 'x-rotation', value: localXAxesConfig.value.rotation })
+}
+
+function handleXTitleDisplayChange(value: any) {
+  emit('update:xAxesConfig', localXAxesConfig.value)
+  emit('axis-change', { type: 'x-title-display', value })
+}
+
+function handleXTitleTextChange() {
+  emit('update:xAxesConfig', localXAxesConfig.value)
+  emit('axis-change', { type: 'x-title-text', value: localXAxesConfig.value.scaleLabel.labelString })
+}
+
+function handleYAxesRotationChange() {
+  emit('update:yAxesConfig', localYAxesConfig.value)
+  emit('axis-change', { type: 'y-rotation', value: localYAxesConfig.value.rotation })
+}
+
+function handleYTitleDisplayChange(value: any) {
+  emit('update:yAxesConfig', localYAxesConfig.value)
+  emit('axis-change', { type: 'y-title-display', value })
+}
+
+function handleYTitleTextChange() {
+  emit('update:yAxesConfig', localYAxesConfig.value)
+  emit('axis-change', { type: 'y-title-text', value: localYAxesConfig.value.scaleLabel.labelString })
+}
+
+function handleFormatChange() {
+  emit('update:format', localFormat.value)
+  emit('axis-change', { type: 'format', value: localFormat.value })
+}
 </script>
 
 <style scoped>

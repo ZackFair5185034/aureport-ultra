@@ -99,502 +99,413 @@
   </div>
 </template>
 
-<script>
-import { v1 as uuidv1 } from 'uuid';
-import { showAlert, showConfirm } from '@/utils/comnon.js';
-import SqlDatasetDialog from '@/views/report/designer/resource-panel/datasource-panel/sql-dataset-dialog/index.vue';
-import DatasourceDialog from '@/views/report/designer/resource-panel/datasource-panel/datasource-dialog/index.vue';
-import FieldNameDialog from '../field-name-dialog/index.vue';
-import ContextMenu from '../context-menu/index.vue';
-import { buildJdbcFields } from '@/api/designer/index.js';
-import { deepCopy } from '@/components/utils/index.js';
-import { mapGetters } from 'vuex';
-import {getCell, setCell} from "@/utils/contextActions";
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, computed, watch, onMounted } from 'vue'
+import { useReportStore } from '@/stores/report'
+import { useI18n } from 'vue-i18n'
+import { v1 as uuidv1 } from 'uuid'
+import { showAlert, showConfirm } from '@/utils/comnon.js'
+import SqlDatasetDialog from '@/views/report/designer/resource-panel/datasource-panel/sql-dataset-dialog/index.vue'
+import DatasourceDialog from '@/views/report/designer/resource-panel/datasource-panel/datasource-dialog/index.vue'
+import FieldNameDialog from '../field-name-dialog/index.vue'
+import ContextMenu from '../context-menu/index.vue'
+import { buildJdbcFields } from '@/api/designer/index.js'
+import { deepCopy } from '@/components/utils/index.js'
+import { getCell, setCell } from '@/utils/contextActions'
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
-export default {
-  name: 'DatabaseTree',
-  components: {
-    SqlDatasetDialog,
-    DatasourceDialog,
-    FieldNameDialog,
-    ContextMenu
-  },
-  props: {
-    ds: {
-      type: Object,
-      required: true
-    },
-    datasources: {
-      type: Array,
-      required: true
+defineOptions({ name: 'DatabaseTree' })
+
+const { t } = useI18n()
+const store = useReportStore()
+
+const props = defineProps<{
+  ds: any
+  datasources: any[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'remove', name: string): void
+  (e: 'update-datasource', data: any): void
+}>()
+
+const type = 'jdbc'
+const id = uuidv1()
+const name = ref(props.ds.name)
+const username = ref(props.ds.username)
+const password = ref(props.ds.password)
+const driver = ref(props.ds.driver)
+const url = ref(props.ds.url)
+const datasets = ref<any[]>(props.ds.datasets || [])
+const datasourceExpanded = ref(true)
+const datasetExpanded = ref<Record<number, boolean>>({})
+const currentDataset = ref<any>(null)
+const datasourceDialogVisible = ref(false)
+const currentDatasource = ref<any>(null)
+const fieldNameDialogVisible = ref(false)
+const sqlDatasetDialogVisible = ref(false)
+const currentDbInfo = ref<any>(null)
+const currentDatasetData = ref<any>(null)
+const contextMenu = ref<any>(null)
+const datasourceDialogRef = ref<any>(null)
+
+const context = computed(() => store.context)
+
+watch(() => props.ds, (newDs) => {
+  if (newDs) {
+    name.value = newDs.name
+    username.value = newDs.username
+    password.value = newDs.password
+    driver.value = newDs.driver
+    url.value = newDs.url
+    datasets.value = newDs.datasets || []
+    initDatasetExpanded()
+  }
+}, { deep: true })
+
+onMounted(() => {
+  initDatasetExpanded()
+})
+
+function initDatasetExpanded() {
+  datasets.value.forEach((dataset, index) => {
+    datasetExpanded.value[index] = true
+    if (!dataset.fields) {
+      buildFields(dataset, index)
     }
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
+  })
+}
+
+function toggleDatasource() {
+  datasourceExpanded.value = !datasourceExpanded.value
+}
+
+function toggleDataset(index: number) {
+  datasetExpanded.value[index] = !datasetExpanded.value[index]
+}
+
+function showDatasourceContextMenu(event: MouseEvent) {
+  const items = [
+    { key: 'add', name: t('tree.addDataset'), icon: 'add' },
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
+    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+  ]
+
+  if (contextMenu.value) {
+    contextMenu.value.show(event, items, (key: string) => {
+      if (key === 'add') {
+        addDatasetAction()
+      } else if (key === 'edit') {
+        editDatasourceAction()
+      } else if (key === 'delete') {
+        deleteDatasourceAction()
+      }
+    })
+  } else {
+    console.error('contextMenu ref not found')
+  }
+}
+
+function showDatasetContextMenu(event: MouseEvent, dataset: any, index: number) {
+  const items = [
+    { key: 'add', name: t('tree.addField'), icon: 'add' },
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
+    { key: 'delete', name: t('tree.del'), icon: 'delete' },
+    { key: 'refresh', name: t('tree.refresh'), icon: 'loading' }
+  ]
+
+  if (contextMenu.value) {
+    contextMenu.value.show(event, items, (key: string) => {
+      if (key === 'add') {
+        addFieldAction(dataset)
+      } else if (key === 'edit') {
+        editDatasetAction(dataset, index)
+      } else if (key === 'delete') {
+        deleteDatasetAction(dataset, index)
+      } else if (key === 'refresh') {
+        refreshDatasetAction(dataset, index)
+      }
+    })
+  } else {
+    console.error('contextMenu ref not found')
+  }
+}
+
+function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
+  const items = [
+    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+  ]
+
+  contextMenu.value.show(event, items, (key: string) => {
+    if (key === 'delete') {
+      deleteFieldAction(dataset, field, fieldIndex)
     }
-  },
-  data() {
-    return {
-      type: 'jdbc',
-      id: uuidv1(),
-      name: this.ds.name,
-      username: this.ds.username,
-      password: this.ds.password,
-      driver: this.ds.driver,
-      url: this.ds.url,
-      datasets: this.ds.datasets || [],
-      datasourceExpanded: true,
-      datasetExpanded: {},
-      contextMenus: {},
-      currentDataset: null,
-      datasourceDialogVisible: false,
-      currentDatasource: null,
-      fieldNameDialogVisible: false,
-      sqlDatasetDialogVisible: false,
-      currentDbInfo: null,
-      currentDatasetData: null
-    };
-  },
-  mounted() {
-    this.initDatasetExpanded();
-  },
-  watch: {
-    ds: {
-      handler(newDs) {
-        if (newDs) {
-          this.name = newDs.name;
-          this.username = newDs.username;
-          this.password = newDs.password;
-          this.driver = newDs.driver;
-          this.url = newDs.url;
-          this.datasets = newDs.datasets || [];
-          this.initDatasetExpanded();
-        }
-      },
-      deep: true
+  })
+}
+
+function editDatasourceAction() {
+  currentDatasource.value = {
+    name: name.value,
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: type
+  }
+  datasourceDialogVisible.value = true
+}
+
+function handleDatasourceSave(datasourceData: any) {
+  name.value = datasourceData.name
+  username.value = datasourceData.username
+  password.value = datasourceData.password
+  driver.value = datasourceData.driver
+  url.value = datasourceData.url
+
+  emit('update-datasource', datasourceData)
+}
+
+function deleteDatasourceAction() {
+  showConfirm(t('tree.delConfirm') + `[${name.value}]？`).then(() => {
+    emit('remove', name.value)
+  })
+}
+
+function addFieldAction(dataset: any) {
+  currentDataset.value = dataset
+  fieldNameDialogVisible.value = true
+}
+
+function handleFieldNameSave(fieldName: string, dataset: any) {
+  if (fieldName) {
+    if (!dataset.fields) {
+      dataset.fields = []
     }
-  },
-  methods: {
-    /**
-     * 初始化数据集展开状态
-     */
-    initDatasetExpanded() {
-      this.datasets.forEach((dataset, index) => {
-        this.$set(this.datasetExpanded, index, true);
-        // 如果字段不存在，则构建字段
-        if (!dataset.fields) {
-          this.buildFields(dataset, index);
-        }
-      });
-    },
 
-    /**
-     * 切换数据源展开/折叠
-     */
-    toggleDatasource() {
-      this.datasourceExpanded = !this.datasourceExpanded;
-    },
+    const exists = dataset.fields.some((field: any) => field.name === fieldName)
+    if (exists) {
+      showAlert(t('tree.fieldExist'))
+      return
+    }
 
-    /**
-     * 切换数据集展开/折叠
-     */
-    toggleDataset(index) {
-      this.$set(this.datasetExpanded, index, !this.datasetExpanded[index]);
-    },
+    const field = { name: fieldName }
+    dataset.fields.push(field)
+  }
+}
 
-    /**
-     * 显示数据源右键菜单
-     */
-    showDatasourceContextMenu(event) {
-      const items = [
-        { key: 'add', name: this.$t('tree.addDataset'), icon: 'add' },
-        { key: 'edit', name: this.$t('tree.edit'), icon: 'edit' },
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' }
-      ];
+function addDatasetAction() {
+  currentDbInfo.value = {
+    name: name.value,
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: type,
+    datasources: props.datasources
+  }
+  currentDatasetData.value = { parameters: [] }
+  sqlDatasetDialogVisible.value = true
+}
 
-      if (this.$refs.contextMenu) {
-        this.$refs.contextMenu.show(event, items, (key) => {
-          if (key === 'add') {
-            this.addDatasetAction();
-          } else if (key === 'edit') {
-            this.editDatasourceAction();
-          } else if (key === 'delete') {
-            this.deleteDatasourceAction();
-          }
-        });
-      } else {
-        console.error('contextMenu ref not found');
-      }
-    },
+function editDatasetAction(dataset: any, index: number) {
+  currentDbInfo.value = {
+    name: name.value,
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: type,
+    datasources: props.datasources
+  }
+  currentDatasetData.value = dataset
+  sqlDatasetDialogVisible.value = true
+}
 
-    /**
-     * 显示数据集右键菜单
-     */
-    showDatasetContextMenu(event, dataset, index) {
-      const items = [
-        { key: 'add', name: this.$t('tree.addField'), icon: 'add' },
-        { key: 'edit', name: this.$t('tree.edit'), icon: 'edit' },
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' },
-        { key: 'refresh', name: this.$t('tree.refresh'), icon: 'loading' }
-      ];
+function deleteDatasetAction(dataset: any, index: number) {
+  showConfirm(t('tree.delDatasetConfirm') + `[${dataset.name}]?`).then(() => {
+    datasets.value.splice(index, 1)
+    delete datasetExpanded.value[index]
+  })
+}
 
-      if (this.$refs.contextMenu) {
-        this.$refs.contextMenu.show(event, items, (key) => {
-          if (key === 'add') {
-            this.addFieldAction(dataset);
-          } else if (key === 'edit') {
-            this.editDatasetAction(dataset, index);
-          } else if (key === 'delete') {
-            this.deleteDatasetAction(dataset, index);
-          } else if (key === 'refresh') {
-            this.refreshDatasetAction(dataset, index);
-          }
-        });
-      } else {
-        console.error('contextMenu ref not found');
-      }
-    },
+function refreshDatasetAction(dataset: any, index: number) {
+  dataset.fields = null
+  buildFields(dataset, index)
+}
 
-    /**
-     * 显示字段右键菜单
-     */
-    showFieldContextMenu(event, dataset, field, fieldIndex) {
-      const items = [
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' }
-      ];
+function deleteFieldAction(dataset: any, field: any, fieldIndex: number) {
+  showConfirm(t('tree.delFieldConfirm') + `[${field.name}]?`).then(() => {
+    if (dataset.fields) {
+      dataset.fields.splice(fieldIndex, 1)
+    }
+  })
+}
 
-      this.$refs.contextMenu.show(event, items, (key) => {
-        if (key === 'delete') {
-          this.deleteFieldAction(dataset, field, fieldIndex);
-        }
-      });
-    },
+function handleFieldDoubleClick(dataset: any, field: any) {
+  _buildClickEvent(dataset, field, context.value)
+}
 
+async function buildFields(dataset: any, index: number) {
+  const defaultFields = dataset.fields
 
-    /**
-     * 编辑数据源操作
-     */
-    editDatasourceAction() {
-      this.currentDatasource = {
-        name: this.name,
-        username: this.username,
-        password: this.password,
-        driver: this.driver,
-        url: this.url,
-        type: this.type
-      };
-      this.datasourceDialogVisible = true;
-    },
+  if (defaultFields) {
+    return
+  }
 
-    /**
-     * 处理数据源保存事件
-     */
-    handleDatasourceSave(datasourceData) {
-      // 更新本地数据
-      this.name = datasourceData.name;
-      this.username = datasourceData.username;
-      this.password = datasourceData.password;
-      this.driver = datasourceData.driver;
-      this.url = datasourceData.url;
+  const params = {
+    sql: dataset.sql,
+    parameters: JSON.stringify(dataset.parameters || []),
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: 'jdbc'
+  }
 
-      // 通过事件通知父组件更新 ds 对象
-      this.$emit('update-datasource', datasourceData);
-    },
-
-    /**
-     * 删除数据源操作
-     */
-    deleteDatasourceAction() {
-      showConfirm(this.$t('tree.delConfirm') + `[${this.name}]？`).then(() => {
-        this.$emit('remove', this.name);
-      });
-    },
-
-    /**
-     * 添加字段操作
-     */
-    addFieldAction(dataset) {
-      this.currentDataset = dataset;
-      this.fieldNameDialogVisible = true;
-    },
-
-    /**
-     * 处理字段名保存事件
-     */
-    handleFieldNameSave(fieldName, dataset) {
-      if (fieldName) {
-        if (!dataset.fields) {
-          dataset.fields = [];
-        }
-
-        // 检查字段是否已存在
-        const exists = dataset.fields.some(field => field.name === fieldName);
-        if (exists) {
-          showAlert(this.$t('tree.fieldExist'));
-          return;
-        }
-
-        const field = { name: fieldName };
-        dataset.fields.push(field);
-        this.$forceUpdate();
-      }
-    },
-
-    /**
-     * 添加数据集操作
-     */
-    addDatasetAction() {
-      this.currentDbInfo = {
-        name: this.name,
-        username: this.username,
-        password: this.password,
-        driver: this.driver,
-        url: this.url,
-        type: this.type,
-        datasources: this.datasources
-      };
-      this.currentDatasetData = { parameters: [] };
-      this.sqlDatasetDialogVisible = true;
-    },
-
-    /**
-     * 编辑数据集操作
-     */
-    editDatasetAction(dataset, index) {
-      this.currentDbInfo = {
-        name: this.name,
-        username: this.username,
-        password: this.password,
-        driver: this.driver,
-        url: this.url,
-        type: this.type,
-        datasources: this.datasources
-      };
-      this.currentDatasetData = dataset;
-      this.sqlDatasetDialogVisible = true;
-    },
-
-    /**
-     * 删除数据集操作
-     */
-    deleteDatasetAction(dataset, index) {
-      showConfirm(this.$t('tree.delDatasetConfirm') + `[${dataset.name}]?`).then(() => {
-        this.datasets.splice(index, 1);
-        this.$delete(this.datasetExpanded, index);
-      });
-    },
-
-    /**
-     * 刷新数据集操作
-     */
-    refreshDatasetAction(dataset, index) {
-      dataset.fields = null;
-      this.buildFields(dataset, index);
-    },
-
-    /**
-     * 删除字段操作
-     */
-    deleteFieldAction(dataset, field, fieldIndex) {
-      showConfirm(this.$t('tree.delFieldConfirm') + `[${field.name}]?`).then(() => {
-        if (dataset.fields) {
-          dataset.fields.splice(fieldIndex, 1);
-          this.$forceUpdate();
-        }
-      });
-    },
-
-    /**
-     * 字段双击事件
-     */
-    handleFieldDoubleClick(dataset, field) {
-      this._buildClickEvent(dataset, field, this.context);
-    },
-
-    /**
-     * 构建字段列表
-     */
-    async buildFields(dataset, index) {
-      const defaultFields = dataset.fields;
-
-      if (defaultFields) {
-        // 字段已存在，直接显示
-        this.$forceUpdate();
-        return;
-      }
-      // 从服务器获取字段
-      const params = {
-        sql: dataset.sql,
-        parameters: JSON.stringify(dataset.parameters || []),
-        username: this.username,
-        password: this.password,
-        driver: this.driver,
-        url: this.url,
-        type: 'jdbc'
-      };
-
-      try {
-        const fields = await buildJdbcFields(params);
-        dataset.fields = fields;
-        this.$forceUpdate();
-      } catch (error) {
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('tree.loadFieldFail'));
-        }
-      }
-    },
-
-    /**
-     * 处理SQL数据集保存事件
-     * 参数 name 是数据集的 name，this.name 是数据源的 name
-     */
-    handleSqlDatasetSave(name, oldName, sql, parameters) {
-      const datasourceData = {
-        name: this.name,
-        oldName: this.name,
-        username: this.username,
-        password: this.password,
-        driver: this.driver,
-        url: this.url,
-        type: this.type,
-        datasets: this.datasets.map(dataset => ({ ...dataset })) // 深拷贝当前数据集数组
-      };
-
-      // 查找正在编辑的数据集
-      let dataset = datasourceData.datasets.find(dataset => dataset.name === oldName);
-      if (dataset) {
-        // 编辑现有数据集
-        dataset.name = name;
-        dataset.sql = sql;
-        dataset.parameters = parameters;
-        dataset.fields = null;
-      } else {
-        // 添加新数据集
-        dataset = { name, sql, parameters };
-        datasourceData.datasets.push(dataset);
-      }
-      this.$emit('update-datasource', datasourceData);
-      this.buildFields(dataset, );
-    },
-
-    /**
-     * 构建点击事件（从 BaseTree 继承）
-     */
-    _buildClickEvent(dataset, field, context) {
-      const hot = TableManager.get();
-      if (!hot) {
-        showAlert(this.$t('tree.cellTip'));
-        return;
-      }
-      const cellsMap = context.cellsMap;
-      const selected = hot.getSelected();
-
-      if (!selected || selected.length === 0) {
-        showAlert(this.$t('tree.cellTip'));
-        return;
-      }
-
-      const [rowIndex, colIndex, endRow, endCol] = selected[0];
-      const cellDef = getCell(rowIndex, colIndex);
-
-      const oldCellDef = deepCopy(cellDef);
-
-      let newCellDef;
-      if (cellDef.value.type !== 'dataset') {
-        newCellDef = {
-          value: { type: 'dataset', conditions: [] },
-          rowNumber: cellDef.rowNumber,
-          columnNumber: cellDef.columnNumber,
-          cellStyle: cellDef.cellStyle
-        };
-      } else {
-        newCellDef = deepCopy(cellDef);
-      }
-
-      newCellDef.expand = 'Down';
-      const value = newCellDef.value;
-      value.aggregate = 'group';
-      value.datasetName = dataset.name;
-      value.property = field.name;
-      value.order = 'none';
-
-      let text = value.datasetName + '.' + value.aggregate + '(';
-      const prop = value.property;
-      text += prop + ')';
-
-      setCell( rowIndex, colIndex, newCellDef )
-      hot.setDataAtCell(rowIndex, colIndex, text);
-
-      // 设置脏标记
-      if (window.setDirty) {
-        window.setDirty();
-      }
-
-      hot.render();
-
-      // 触发选择结束事件
-      if (window.Handsontable && window.Handsontable.hooks) {
-        window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol);
-      }
-
-      // 添加到撤销管理器
-      if (window.undoManager) {
-        window.undoManager.add({
-          redo: () => {
-            const currentCellDef = getCell(rowIndex, colIndex);
-            let redoCellDef;
-            if (currentCellDef.value.type !== 'dataset') {
-              redoCellDef = {
-                value: { type: 'dataset', conditions: [] },
-                rowNumber: currentCellDef.rowNumber,
-                columnNumber: currentCellDef.columnNumber,
-                cellStyle: currentCellDef.cellStyle
-              };
-            } else {
-              redoCellDef = deepCopy(currentCellDef);
-            }
-            redoCellDef.expand = 'Down';
-            const redoValue = redoCellDef.value;
-            redoValue.aggregate = 'group';
-            redoValue.datasetName = dataset.name;
-            redoValue.property = field.name;
-            redoValue.order = 'none';
-
-            let redoText = redoValue.datasetName + '.' + redoValue.aggregate + '(';
-            redoText += redoValue.property + ')';
-            setCell(rowIndex, colIndex, redoCellDef );
-            hot.setDataAtCell(rowIndex, colIndex, redoText);
-            if (window.setDirty) window.setDirty();
-            hot.render();
-            if (window.Handsontable && window.Handsontable.hooks) {
-              window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol);
-            }
-          },
-          undo: () => {
-            setCell(rowIndex, colIndex, oldCellDef);
-            const value = oldCellDef.value;
-            let text = value.value || '';
-            if (value.type === 'dataset') {
-              text = value.datasetName + '.' + value.aggregate + '(';
-              text += value.property + ')';
-            }
-            hot.setDataAtCell(rowIndex, colIndex, text);
-            if (window.setDirty) window.setDirty();
-            hot.render();
-            if (window.Handsontable && window.Handsontable.hooks) {
-              window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol);
-            }
-          }
-        });
-      }
+  try {
+    const fields = await buildJdbcFields(params)
+    dataset.fields = fields
+  } catch (error: any) {
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('tree.loadFieldFail'))
     }
   }
-};
+}
+
+function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, parameters: any[]) {
+  const datasourceData = {
+    name: name.value,
+    oldName: name.value,
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: type,
+    datasets: datasets.value.map(dataset => ({ ...dataset }))
+  }
+
+  let dataset = datasourceData.datasets.find((d: any) => d.name === oldName)
+  if (dataset) {
+    dataset.name = nameVal
+    dataset.sql = sql
+    dataset.parameters = parameters
+    dataset.fields = null
+  } else {
+    dataset = { name: nameVal, sql, parameters }
+    datasourceData.datasets.push(dataset)
+  }
+  emit('update-datasource', datasourceData)
+  buildFields(dataset, -1)
+}
+
+function _buildClickEvent(dataset: any, field: any, ctx: any) {
+  const hot = TableManager.get()
+  if (!hot) {
+    showAlert(t('tree.cellTip'))
+    return
+  }
+  const cellsMap = ctx.cellsMap
+  const selected = hot.getSelected()
+
+  if (!selected || selected.length === 0) {
+    showAlert(t('tree.cellTip'))
+    return
+  }
+
+  const [rowIndex, colIndex, endRow, endCol] = selected[0]
+  const cellDef = getCell(rowIndex, colIndex)
+
+  const oldCellDef = deepCopy(cellDef)
+
+  let newCellDef: any
+  if (cellDef.value.type !== 'dataset') {
+    newCellDef = {
+      value: { type: 'dataset', conditions: [] },
+      rowNumber: cellDef.rowNumber,
+      columnNumber: cellDef.columnNumber,
+      cellStyle: cellDef.cellStyle
+    }
+  } else {
+    newCellDef = deepCopy(cellDef)
+  }
+
+  newCellDef.expand = 'Down'
+  const value = newCellDef.value
+  value.aggregate = 'group'
+  value.datasetName = dataset.name
+  value.property = field.name
+  value.order = 'none'
+
+  let text = value.datasetName + '.' + value.aggregate + '('
+  const prop = value.property
+  text += prop + ')'
+
+  setCell(rowIndex, colIndex, newCellDef)
+  hot.setDataAtCell(rowIndex, colIndex, text)
+
+  if (window.setDirty) {
+    window.setDirty()
+  }
+
+  hot.render()
+
+  if (window.Handsontable && window.Handsontable.hooks) {
+    window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+  }
+
+  if (window.undoManager) {
+    window.undoManager.add({
+      redo: () => {
+        const currentCellDef = getCell(rowIndex, colIndex)
+        let redoCellDef: any
+        if (currentCellDef.value.type !== 'dataset') {
+          redoCellDef = {
+            value: { type: 'dataset', conditions: [] },
+            rowNumber: currentCellDef.rowNumber,
+            columnNumber: currentCellDef.columnNumber,
+            cellStyle: currentCellDef.cellStyle
+          }
+        } else {
+          redoCellDef = deepCopy(currentCellDef)
+        }
+        redoCellDef.expand = 'Down'
+        const redoValue = redoCellDef.value
+        redoValue.aggregate = 'group'
+        redoValue.datasetName = dataset.name
+        redoValue.property = field.name
+        redoValue.order = 'none'
+
+        let redoText = redoValue.datasetName + '.' + redoValue.aggregate + '('
+        redoText += redoValue.property + ')'
+        setCell(rowIndex, colIndex, redoCellDef)
+        hot.setDataAtCell(rowIndex, colIndex, redoText)
+        if (window.setDirty) window.setDirty()
+        hot.render()
+        if (window.Handsontable && window.Handsontable.hooks) {
+          window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+        }
+      },
+      undo: () => {
+        setCell(rowIndex, colIndex, oldCellDef)
+        const val = oldCellDef.value
+        let text = val.value || ''
+        if (val.type === 'dataset') {
+          text = val.datasetName + '.' + val.aggregate + '('
+          text += val.property + ')'
+        }
+        hot.setDataAtCell(rowIndex, colIndex, text)
+        if (window.setDirty) window.setDirty()
+        hot.render()
+        if (window.Handsontable && window.Handsontable.hooks) {
+          window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+        }
+      }
+    })
+  }
+}
 </script>
 <style scoped>
 .tree{
@@ -605,4 +516,3 @@ export default {
   }
 }
 </style>
-

@@ -1,124 +1,96 @@
+<script setup lang="ts">
+import { computed, inject } from 'vue'
+import type { CheckboxGroupContext } from '../checkbox-group/index.vue'
+
+defineOptions({ name: 'UCheckbox' })
+
+const props = withDefaults(defineProps<{
+  modelValue?: boolean | number | string
+  indeterminate?: boolean
+  disabled?: boolean
+  label?: boolean | number | string
+  border?: boolean
+  size?: 'large' | 'medium' | 'small' | 'mini'
+}>(), {
+  modelValue: false,
+  indeterminate: false,
+  disabled: false,
+  label: '',
+  border: false,
+  size: 'medium',
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean | number | string]
+  change: [value: boolean | number | string]
+}>()
+
+const checkboxGroup = inject<CheckboxGroupContext>('checkboxGroupContext')
+
+const checked = computed(() => {
+  if (checkboxGroup) {
+    return checkboxGroup.modelValue?.includes(props.label) ?? false
+  }
+  return !!props.modelValue
+})
+
+const limitDisabled = computed(() => {
+  if (!checkboxGroup) return false
+  const { max, min, modelValue } = checkboxGroup
+  if (!checked.value && max != null && max > -1 && (modelValue?.length ?? 0) >= max) return true
+  if (checked.value && min != null && min > -1 && (modelValue?.length ?? 0) <= min) return true
+  return false
+})
+
+const forbidden = computed(() => props.disabled || (checkboxGroup?.disabled ?? false) || limitDisabled.value)
+const isButton = computed(() => checkboxGroup?.button ?? false)
+
+function handleClick() {
+  if (forbidden.value) return
+  if (checkboxGroup) {
+    checkboxGroup.onSelect(props.label)
+  } else {
+    const newChecked = !checked.value
+    emit('update:modelValue', newChecked)
+    emit('change', newChecked)
+  }
+}
+</script>
+
 <template>
   <label
-      class="u-checkbox"
-      :class="{
+    class="u-checkbox"
+    :class="{
       'u-checkbox-checked': checked,
       'u-checkbox-disabled': forbidden,
       [`u-checkbox-${size}-border`]: border,
-      [`u-checkbox-${size}-button`]: button,
-      'u-checkbox-checked-button': checked && button
+      [`u-checkbox-${size}-button`]: isButton,
+      'u-checkbox-checked-button': checked && isButton,
     }"
   >
     <input
-        type="checkbox"
-        class="u-checkbox-input"
-        @click="handleClick"
-        :disabled="forbidden"
+      type="checkbox"
+      class="u-checkbox-input"
+      @click="handleClick"
+      :disabled="forbidden"
     />
     <span
-        class="u-checkbox-icon"
-        :class="{
+      class="u-checkbox-icon"
+      :class="{
         'u-checkbox-icon-checked': checked,
         'u-checkbox-icon-indeterminate': indeterminate,
         'u-checkbox-icon-indeterminate-disabled': forbidden && indeterminate,
         'u-checkbox-icon-disabled': forbidden,
         'u-checkbox-icon-checked-disabled': forbidden && checked,
-        'u-checkbox-icon-button': button
+        'u-checkbox-icon-button': isButton,
       }"
-    >
-    </span>
+    />
     <span class="u-checkbox-label">
-      <slot></slot>
+      <slot />
     </span>
   </label>
 </template>
 
-<script>
-// 工具函数，用于判断传入的值是否符合条件
-import { oneOf } from "../utils";
-
-import Emitter from "../mixins/emitter";
-
-export default {
-  name: "UCheckbox",
-  mixins: [Emitter],
-  data() {
-    return {
-      checked: false, // 是否被选中
-      myDisabled: false, // 是否被禁用，该属性由父级控制
-      limitDisabled: false, // 是否因为父级数量限制而被禁用
-      button: false // 是否渲染成按钮样式
-    };
-  },
-  props: {
-    // v-model的值
-    value: {
-      type: [Boolean, Number, String],
-      default: false
-    },
-    // 不确定状态
-    indeterminate: {
-      type: Boolean,
-      default: false
-    },
-    // 是否禁用该组件
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    // 选中状态下的值，在多选时发挥作用。
-    label: {
-      type: [Boolean, Number, String],
-      default: ""
-    },
-    // 是否绘制边框
-    border: {
-      type: Boolean,
-      default: false
-    },
-    // 尺寸
-    size: {
-      validator(value) {
-        return oneOf(value, ["large", "medium", "small", "mini"]);
-      },
-      type: String,
-      default: "medium"
-    }
-  },
-  watch: {
-    value: {
-      handler(newVal) {
-        this.checked = newVal;
-      },
-      immediate: true
-    }
-  },
-  computed: {
-    forbidden() {
-      return this.disabled || this.myDisabled || this.limitDisabled;
-    }
-  },
-  mounted() {
-    // 通知UCheckboxGroup组件调用on-checkbox-add方法，参数为当前checkbox实例
-    this.dispatch("UCheckboxGroup", "on-checkbox-add", this);
-  },
-  beforeDestroy() {
-    // 移除时，调用UCheckboxGroup组件的on-checkbox-remove方法
-    this.dispatch("UCheckboxGroup", "on-checkbox-remove", this);
-  },
-  methods: {
-    /**
-     * @description 复选框点击事件
-     */
-    handleClick() {
-      this.checked = !this.checked;
-      this.$emit("input", this.checked);
-      this.$emit("change", this.checked);
-      this.dispatch("UCheckboxGroup", "on-checkbox-select", this);
-    }
-  }
-};
-</script>
 <style scoped>
 .u-checkbox {
   box-sizing: border-box;

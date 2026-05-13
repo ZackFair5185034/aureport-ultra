@@ -1,12 +1,10 @@
 <template>
     <div ref="container" id='container'>
       <div class="u-designer" >
-        <!-- 左侧区域：顶部工具和内容表格 -->
         <div class="left-part">
-          <!-- 顶部工具 -->
           <TopToolBar v-if="contextCreated" ref="topToolBar" :selectedCells="selectedCells" />
-          <!-- 内容表格组件 -->
           <ContentTable
+            ref="contentTable"
             :reportPath="internalReportPath"
             @cell-selected="handleCellSelected"
             @context-created="handleContextCreated"
@@ -15,24 +13,24 @@
             @error="handleError"
           />
         </div>
-        <!-- 右侧区域：侧边栏 -->
         <div class="right-part">
           <ResourcePanel v-if="contextCreated" ref="sidePanel" :selectedCells="selectedCells" />
         </div>
       </div>
-      <!-- 打印线 -->
       <PrintLine v-if="false" ref="printLine" />
-
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
 import 'handsontable/dist/handsontable.min.css'
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/addon/hint/show-hint.css';
 import 'codemirror/addon/lint/lint.css';
-import '../../../assets/css/designer/tree.css';
-
+import '@/assets/css/designer/tree.css';
 import 'codemirror/mode/javascript/javascript.js';
 
 import ResourcePanel from '@/views/report/designer/resource-panel/index.vue';
@@ -41,92 +39,86 @@ import TopToolBar from '@/views/report/designer/tool-bar/index.vue';
 import ContentTable from '@/views/report/designer/edit-table/index.vue';
 import { createNavigator, getLibMode } from '@/lib/navigator';
 
-export default {
-  name: 'DesignerPage',
-  components: {
-    PrintLine,
-    TopToolBar,
-    ResourcePanel,
-    ContentTable
-  },
-  props: {
-    reportPath: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      contextCreated: false,
-      selectedCells: {
-        rowIndex: null,
-        colIndex: null,
-        row2Index: null,
-        col2Index: null
-      },
-      internalReportPath: this.reportPath
-    };
-  },
-  computed: {
-    navigator() {
-      return createNavigator(this);
-    },
-    isLibMode() {
-      return getLibMode();
-    }
-  },
-  watch: {
-    reportPath(val) {
-      this.internalReportPath = val;
-    }
-  },
-  methods: {
-    handleContextCreated() {
-      this.contextCreated = true;
-    },
+defineOptions({ name: 'DesignerPage' })
 
-    handleCellSelected({rowIndex, colIndex, row2Index, col2Index}) {
-      this.selectedCells = {
-        rowIndex,
-        colIndex,
-        row2Index,
-        col2Index
-      };
-    },
+const props = withDefaults(defineProps<{
+  reportPath?: string
+}>(), {
+  reportPath: ''
+})
 
-    handleNavigate(data) {
-      this.$emit('navigate', data);
-    },
+const emit = defineEmits<{
+  (e: 'navigate', data: unknown): void
+  (e: 'save', data: unknown): void
+  (e: 'error', err: unknown): void
+}>()
 
-    handleSave(data) {
-      this.$emit('save', data);
-    },
+const router = useRouter()
+const route = useRoute()
+const { locale } = useI18n()
 
-    handleError(err) {
-      this.$emit('error', err);
-    },
+const container = ref<HTMLDivElement | null>(null)
+const topToolBar = ref(null)
+const contentTable = ref(null)
+const sidePanel = ref(null)
+const printLine = ref(null)
 
-    getReportData() {
-      return this.$refs.contentTable?.getReportData?.();
-    },
+const contextCreated = ref(false)
+const selectedCells = ref<{ rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }>({
+  rowIndex: null,
+  colIndex: null,
+  row2Index: null,
+  col2Index: null
+})
+const internalReportPath = ref(props.reportPath)
 
-    saveReport() {
-      return this.$refs.contentTable?.saveReport?.();
-    },
+const navigator = createNavigator({ $router: router, $route: route })
+const isLibMode = getLibMode()
 
-    navigateTo(target, params, openInNewTab = true) {
-      this.navigator.navigate({ target, params, openInNewTab });
-    },
+watch(() => props.reportPath, (val) => {
+  internalReportPath.value = val
+})
 
-    setReportPath(path) {
-      this.internalReportPath = path;
-    },
-
-    setLocale(locale) {
-      this.$i18n.locale = locale;
-    }
-  }
+function handleContextCreated() {
+  contextCreated.value = true
 }
+
+function handleCellSelected({ rowIndex, colIndex, row2Index, col2Index }: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }) {
+  selectedCells.value = { rowIndex, colIndex, row2Index, col2Index }
+}
+
+function handleNavigate(data: unknown) {
+  emit('navigate', data)
+}
+
+function handleSave(data: unknown) {
+  emit('save', data)
+}
+
+function handleError(err: unknown) {
+  emit('error', err)
+}
+
+function getReportData() {
+  return (contentTable.value as any)?.getReportData?.()
+}
+
+function saveReport() {
+  return (contentTable.value as any)?.saveReport?.()
+}
+
+function navigateTo(target: string, params: Record<string, unknown> | undefined, openInNewTab = true) {
+  (navigator as any).navigate({ target, params, openInNewTab })
+}
+
+function setReportPath(path: string) {
+  internalReportPath.value = path
+}
+
+function setLocale(newLocale: string) {
+  locale.value = newLocale
+}
+defineExpose({ getReportData, saveReport })
 </script>
 
 <style scoped>

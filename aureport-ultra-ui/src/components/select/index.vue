@@ -1,91 +1,90 @@
 <template>
-  <div class="u-select" ref="USelect">
-    <div class="u-select-inner" ref="myInput">
-      <!-- 多选专用区域 -->
+  <div class="u-select" ref="uSelectRef">
+    <div
+      class="u-select-inner"
+      @mouseenter="setHoverAttr"
+      @mouseleave="setHoverAttr"
+    >
       <div
-          class="u-select-multi"
-          :class="{
+        v-if="multiple"
+        class="u-select-multi"
+        :class="{
           'u-select-multi-disabled': disabled,
           [`u-select-multi-${size}`]: true
         }"
-          v-if="multiple"
-          ref="multiPanel"
-          @click.self="handleMultiClick"
+        ref="multiPanelRef"
+        @click.self="handleMultiClick"
       >
-        <!-- <div class="u-select-multi-tags"></div> -->
-        <tag
-            size="mini"
-            type="text"
-            closeable
-            disableTransitions
-            v-for="item in currentTags"
-            :key="item.value"
-            @close="handleTagClose(item)"
-        >{{ item.label }}</tag
-        >
-        <input
-            type="text"
-            class="u-select-multi-input"
-            ref="multiInput"
-            :placeholder="disabled ? '' : '请输入'"
-            v-if="filterable"
-            :disabled="disabled"
-            @click.self="handleMultiClick"
-            @input="handleInput"
-            @focus="handleInputFocus"
-            @blur="handleInputBlur"
-
-        />
-      </div>
-      <input
-          class="u-select-inner-input"
-          :class="{
-          ['u-select-inner-input-select']: visible,
-          [`u-select-inner-input-disabled`]: disabled,
-          [`u-select-inner-input-size-${size}`]: true
-        }"
-          :style="{ 'min-height': `${panelHeight}px` }"
-          ref="myInput"
+        <UTag
+          size="mini"
           type="text"
-          :placeholder="currentTags.length > 0 ? '' : placeholderLabel"
+          closeable
+          disableTransitions
+          v-for="item in currentTags"
+          :key="item.value"
+          @close="handleTagClose(item)"
+        >{{ item.label }}</UTag>
+        <input
+          type="text"
+          class="u-select-multi-input"
+          ref="multiInputRef"
+          :placeholder="disabled ? '' : '请输入'"
+          v-if="filterable"
           :disabled="disabled"
-          :value="multiple ? '' : currentLabel"
-          :readonly="!filterable"
-          @click="handleClick"
+          @click.self="handleMultiClick"
           @input="handleInput"
           @focus="handleInputFocus"
           @blur="handleInputBlur"
+        />
+      </div>
+      <input
+        class="u-select-inner-input"
+        :class="{
+          ['u-select-inner-input-select']: visible,
+          ['u-select-inner-input-disabled']: disabled,
+          ['u-select-inner-input-size-' + size]: true
+        }"
+        :style="{ 'min-height': panelHeight ? `${panelHeight}px` : undefined }"
+        type="text"
+        :placeholder="currentTags.length > 0 ? '' : placeholderLabel"
+        :disabled="disabled"
+        :value="multiple ? '' : currentLabel"
+        :readonly="!filterable"
+        @click="handleClick"
+        @input="handleInput"
+        @focus="handleInputFocus"
+        @blur="handleInputBlur"
       />
       <i
-          class="u-select-inner-icon iconfont icon-down"
-          :class="{
+        class="u-select-inner-icon iconfont icon-down"
+        :class="{
           'u-select-inner-icon-focus': visible,
-          [`u-select-inner-icon-size-${size}`]: true
+          ['u-select-inner-icon-size-' + size]: true
         }"
-          v-show="!(clearable && this.currentValue && onHover)"
+        v-show="!(clearable && currentValue && onHover)"
       />
       <span
-          class="u-select-inner-icon"
-          v-show="clearable && this.currentValue && onHover"
-          @click="handleClear"
+        class="u-select-inner-icon"
+        v-show="clearable && currentValue && onHover"
+        @click="handleClear"
       >
         <i class="iconfont icon-close" />
       </span>
     </div>
     <transition name="fade-bottom">
       <div
-          class="u-select-options"
-          :style="{ 
-            top: panelHeight ? `${panelHeight + 6}px` : undefined,
-            width: optionsWidth ? `${optionsWidth}px` : undefined
-          }"
-          v-show="visible"
-          v-loading="filterable && loading"
+        class="u-select-options"
+        :style="{
+          top: panelHeight ? `${panelHeight + 6}px` : undefined,
+          width: optionsWidth ? `${optionsWidth}px` : undefined
+        }"
+        v-show="visible"
+        v-loading="filterable && loading"
       >
-        <slot> </slot>
+        <slot></slot>
         <div
-            class="u-select-options-no-data"
-            v-show="!$slots.default || !hasOptions"
+          class="u-select-options-no-data"
+          v-show="!$slots.default || !hasOptions"
         >
           无数据
         </div>
@@ -94,404 +93,318 @@
   </div>
 </template>
 
-<script>
-import { oneOf, debounce } from "../utils";
-import Emitter from "../mixins/emitter";
-import { LoadingDirective } from "../loading/instance";
-import Tag from "../tag/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, provide, reactive } from 'vue'
+import { oneOf, debounce } from '../utils'
+import { LoadingDirective as vLoading } from '../loading/instance'
+import type { FormItemContext } from '../form-item/index.vue'
 
-export default {
-  name: "USelect",
-  components: {
-    Tag
+defineOptions({ name: 'USelect' })
+
+const props = withDefaults(defineProps<{
+  modelValue?: unknown
+  placeholder?: string
+  disabled?: boolean
+  clearable?: boolean
+  size?: 'mini' | 'small' | 'medium' | 'large'
+  filterable?: boolean
+  filterMethod?: (value: string) => void
+  loading?: boolean
+  remote?: boolean
+  remoteMethod?: (value: string) => void
+  multiple?: boolean
+  multipleLimit?: number
+}>(), {
+  placeholder: '请选择',
+  disabled: false,
+  clearable: false,
+  size: 'medium',
+  filterable: false,
+  loading: false,
+  remote: false,
+  multiple: false,
+  multipleLimit: 0,
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: unknown]
+  'change': [value: unknown]
+  'visible-change': [value: boolean]
+  'focus': [value: FocusEvent]
+  'blur': [value: FocusEvent]
+  'clear': []
+  'remove-tag': [value: unknown]
+}>()
+
+const formItemContext = inject<FormItemContext>('formItemContext')
+
+const options = ref<OptionInstance[]>([])
+const visible = ref(false)
+const currentLabel = ref('')
+const currentValue = ref<unknown>('')
+const currentTags = ref<OptionInstance[]>([])
+const panelHeight = ref(0)
+const hasOptions = ref(true)
+const currentPlaceholder = ref('')
+const onHover = ref(false)
+const optionsWidth = ref<number | null>(null)
+
+const uSelectRef = ref<HTMLElement | null>(null)
+const multiPanelRef = ref<HTMLElement | null>(null)
+const multiInputRef = ref<HTMLInputElement | null>(null)
+
+const placeholderLabel = computed(() => currentPlaceholder.value || props.placeholder)
+
+export interface OptionInstance {
+  value: unknown
+  label: string
+  disabled: boolean
+  selected: boolean
+  choose: boolean
+  visible: boolean
+  multi: boolean
+}
+
+export interface SelectContext {
+  onOptionAdd: (option: OptionInstance) => void
+  onOptionSelect: (option: OptionInstance) => void
+  onOptionRemove: (option: OptionInstance) => void
+}
+
+const selectContext: SelectContext = {
+  onOptionAdd(child) {
+    options.value.push(child)
+    syncValue(props.modelValue)
+    setMultiOptionStyle(props.multiple)
   },
-  mixins: [Emitter],
-  directives: {
-    loading: LoadingDirective
-  },
-  data() {
-    return {
-      options: [],
-      visible: false,
-      currentLabel: "",
-      currentValue: "",
-      currentTags: [],
-      // 整个面板的高度
-      panelHeight: "",
-      hasOptions: true,
-      currentPlaceholder: "",
-      // 鼠标是否在父级元素上，该属性会影响清空按钮的显示
-      onHover: false,
-      // 下拉选项宽度
-      optionsWidth: null
-    };
-  },
-  props: {
-    // 当前的选中值
-    value: {
-      type: [Array, String, Number]
-    },
-    // 占位符
-    placeholder: {
-      type: String,
-      default: "请选择"
-    },
-    // 是否禁用
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    // 是否可清空
-    clearable: {
-      type: Boolean,
-      default: false
-    },
-    // 尺寸
-    size: {
-      validator(value) {
-        return oneOf(value, ["mini", "small", "medium", "large"]);
-      },
-      default: "medium"
-    },
-    // 是否可搜索
-    filterable: {
-      type: Boolean,
-      default: false
-    },
-    // 搜索的自定义回调
-    filterMethod: {
-      required: false,
-      type: Function
-    },
-    // 远程搜索-是否加载中
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    // 是否为远程搜索
-    remote: {
-      type: Boolean,
-      default: false
-    },
-    // 远程搜索回调
-    remoteMethod: {
-      required: false,
-      type: Function
-    },
-    // 是否为多选
-    multiple: {
-      type: Boolean,
-      default: false
-    },
-    multipleLimit: {
-      type: Number,
-      default: 0
+  onOptionSelect(child) {
+    if (props.multiple) {
+      handleMultiChoose(child)
+    } else {
+      handleChoose(child)
     }
   },
-  computed: {
-    /**
-     * @description 占位符显示文案
-     */
-    placeholderLabel() {
-      let x = this.currentPlaceholder
-          ? this.currentPlaceholder
-          : this.placeholder;
-      return x;
-    }
+  onOptionRemove(child) {
+    const idx = options.value.indexOf(child)
+    if (idx !== -1) options.value.splice(idx, 1)
   },
-  watch: {
-    "currentTags.length"(newVal) {
-      this.$nextTick(() => {
-        setTimeout(() => {
-          const height = this.$refs.multiPanel.clientHeight;
-          this.panelHeight = height;
-        }, 10);
-      });
+}
+provide('selectContext', selectContext)
 
-      let values = this.currentTags.reduce((total, cell) => {
-        if (cell.choose) {
-          total.push(cell.value);
-        }
-        return total;
-      }, []);
-
-      this.$emit("input", values);
-      this.$emit("change", values);
-    },
-    value: {
-      handler(newVal) {
-        this.syncValue(newVal);
-      },
-      immediate: true
-    },
-    visible(newVal) {
-      this.$emit("visible-change", newVal);
-      if (newVal) {
-        this.updateOptionsWidth();
-      }
-    },
-    multiple: {
-      handler(value) {
-        this.setMultiOptionStyle(value);
-      },
-      immediate: true
-    }
-  },
-  created() {
-    this.$on("on-option-add", child => {
-      child && this.options.push(child);
-      this.syncValue(this.value);
-      this.setMultiOptionStyle(this.multiple);
-    });
-
-    this.$on("on-option-select", child => {
-      if (this.multiple) {
-        this.handleMultiChoose(child);
-      } else {
-        this.handleChoose(child);
-      }
-    });
-
-    this.$on("on-option-remove", child => {
-      this.options.splice(this.options.indexOf(child), 1);
-    });
-  },
-  // 挂载时，绑定根元素点击事件
-  mounted() {
-    document.addEventListener("click", this.addCloseEvent);
-
-    this.$refs.myInput.addEventListener("mouseenter", this.setHoverAttr);
-    this.$refs.myInput.addEventListener("mouseleave", this.setHoverAttr);
-    
-    this.updateOptionsWidth();
-  },
-  // 移除时，删除根元素点击事件
-  beforeDestroy() {
-    document.removeEventListener("click", this.addCloseEvent);
-
-    this.$refs.myInput.removeEventListener("mouseenter", this.setHoverAttr);
-    this.$refs.myInput.removeEventListener("mouseleave", this.setHoverAttr);
-  },
-  methods: {
-    updateOptionsWidth() {
-      if (this.$refs.USelect) {
-        this.optionsWidth = this.$refs.USelect.offsetWidth;
-      }
-    },
-    handleMultiClick() {
-      if (this.disabled) return;
-      this.visible = !this.visible;
-      if (this.filterable && this.visible) {
-        this.$nextTick(() => {
-          this.$refs.multiInput.focus();
-        });
-      }
-    },
-    handleClick() {
-      this.visible = !this.visible;
-    },
-    // 单项选择
-    handleChoose(opt) {
-      this.options.forEach(d => (d.selected = false));
-      opt.selected = true;
-
-      this.currentValue = opt.value;
-      this.currentLabel = opt.label;
-      this.visible = false;
-      this.$emit("input", this.currentValue);
-      this.$emit("change", this.currentValue);
-    },
-    // 多选
-    handleMultiChoose(opt) {
-      if (
-          this.multipleLimit > 0 &&
-          this.currentTags.length >= this.multipleLimit &&
-          !opt.choose
-      )
-        return;
-
-      opt.choose = !opt.choose;
-
-      // 多选且可搜索条件下，默认选中输入框
-      if (this.filterable) {
-        this.$refs.multiInput.focus();
-      }
-
-      if (opt.choose) {
-        this.currentTags.push(opt);
-      } else {
-        this.currentTags.splice(this.currentTags.indexOf(opt), 1);
-      }
-    },
-    // 判断是否关闭
-    addCloseEvent(event) {
-      const target = event.target;
-      if (!this.$refs.USelect) return;
-
-      if (!this.$refs.USelect.contains(target) && this.visible) {
-        this.visible = false;
-      }
-    },
-    setHoverAttr(event) {
-      this.onHover = event.type === "mouseenter";
-    },
-    handleClear() {
-      this.currentLabel = "";
-      this.currentValue = "";
-      this.options.forEach(d => (d.selected = false));
-      this.$emit("input", null);
-      this.$emit("change", null);
-      this.$emit("clear");
-    },
-    /**
-     * @description 过滤-输入事件
-     */
-    handleInput(_e) {
-      this.currentLabel = _e.target.value;
-      debounce(
-          () => {
-            // 远程搜索
-            if (this.remote && typeof this.remoteMethod === "function") {
-              this.remoteMethod(_e.target.value);
-            }
-            // 自定义搜索
-            else if (
-                this.filterMethod &&
-                typeof this.filterMethod === "function"
-            ) {
-              this.filterMethod(_e.target.value);
-            }
-            // 默认搜索
-            else {
-              this.filterOptionsByValue(_e.target.value);
-            }
-          },
-          333,
-          "u-select-input"
-      );
-    },
-    /**
-     * @description 根据输入值过滤出参数
-     * @param { string } value 输入值
-     */
-    filterOptionsByValue(value) {
-      this.options.forEach(cell => {
-        const label = cell.label || '';
-        cell.visible = String(label).indexOf(value) > -1;
-      });
-
-      this.setNoDataVisible();
-    },
-    /**
-     * @description 输入框触发focus事件
-     */
-    handleInputFocus(_e) {
-      if (this.filterable) {
-        this.currentPlaceholder = this.currentLabel;
-        this.currentLabel = "";
-      }
-      this.$emit("focus", _e);
-    },
-    /**
-     * @description 输入空触发blur事件
-     */
-    handleInputBlur(_e) {
-      if (this.filterable) {
-        this.currentLabel = this.currentPlaceholder;
-        this.currentPlaceholder = "";
-      }
-
-      this.$emit("blur", _e);
-
-      setTimeout(() => {
-        if (this.visible) return;
-        // if (this.filterable && _e.target.value) {
-        //   _e.target.value = "";
-        // }
-
-        this.filterOptionsByValue("");
-      }, 250);
-    },
-    /**
-     * @description 没有选项时，显示暂无数据
-     */
-    setNoDataVisible() {
-      let hasOptions = false;
-      hasOptions = this.options.length > 0;
-      if (this.filterable) {
-        hasOptions = !!this.options.find(d => d.visible);
-      }
-      this.hasOptions = hasOptions;
-    },
-    /**
-     * @description 多选模式下，选项的padding-right放大
-     */
-    setMultiOptionStyle(multi) {
-      this.options.forEach(d => (d.multi = multi));
-    },
-    handleTagClose(opt) {
-      if (this.disabled) return;
-      opt.choose = false;
-      this.$emit("remove-tag", opt.value);
-      this.currentTags.splice(this.currentTags.indexOf(opt), 1);
-    },
-    /**
-     * @description 同步选择值
-     * @param {number|string} value 选择值
-     */
-    syncValue(value) {
-      if (this.multiple) {
-        this.__syncMultiValues(value);
-      } else {
-        this.__syncSimpleValue(value);
-      }
-      this.dispatch('UFormItem', 'form-change', value)
-    },
-    /**
-     * @description 同步单选的选择值
-     */
-    __syncSimpleValue(value) {
-      let that = this;
-      let found = false;
-      this.options.forEach(d => {
-        if (d.value === value) {
-          d.selected = true;
-          that.currentValue = value;
-          that.currentLabel = d.label
-          found = true;
-        } else {
-          d.selected = false;
-        }
-      });
-      if (!found) {
-        that.currentValue = value;
-        that.currentLabel = value;
-      }
-    },
-    /**
-     * @description 同步多选的选择值
-     */
-    __syncMultiValues(values) {
-      this.options.forEach(d => {
-        if (values.includes(d.value)) {
-          d.choose = true;
-
-          if (!this.currentTags.find(tag => tag.value === d.value)) {
-            this.currentTags.push(d);
-          }
-        } else {
-          d.choose = false;
-          if (this.currentTags.find(tag => tag.value === d.value)) {
-            this.currentTags.splice(this.currentTags.indexOf(d), 1);
-          }
-        }
-      });
-    }
+function updateOptionsWidth() {
+  if (uSelectRef.value) {
+    optionsWidth.value = uSelectRef.value.offsetWidth
   }
-};
-</script>
-<style scoped>
+}
 
+function handleMultiClick() {
+  if (props.disabled) return
+  visible.value = !visible.value
+  if (props.filterable && visible.value) {
+    nextTick(() => {
+      multiInputRef.value?.focus()
+    })
+  }
+}
+
+function handleClick() {
+  visible.value = !visible.value
+}
+
+function handleChoose(opt: OptionInstance) {
+  options.value.forEach(d => (d.selected = false))
+  opt.selected = true
+  currentValue.value = opt.value
+  currentLabel.value = opt.label
+  visible.value = false
+  emit('update:modelValue', currentValue.value)
+  emit('change', currentValue.value)
+}
+
+function handleMultiChoose(opt: OptionInstance) {
+  if (props.multipleLimit > 0 && currentTags.value.length >= props.multipleLimit && !opt.choose) return
+  opt.choose = !opt.choose
+  if (props.filterable) {
+    multiInputRef.value?.focus()
+  }
+  if (opt.choose) {
+    currentTags.value.push(opt)
+  } else {
+    const idx = currentTags.value.indexOf(opt)
+    if (idx !== -1) currentTags.value.splice(idx, 1)
+  }
+}
+
+function addCloseEvent(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!uSelectRef.value) return
+  if (!uSelectRef.value.contains(target) && visible.value) {
+    visible.value = false
+  }
+}
+
+function setHoverAttr(event: MouseEvent) {
+  onHover.value = event.type === 'mouseenter'
+}
+
+function handleClear() {
+  currentLabel.value = ''
+  currentValue.value = ''
+  options.value.forEach(d => (d.selected = false))
+  emit('update:modelValue', null)
+  emit('change', null)
+  emit('clear')
+}
+
+function handleInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  currentLabel.value = target.value
+  debounce(() => {
+    if (props.remote && typeof props.remoteMethod === 'function') {
+      props.remoteMethod(currentLabel.value)
+    } else if (props.filterMethod && typeof props.filterMethod === 'function') {
+      props.filterMethod(currentLabel.value)
+    } else {
+      filterOptionsByValue(currentLabel.value)
+    }
+  }, 333, 'u-select-input')
+}
+
+function filterOptionsByValue(value: string) {
+  options.value.forEach(cell => {
+    const label = cell.label || ''
+    cell.visible = label.indexOf(value) > -1
+  })
+  setNoDataVisible()
+}
+
+function handleInputFocus(e: FocusEvent) {
+  if (props.filterable) {
+    currentPlaceholder.value = currentLabel.value
+    currentLabel.value = ''
+  }
+  emit('focus', e)
+}
+
+function handleInputBlur(e: FocusEvent) {
+  if (props.filterable) {
+    currentLabel.value = currentPlaceholder.value
+    currentPlaceholder.value = ''
+  }
+  emit('blur', e)
+  setTimeout(() => {
+    if (visible.value) return
+    filterOptionsByValue('')
+  }, 250)
+}
+
+function setNoDataVisible() {
+  if (props.filterable) {
+    hasOptions.value = !!options.value.find(d => d.visible)
+  } else {
+    hasOptions.value = options.value.length > 0
+  }
+}
+
+function setMultiOptionStyle(multi: boolean) {
+  options.value.forEach(d => (d.multi = multi))
+}
+
+function handleTagClose(opt: OptionInstance) {
+  if (props.disabled) return
+  opt.choose = false
+  emit('remove-tag', opt.value)
+  const idx = currentTags.value.indexOf(opt)
+  if (idx !== -1) currentTags.value.splice(idx, 1)
+}
+
+function syncValue(value: unknown) {
+  if (props.multiple) {
+    __syncMultiValues(value)
+  } else {
+    __syncSimpleValue(value)
+  }
+  formItemContext?.onFieldChange()
+}
+
+function __syncSimpleValue(value: unknown) {
+  let found = false
+  options.value.forEach(d => {
+    if (d.value === value) {
+      d.selected = true
+      currentValue.value = value
+      currentLabel.value = d.label
+      found = true
+    } else {
+      d.selected = false
+    }
+  })
+  if (!found) {
+    currentValue.value = value
+    currentLabel.value = String(value ?? '')
+  }
+}
+
+function __syncMultiValues(values: unknown) {
+  const vals = (values as unknown[]) || []
+  options.value.forEach(d => {
+    if (vals.includes(d.value)) {
+      d.choose = true
+      if (!currentTags.value.find(tag => tag.value === d.value)) {
+        currentTags.value.push(d)
+      }
+    } else {
+      d.choose = false
+      const idx = currentTags.value.findIndex(tag => tag.value === d.value)
+      if (idx !== -1) currentTags.value.splice(idx, 1)
+    }
+  })
+}
+
+watch(() => currentTags.value.length, () => {
+  nextTick(() => {
+    setTimeout(() => {
+      if (multiPanelRef.value) {
+        panelHeight.value = multiPanelRef.value.clientHeight
+      }
+    }, 10)
+  })
+  const values = currentTags.value.reduce<unknown[]>((total, cell) => {
+    if (cell.choose) {
+      total.push(cell.value)
+    }
+    return total
+  }, [])
+  emit('update:modelValue', values)
+  emit('change', values)
+})
+
+watch(() => props.modelValue, (newVal) => {
+  syncValue(newVal)
+}, { immediate: true })
+
+watch(visible, (newVal) => {
+  emit('visible-change', newVal)
+  if (newVal) {
+    updateOptionsWidth()
+  }
+})
+
+watch(() => props.multiple, (value) => {
+  setMultiOptionStyle(value)
+}, { immediate: true })
+
+onMounted(() => {
+  document.addEventListener('click', addCloseEvent)
+  updateOptionsWidth()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', addCloseEvent)
+})
+</script>
+
+<style scoped>
 .u-select {
   position: relative;
   width: 220px;
@@ -668,7 +581,9 @@ export default {
 .u-select-multi-medium {
   padding: 4px 30px 8px 10px
 }
+</style>
 
+<style>
 ::-webkit-input-placeholder {
   color: #bbbcc0
 }

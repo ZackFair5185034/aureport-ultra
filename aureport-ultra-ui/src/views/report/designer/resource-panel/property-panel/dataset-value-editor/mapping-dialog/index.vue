@@ -8,109 +8,91 @@
   >
     <div class="dialog-content">
       <div class="form-group">
-        <label>{{ $t('dialog.mapping.key') }}：</label>
+        <label>{{ t('dialog.mapping.key') }}：</label>
         <div class="u-inline">
           <u-input
             v-model="localMappingItem.value"
-            :placeholder="$t('dialog.mapping.keyPlaceholder')"
+            :placeholder="t('dialog.mapping.keyPlaceholder')"
           />
         </div>
       </div>
       <div class="form-group">
-        <label>{{ $t('dialog.mapping.value') }}：</label>
+        <label>{{ t('dialog.mapping.value') }}：</label>
         <div class="u-inline">
           <u-input
             v-model="localMappingItem.label"
-            :placeholder="$t('dialog.mapping.valuePlaceholder')"
+            :placeholder="t('dialog.mapping.valuePlaceholder')"
           />
         </div>
       </div>
     </div>
 
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleSave">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleSave">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon'
 
-export default {
-  name: 'MappingDialog',
-  components: {
-    UButton,
-    UDialog,
-    UInput
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    mappingItem: {
-      type: Object,
-      default: () => ({
-        value: '',
-        label: ''
-      })
-    },
-    operation: {
-      type: String,
-      default: 'add'
-    }
-  },
-  data() {
-    return {
-      localMappingItem: {
-        value: '',
-        label: ''
-      }
-    };
-  },
-  computed: {
-    dialogTitle() {
-      return this.operation === 'add' ? this.$t('dialog.mapping.add') : this.$t('dialog.mapping.edit');
-    }
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.localMappingItem = {
-          value: this.mappingItem.value || '',
-          label: this.mappingItem.label || ''
-        };
-      }
-    }
-  },
-  methods: {
-    handleSave() {
-      if (this.localMappingItem.value === '' || this.localMappingItem.label === '') {
-        showAlert(this.$t('dialog.mapping.tip'));
-        return;
-      }
+defineOptions({ name: 'MappingDialog' })
 
-      this.$emit('save', {
-        value: this.localMappingItem.value,
-        label: this.localMappingItem.label
-      });
+const { t } = useI18n()
 
-      this.handleClose();
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  mappingItem?: any
+  operation?: string
+}>(), {
+  visible: false,
+  mappingItem: () => ({ value: '', label: '' }),
+  operation: 'add'
+})
 
-      this.localMappingItem = {
-        value: '',
-        label: ''
-      };
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'save', value: any): void
+}>()
+
+const localMappingItem = ref({ value: '', label: '' })
+
+const dialogTitle = computed(() =>
+  props.operation === 'add' ? t('dialog.mapping.add') : t('dialog.mapping.edit')
+)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    localMappingItem.value = {
+      value: props.mappingItem.value || '',
+      label: props.mappingItem.label || ''
     }
   }
-};
+})
+
+function handleSave() {
+  if (localMappingItem.value.value === '' || localMappingItem.value.label === '') {
+    showAlert(t('dialog.mapping.tip'))
+    return
+  }
+
+  emit('save', {
+    value: localMappingItem.value.value,
+    label: localMappingItem.value.label
+  })
+
+  handleClose()
+}
+
+function handleClose() {
+  emit('update:visible', false)
+  localMappingItem.value = { value: '', label: '' }
+}
 </script>
 <style scoped>
 </style>

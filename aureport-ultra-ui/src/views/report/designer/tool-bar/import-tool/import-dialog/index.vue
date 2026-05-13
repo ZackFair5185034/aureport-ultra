@@ -21,75 +21,74 @@
       </div>
     </div>
 
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleUpload">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
-import { importExcelFile } from '@/api/designer';
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { importExcelFile } from '@/api/designer'
 
-export default {
-  name: 'ImportDialog',
-  components: {
-    UDialog,
-    UButton
-  },
-  emits: ['update:visible', 'import-success'],
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      selectedFile: null,
-      fileInputKey: 0
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.selectedFile = null;
-        this.fileInputKey += 1;
-      }
-    }
-  },
-  methods: {
-    handleFileChange(event) {
-      this.selectedFile = event.target.files[0];
-    },
-    async handleUpload() {
-      if (!this.selectedFile) {
-        showAlert(this.$t('dialog.import.selectFile') || this.$t('dialog.import.file'));
-        return;
-      }
+defineOptions({ name: 'ImportDialog' })
 
-      try {
-        const response = await importExcelFile(this.selectedFile);
-        this.$emit('import-success');
-        this.$emit('update:visible', false);
-      } catch (error) {
-        console.error('上传文件失败:', error);
-        if (error.msg) {
-          showAlert(this.$t('dialog.import.fail') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('dialog.import.fail'));
-        }
-      }
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
-      this.selectedFile = null;
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'import-success'): void
+}>()
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false
+})
+
+const { t } = useI18n()
+const selectedFile = ref<File | null>(null)
+const fileInputKey = ref(0)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    selectedFile.value = null
+    fileInputKey.value += 1
+  }
+})
+
+function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    selectedFile.value = target.files[0]
+  }
+}
+
+async function handleUpload() {
+  if (!selectedFile.value) {
+    showAlert(t('dialog.import.selectFile') || t('dialog.import.file'))
+    return
+  }
+
+  try {
+    await importExcelFile(selectedFile.value)
+    emit('import-success')
+    emit('update:visible', false)
+  } catch (error: any) {
+    console.error('上传文件失败:', error)
+    if (error.msg) {
+      showAlert(t('dialog.import.fail') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('dialog.import.fail'))
     }
   }
-};
+}
+
+function handleClose() {
+  emit('update:visible', false)
+  selectedFile.value = null
+}
 </script>
 
 <style scoped>

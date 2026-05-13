@@ -1,4 +1,6 @@
 allowBuilds:
   core-js: true
   cssnano: true
+  esbuild: true
+  vue-demi: true
   yorkie: true

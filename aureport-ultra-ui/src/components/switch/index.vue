@@ -1,5 +1,51 @@
+<script setup lang="ts">
+import { computed, inject } from 'vue'
+import type { FormItemContext } from '../form-item/index.vue'
+
+defineOptions({ name: 'USwitch' })
+
+const props = withDefaults(defineProps<{
+  modelValue?: boolean | string | number
+  disabled?: boolean
+  activeValue?: boolean | string | number
+  inactiveValue?: boolean | string | number
+  activeText?: string
+  inactiveText?: string
+  activeColor?: string
+  inactiveColor?: string
+}>(), {
+  modelValue: false,
+  disabled: false,
+  activeValue: true,
+  inactiveValue: false,
+  activeText: '',
+  inactiveText: '',
+  activeColor: '',
+  inactiveColor: '',
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean | string | number]
+}>()
+
+const formItemContext = inject<FormItemContext>('formItemContext')
+
+const _activeColor = computed(() =>
+  props.modelValue === props.activeValue && props.activeColor ? props.activeColor : ''
+)
+const _inactiveColor = computed(() =>
+  props.modelValue === props.inactiveValue && props.inactiveColor ? props.inactiveColor : ''
+)
+
+function handleClick() {
+  const newVal = props.modelValue === props.activeValue ? props.inactiveValue : props.activeValue
+  emit('update:modelValue', newVal)
+  formItemContext?.onFieldChange()
+}
+</script>
+
 <template>
-  <label class="u-switch" :class="{ [`u-switch-disabled`]: disabled }">
+  <label class="u-switch" :class="{ 'u-switch-disabled': disabled }">
     <input
       type="checkbox"
       class="u-switch-input"
@@ -8,102 +54,29 @@
     />
     <span
       class="u-switch-label"
-      :class="{
-        [`u-switch-label-selected`]: value === inactiveValue
-      }"
+      :class="{ 'u-switch-label-selected': modelValue === inactiveValue }"
       :style="{ color: _inactiveColor }"
-      >{{ inactiveText }}</span
-    >
+    >{{ inactiveText }}</span>
     <span
       class="u-switch-dot"
       :class="{
-        [`u-switch-dot-selected`]: value === activeValue,
-        [`u-switch-dot-disabled`]: disabled
+        'u-switch-dot-selected': modelValue === activeValue,
+        'u-switch-dot-disabled': disabled,
       }"
       :style="{
-        [`background-color`]:
-          value === activeValue ? _activeColor : _inactiveColor,
-        [`border-color`]: value === activeValue ? _activeColor : _inactiveColor
+        backgroundColor: modelValue === activeValue ? _activeColor : _inactiveColor,
+        borderColor: modelValue === activeValue ? _activeColor : _inactiveColor,
       }"
-    ></span>
+    />
     <span
       class="u-switch-label"
-      :class="{
-        [`u-switch-label-selected`]: value == activeValue
-      }"
+      :class="{ 'u-switch-label-selected': modelValue === activeValue }"
       :style="{ color: _activeColor }"
-      >{{ activeText }}</span
-    >
+    >{{ activeText }}</span>
   </label>
 </template>
 
-<script>
-import Emitter from "@/components/mixins/emitter";
-
-export default {
-  name: "USwitch",
-  mixins: [Emitter],
-  data() {
-    return {};
-  },
-  props: {
-    value: {
-      type: [Boolean, String, Number],
-      default: false
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    activeValue: {
-      type: [Boolean, String, Number],
-      default: true
-    },
-    inactiveValue: {
-      type: [Boolean, String, Number],
-      default: false
-    },
-    activeText: {
-      type: [Boolean, String, Number],
-      default: null
-    },
-    inactiveText: {
-      type: [Boolean, String, Number],
-      default: null
-    },
-    activeColor: {
-      type: String,
-      default: ""
-    },
-    inactiveColor: {
-      type: String,
-      default: ""
-    }
-  },
-  computed: {
-    _activeColor() {
-      return this.value === this.activeValue && this.activeColor
-        ? this.activeColor
-        : "";
-    },
-    _inactiveColor() {
-      return this.value === this.inactiveValue && this.inactiveColor
-        ? this.inactiveColor
-        : "";
-    }
-  },
-  methods: {
-    handleClick() {
-      let newVal =
-        this.value === this.activeValue ? this.inactiveValue : this.activeValue;
-      this.$emit("input", newVal);
-      this.dispatch('UFormItem', 'form-change', newVal)
-    }
-  }
-};
-</script>
 <style scoped>
-
 .u-switch {
   display: inline-block;
   line-height: 22px
@@ -168,5 +141,4 @@ export default {
 .u-switch-dot-disabled {
   cursor: not-allowed
 }
-
 </style>

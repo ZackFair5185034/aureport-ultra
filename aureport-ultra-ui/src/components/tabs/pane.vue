@@ -1,22 +1,32 @@
+<script setup lang="ts">
+import { computed, inject, onMounted, onBeforeUnmount } from 'vue'
+import type { TabsContext } from './index.vue'
+
+defineOptions({ name: 'UTabPane' })
+
+const props = defineProps<{
+  label: string
+  index: string
+}>()
+
+const tabsContext = inject<TabsContext>('tabsContext')
+
+onMounted(() => {
+  tabsContext?.registerPane({ label: props.label, index: props.index })
+})
+
+onBeforeUnmount(() => {
+  tabsContext?.unregisterPane({ label: props.label, index: props.index })
+})
+
+const visible = computed(() => tabsContext?.activeValue === props.index)
+</script>
+
 <template>
-  <div class="pane" v-show="visible">
-    <slot></slot>
+  <div v-show="visible" class="pane">
+    <slot />
   </div>
 </template>
-<script>
-export default {
-  name: 'UTabPane',
-  props: {
-    label: { type: String, required: true },
-    index: { type: String }
-  },
-  data () {
-    return {
-      visible: false
-    }
-  }
-}
-</script>
-<style scoped>
 
+<style scoped>
 </style>

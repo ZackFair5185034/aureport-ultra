@@ -72,7 +72,7 @@
                   {{ file.name }}
                 </span>
               </td>
-              <td><span>{{ formatDate(file.updateDate) }}</span></td>
+              <td><span>{{ formatDateItem(file.updateDate) }}</span></td>
               <td class="data-table-btn" v-if="!file.directory">
                 <a @click.prevent="deleteFile(file, index)">
                   <i class="iconfont icon-delete del-button"></i>
@@ -85,284 +85,260 @@
       </div>
     </div>
 
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleSave">{{ $t('dialog.save.save') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import { formatDate, resetDirty, tableToXml } from '@/utils/table.js';
-import UDialog from '@/components/dialog/index.vue';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import { saveReportFile, deleteReportFile, loadReportProviders, loadReportProvidersByPath } from '@/api/designer';
-import { showAlert, showConfirm } from '@/utils/comnon.js';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
-import { mapGetters } from 'vuex';
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { formatDate, resetDirty, tableToXml } from '@/utils/table.js'
+import { saveReportFile, deleteReportFile, loadReportProviders, loadReportProvidersByPath } from '@/api/designer'
+import { showAlert, showConfirm } from '@/utils/comnon.js'
 
-export default {
-  name: 'SaveDialog',
-  components: {
-    UButton,
-    UDialog,
-    USelect,
-    UOption,
-    UInput
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      fileName: '',
-      selectedProvider: '',
-      providers: [],
-      reportFilesData: {},
-      currentReportFiles: [],
-      currentProviderPrefix: '',
-      currentPath: '',
-      pathHistory: []
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    },
-    // 为USelect组件准备的提供者选项
-    providerOptions() {
-      return this.providers.map(provider => ({
-        value: provider.prefix,
-        label: provider.name
-      }));
-    },
-    canGoBack() {
-      return this.pathHistory.length > 0;
-    }
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.loadReports();
-      }
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    loadReports() {
-      loadReportProviders()
-        .then(response => {
+defineOptions({ name: 'SaveDialog' })
 
-          let providers;
-          if (response && Array.isArray(response)) {
-            // 如果response本身就是数组
-            providers = response;
-          } else if (response && response.data && Array.isArray(response.data)) {
-            providers = response.data;
-          } else {
-            showAlert(this.$t('dialog.save.loadFail'));
-            return;
-          }
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'saveAfter', value: string): void
+}>()
 
-          if (!Array.isArray(providers)) {
-            showAlert(this.$t('dialog.save.loadFail'));
-            return;
-          }
-          this.providers = providers;
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false
+})
 
-          // 初始化报表文件数据
-          for (let provider of providers) {
-            let { reportFiles, name, prefix } = provider;
-            this.reportFilesData[prefix] = reportFiles || [];
-          }
+const { t } = useI18n()
+const store = useReportStore()
 
-          // 默认选择第一个提供者
-          if (this.providers.length > 0) {
-            this.selectedProvider = this.providers[0].prefix;
-            this.onProviderChange();
-          }
-        })
-        .catch(error => {
-          if (error.msg) {
-            showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg,  { useHTMLString: true });
-          } else {
-            showAlert(this.$t('dialog.save.loadFail'));
-          }
-        });
-    },
+const fileName = ref('')
+const selectedProvider = ref('')
+const providers = ref<any[]>([])
+const reportFilesData = ref<Record<string, any>>({})
+const currentReportFiles = ref<any[]>([])
+const currentProviderPrefix = ref('')
+const currentPath = ref('')
+const pathHistory = ref<string[]>([])
 
-    loadProvidersByPath(path) {
-      const _this = this;
+const context = computed(() => store.context)
 
-      loadReportProvidersByPath(path)
-        .then(result => {
-          for (let prefix in result) {
-            let providerData = result[prefix];
-            _this.reportFilesData[`${prefix}:${path}`] = providerData.reportFiles;
-          }
-          _this.onProviderChange();
-        })
-        .catch(error => {
-          console.error('Error loading providers by path:', error);
-          if (error.msg) {
-            showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg,  { useHTMLString: true });
-          } else {
-            showAlert(this.$t('dialog.save.loadFail'));
-          }
-        });
-    },
+const providerOptions = computed(() => {
+  return providers.value.map((provider: any) => ({
+    value: provider.prefix,
+    label: provider.name
+  }))
+})
 
-    onProviderChange() {
+const canGoBack = computed(() => {
+  return pathHistory.value.length > 0
+})
 
-      if (!this.selectedProvider || this.selectedProvider === '') {
-        this.currentReportFiles = [];
-        return;
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    loadReports()
+  }
+})
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function loadReports() {
+  loadReportProviders()
+    .then((response: any) => {
+      let providersData
+      if (response && Array.isArray(response)) {
+        providersData = response
+      } else if (response && response.data && Array.isArray(response.data)) {
+        providersData = response.data
+      } else {
+        showAlert(t('dialog.save.loadFail'))
+        return
       }
 
-      const key = this.currentPath ? `${this.selectedProvider}:${this.currentPath}` : this.selectedProvider;
-      this.currentReportFiles = this.reportFilesData[key] || [];
-      this.currentProviderPrefix = this.selectedProvider;
-    },
-
-    // 处理提供者变化的方法
-    handleProviderChange() {
-      this.currentPath = '';
-      this.pathHistory = [];
-      this.onProviderChange();
-    },
-
-    handleFileClick(file) {
-      if (file.directory) {
-        this.pathHistory.push(this.currentPath);
-        this.currentPath = file.path;
-        this.loadProvidersByPath(this.currentPath);
+      if (!Array.isArray(providersData)) {
+        showAlert(t('dialog.save.loadFail'))
+        return
       }
-    },
+      providers.value = providersData
 
-    goBack() {
-      if (this.pathHistory.length > 0) {
-        this.currentPath = this.pathHistory.pop();
-        if (this.currentPath === '') {
-          this.onProviderChange();
-        } else {
-          this.loadProvidersByPath(this.currentPath);
-        }
+      for (let provider of providersData) {
+        let { reportFiles, prefix } = provider
+        reportFilesData.value[prefix] = reportFiles || []
       }
-    },
 
-    deleteFile(file, index) {
-      showConfirm(this.$t('dialog.save.delConfirm') + file.name).then(() => {
-        const fullFile = this.currentProviderPrefix + (file.path || file.name);
-
-        deleteReportFile(fullFile)
-            .then(() => {
-              this.currentReportFiles.splice(index, 1);
-
-              // 从数据源中移除
-              const reportFiles = this.reportFilesData[this.currentProviderPrefix];
-              const dataIndex = reportFiles.findIndex(f => f.name === file.name);
-              if (dataIndex > -1) {
-                reportFiles.splice(dataIndex, 1);
-              }
-            })
-            .catch(error => {
-              console.error('删除文件失败:', error);
-              if (error.msg) {
-                showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg,  { useHTMLString: true });
-              } else {
-                showAlert(this.$t('dialog.save.delFail'));
-              }
-            });
-      });
-    },
-
-    handleSave() {
-        if (this.fileName === '') {
-          showAlert(this.$t('dialog.save.nameTip'));
-          return;
-        }
-
-        if (!this.currentProviderPrefix || !this.currentReportFiles) {
-          showAlert(this.$t('dialog.save.locationTip'));
-          return;
-        }
-
-        for (let file of this.currentReportFiles) {
-          if (!file.directory) {
-            let fileName = file.name;
-            let pos = fileName.indexOf(".");
-            fileName = fileName.substring(0, pos);
-            if (fileName === this.fileName) {
-              showAlert(this.$t('dialog.save.file') + '[' + this.fileName + ']' + this.$t('dialog.save.exist'));
-              return;
-            }
-          }
-        }
-
-        let filePath = this.currentPath ? this.currentPath + '/' + this.fileName : this.fileName;
-        const fullFileName = this.currentProviderPrefix + filePath + ".ureport.xml";
-        const content = tableToXml(this.context);
-        let that = this;
-        saveReportFile(fullFileName, content)
-          .then(() => {
-            that.$store.dispatch('report/setSaveStatus', true);
-            that.$store.dispatch('report/setFileName', fullFileName);
-            resetDirty();
-            showAlert(this.$t('dialog.save.success')).then(() => {
-              that.handleClose();
-              that.$emit('saveAfter', fullFileName);
-            });
-          })
-          .catch(error => {
-            console.error('保存文件失败:', error);
-            if (error.msg) {
-              showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg,  { useHTMLString: true });
-            } else {
-              showAlert(this.$t('dialog.save.fail'));
-            }
-          });
-    },
-
-    handleClose() {
-      this.$emit('update:visible', false);
-      setTimeout(() => {
-        this.fileName = '';
-        this.selectedProvider = '';
-        this.currentReportFiles = [];
-        this.content = '';
-        this.currentPath = '';
-        this.pathHistory = [];
-      }, 300);
-    },
-
-    // 键盘事件处理
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
+      if (providers.value.length > 0) {
+        selectedProvider.value = providers.value[0].prefix
+        onProviderChange()
       }
-    },
+    })
+    .catch((error: any) => {
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      } else {
+        showAlert(t('dialog.save.loadFail'))
+      }
+    })
+}
 
-    // 格式化日期
-    formatDate(date) {
-      return formatDate(date);
+function loadProvidersByPath(path: string) {
+  loadReportProvidersByPath(path)
+    .then((result: any) => {
+      for (let prefix in result) {
+        let providerData = result[prefix]
+        reportFilesData.value[`${prefix}:${path}`] = providerData.reportFiles
+      }
+      onProviderChange()
+    })
+    .catch((error: any) => {
+      console.error('Error loading providers by path:', error)
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      } else {
+        showAlert(t('dialog.save.loadFail'))
+      }
+    })
+}
+
+function onProviderChange() {
+  if (!selectedProvider.value || selectedProvider.value === '') {
+    currentReportFiles.value = []
+    return
+  }
+
+  const key = currentPath.value ? `${selectedProvider.value}:${currentPath.value}` : selectedProvider.value
+  currentReportFiles.value = reportFilesData.value[key] || []
+  currentProviderPrefix.value = selectedProvider.value
+}
+
+function handleProviderChange() {
+  currentPath.value = ''
+  pathHistory.value = []
+  onProviderChange()
+}
+
+function handleFileClick(file: any) {
+  if (file.directory) {
+    pathHistory.value.push(currentPath.value)
+    currentPath.value = file.path
+    loadProvidersByPath(currentPath.value)
+  }
+}
+
+function goBack() {
+  if (pathHistory.value.length > 0) {
+    currentPath.value = pathHistory.value.pop() || ''
+    if (currentPath.value === '') {
+      onProviderChange()
+    } else {
+      loadProvidersByPath(currentPath.value)
     }
   }
-};
+}
+
+function deleteFile(file: any, index: number) {
+  showConfirm(t('dialog.save.delConfirm') + file.name).then(() => {
+    const fullFile = currentProviderPrefix.value + (file.path || file.name)
+
+    deleteReportFile(fullFile)
+      .then(() => {
+        currentReportFiles.value.splice(index, 1)
+
+        const reportFiles = reportFilesData.value[currentProviderPrefix.value]
+        const dataIndex = reportFiles.findIndex((f: any) => f.name === file.name)
+        if (dataIndex > -1) {
+          reportFiles.splice(dataIndex, 1)
+        }
+      })
+      .catch((error: any) => {
+        console.error('删除文件失败:', error)
+        if (error.msg) {
+          showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+        } else {
+          showAlert(t('dialog.save.delFail'))
+        }
+      })
+  })
+}
+
+function handleSave() {
+  if (fileName.value === '') {
+    showAlert(t('dialog.save.nameTip'))
+    return
+  }
+
+  if (!currentProviderPrefix.value || !currentReportFiles.value) {
+    showAlert(t('dialog.save.locationTip'))
+    return
+  }
+
+  for (let file of currentReportFiles.value) {
+    if (!file.directory) {
+      let fName = file.name
+      let pos = fName.indexOf(".")
+      fName = fName.substring(0, pos)
+      if (fName === fileName.value) {
+        showAlert(t('dialog.save.file') + '[' + fileName.value + ']' + t('dialog.save.exist'))
+        return
+      }
+    }
+  }
+
+  let filePath = currentPath.value ? currentPath.value + '/' + fileName.value : fileName.value
+  const fullFileName = currentProviderPrefix.value + filePath + ".ureport.xml"
+  const content = tableToXml(context.value)
+
+  saveReportFile(fullFileName, content)
+    .then(() => {
+      store.setSaveStatus(true)
+      store.setFileName(fullFileName)
+      resetDirty()
+      showAlert(t('dialog.save.success')).then(() => {
+        handleClose()
+        emit('saveAfter', fullFileName)
+      })
+    })
+    .catch((error: any) => {
+      console.error('保存文件失败:', error)
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      } else {
+        showAlert(t('dialog.save.fail'))
+      }
+    })
+}
+
+function handleClose() {
+  emit('update:visible', false)
+  setTimeout(() => {
+    fileName.value = ''
+    selectedProvider.value = ''
+    currentReportFiles.value = []
+    currentPath.value = ''
+    pathHistory.value = []
+  }, 300)
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
+    }
+  }
+}
+
+function formatDateItem(date: string) {
+  return (formatDate as any)(date)
+}
 </script>
 
 <style scoped>

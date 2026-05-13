@@ -1,162 +1,114 @@
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+
+defineOptions({ name: 'UMessageBox' })
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  title?: string
+  message?: string
+  type?: 'alert' | 'confirm' | 'prompt'
+  useHTMLString?: boolean
+  zIndex?: number
+  callback?: (value?: string) => void
+}>(), {
+  visible: false,
+  title: '',
+  message: '',
+  type: 'alert',
+  useHTMLString: false,
+  zIndex: 20100,
+})
+
+const emit = defineEmits<{
+  'update:visible': [value: boolean]
+  submit: [value?: string]
+  cancel: []
+}>()
+
+const currentValue = ref('')
+const show = ref(props.visible)
+
+watch(() => props.visible, (val: boolean) => {
+  show.value = val
+  if (val) {
+    currentValue.value = ''
+  }
+})
+
+function handleClose() {
+  show.value = false
+  emit('update:visible', false)
+}
+
+function handleSubmit() {
+  show.value = false
+  emit('update:visible', false)
+  emit('submit', currentValue.value)
+  if (props.callback) {
+    props.callback(currentValue.value)
+  }
+}
+
+function handleCancel() {
+  show.value = false
+  emit('update:visible', false)
+  emit('cancel')
+}
+
+function handleCloseByEsc(event: KeyboardEvent) {
+  if (event.keyCode === 27 && show.value) {
+    handleClose()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleCloseByEsc)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleCloseByEsc)
+})
+</script>
+
 <template>
   <div
     class="u-messagebox"
-    :class="{ 'u-messagebox-show': visible }"
+    :class="{ 'u-messagebox-show': show }"
     :style="{ 'z-index': zIndex }"
   >
     <transition name="messagebox-fade">
-      <div class="u-messagebox-wrap" v-show="visible">
+      <div v-show="show" class="u-messagebox-wrap">
         <div class="u-messagebox-title">
           <span>{{ title }}</span>
-          <i
-            class="u-messagebox-close iconfont icon-close"
-            @click="handleClose"
-          />
+          <i class="u-messagebox-close iconfont icon-close" @click="handleClose" />
         </div>
-        <div class="u-messagebox-prompt" v-if="type === 'prompt'">
-          <p v-if="useHTMLString" v-html="message"></p>
+        <div v-if="type === 'prompt'" class="u-messagebox-prompt">
+          <p v-if="useHTMLString" v-html="message" />
           <p v-else>
-            <slot>
-              {{ message }}
-            </slot>
+            <slot>{{ message }}</slot>
           </p>
           <div class="u-messagebox-input">
-            <os-input style="width: 100%" v-model="currentValue" />
+            <UInput v-model="currentValue" style="width: 100%" />
           </div>
         </div>
-        <div class="u-messagebox-content" v-else>
-          <i
-            v-show="type === 'confirm'"
-            class="u-messagebox-icon iconfont icon-warning"
-          />
-          <div
-            class="u-messagebox-text"
-            v-if="useHTMLString"
-            v-html="message"
-          ></div>
-          <div class="u-messagebox-text" v-else>
-            <slot>
-              {{ message }}
-            </slot>
+        <div v-else class="u-messagebox-content">
+          <i v-show="type === 'confirm'" class="u-messagebox-icon iconfont icon-warning" />
+          <div v-if="useHTMLString" class="u-messagebox-text" v-html="message" />
+          <div v-else class="u-messagebox-text">
+            <slot>{{ message }}</slot>
           </div>
         </div>
         <div class="u-messagebox-footer">
-          <os-button
-            @click="handleCancel"
-            v-show="type !== 'alert'"
-            type="info"
-            style="margin-right: 5px"
-            >取消</os-button
-          >
-          <os-button @click="handleSubmit">确定</os-button>
+          <UButton v-show="type !== 'alert'" type="info" style="margin-right: 5px" @click="handleCancel">取消</UButton>
+          <UButton @click="handleSubmit">确定</UButton>
         </div>
       </div>
     </transition>
   </div>
 </template>
 
-<script>
-import Button from "../button";
-import Input from "../input";
-
-export default {
-  name: "UMessageBox",
-  components: {
-    osButton: Button,
-    osInput: Input
-  },
-  data() {
-    return {
-      zIndex: 20100,
-      useHTMLString: false, // 是否使用HTML片段
-      currentValue: "", // 输入的内容
-      title: "", // 标题
-      message: "", // 消息内容
-      type: "alert",
-      visible: false,
-      callback: "", // 点击确定按钮的回调
-      resolve: "", // resolve回调
-      reject: "" // reject回调
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.currentValue = "";
-        this.zIndex = this.$osUI ? this.$osUI.zIndex++ : this.zIndex++;
-      }
-    }
-  },
-  mounted() {
-    window.addEventListener("keydown", this.handleCloseByEsc);
-  },
-  methods: {
-    /**
-     * @description alert的参数
-     * @param {object} params 参数
-     */
-    alert(params) {
-      // 参数处理
-      const {
-        title,
-        message,
-        type,
-        callback,
-        resolve,
-        reject,
-        useHTMLString
-      } = params;
-
-      this.type = type;
-
-      this.title = title;
-      this.message = message;
-      this.useHTMLString = useHTMLString || false;
-
-      this.callback = callback;
-      this.resolve = resolve;
-      this.reject = reject;
-
-      this.visible = true;
-    },
-    handleClose() {
-      this.visible = false;
-    },
-    /**
-     * @description 确定按钮事件
-     */
-    handleSubmit() {
-      this.visible = false;
-      // 是否传了callback函数，若是有就执行，否则执行resolve
-      if (typeof this.callback === "function") {
-        this.callback(this.currentValue);
-      } else {
-        this.resolve(this.currentValue);
-      }
-    },
-    /**
-     * @description 取消按钮回调
-     */
-    handleCancel() {
-      this.visible = false;
-      this.reject();
-    },
-    /**
-     * @description 按键esc关闭当前弹窗
-     */
-    handleCloseByEsc(event) {
-      if (event.keyCode === 27 && this.visible) {
-        this.handleClose();
-      }
-    }
-  },
-  beforeDestroy() {
-    window.removeEventListener("keydown", this.handleCloseByEsc);
-  }
-};
-</script>
 <style scoped>
-
 .u-messagebox {
   z-index: 2000;
   position: fixed;
@@ -166,12 +118,12 @@ export default {
   height: 100%;
   background-color: rgba(0, 0, 0, 0);
   visibility: hidden;
-  transition: all .2s
+  transition: all .2s;
 }
 
 .u-messagebox-show {
   background-color: rgba(0, 0, 0, .5);
-  visibility: visible
+  visibility: visible;
 }
 
 .u-messagebox-wrap {
@@ -182,7 +134,7 @@ export default {
   background-color: #fff;
   border-radius: 6px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 .u-messagebox-title {
@@ -193,7 +145,7 @@ export default {
   background-color: #00554a;
   color: #fff;
   font-size: 16px;
-  font-weight: 500
+  font-weight: 500;
 }
 
 .u-messagebox-close {
@@ -203,23 +155,19 @@ export default {
   height: 20px;
   line-height: 20px;
   cursor: pointer;
-  color: #fff
+  color: #fff;
 }
 
-.u-messagebox-close:hover {
-  color: #ddd
-}
+.u-messagebox-close:hover { color: #ddd; }
 
 .u-messagebox-content {
   padding: 15px;
   line-height: 18px;
   min-height: 36px;
-  display: flex
+  display: flex;
 }
 
-.u-messagebox-text {
-  font-size: 14px
-}
+.u-messagebox-text { font-size: 14px; }
 
 .u-messagebox-icon {
   position: relative;
@@ -230,21 +178,21 @@ export default {
   text-align: center;
   margin-right: 10px;
   font-size: 24px;
-  color: #e6a23c
+  color: #e6a23c;
 }
 
 .u-messagebox-footer {
   padding: 0 15px 15px 15px;
-  text-align: right
+  text-align: right;
 }
 
 .u-messagebox-prompt {
-  padding: 10px 15px
+  padding: 10px 15px;
 }
 
 .u-messagebox-prompt p {
   line-height: 1.5;
   font-size: 14px;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
 </style>

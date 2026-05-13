@@ -8,7 +8,7 @@
   >
     <div class="dialog-content">
       <u-form ref="form" :label-width="80">
-        <u-form-item :label="$t('dialog.paramItem.name')">
+        <u-form-item :label="t('dialog.paramItem.name')">
           <u-input
             v-model="name"
             ref="nameInput"
@@ -17,7 +17,7 @@
           />
         </u-form-item>
 
-        <u-form-item :label="$t('dialog.paramItem.expr')">
+        <u-form-item :label="t('dialog.paramItem.expr')">
           <u-input
             v-model="value"
             ref="valueInput"
@@ -27,118 +27,106 @@
         </u-form-item>
       </u-form>
     </div>
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
 
-export default {
-  name: 'URLParameterItemDialog',
-  components: {
-    UButton,
-    UDialog,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    paramItem: {
-      type: Object,
-      default: null
-    },
-    operation: {
-      type: String,
-      default: 'add'
-    }
-  },
-  emits: ['saveAfter', 'update:visible'],
-  data() {
-    return {
-      name: '',
-      value: '',
-      localParamItem: null
-    };
-  },
-  computed: {
-    title() {
-      return this.operation === 'add' ? this.$t('dialog.paramItem.add') : this.$t('dialog.paramItem.edit');
-    }
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.name = this.paramItem?.name || '';
-        this.value = this.paramItem?.value || '';
-        this.localParamItem = this.paramItem ? { ...this.paramItem } : null;
-      }
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    handleOk() {
-      if (this.name === '' || this.value === '') {
-        showAlert(this.$t('dialog.paramItem.tip'));
-        return;
-      }
+defineOptions({ name: 'URLParameterItemDialog' })
 
-      // 更新本地参数项
-      if (this.localParamItem) {
-        this.localParamItem.name = this.name;
-        this.localParamItem.value = this.value;
-      } else {
-        this.localParamItem = {
-          name: this.name,
-          value: this.value
-        };
-      }
+const { t } = useI18n()
 
-      // 发出saveAfter事件
-      this.$emit('saveAfter', {
-        paramItem: this.localParamItem,
-        operation: this.operation
-      });
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  paramItem?: any | null
+  operation?: string
+}>(), {
+  visible: false,
+  paramItem: null,
+  operation: 'add'
+})
 
-      this.handleClose();
-    },
-    handleClose() {
-      this.$emit('update:visible', false);
+const emit = defineEmits<{
+  (e: 'saveAfter', value: { paramItem: any, operation: string }): void
+  (e: 'update:visible', value: boolean): void
+}>()
 
-      setTimeout(() => {
-        this.name = '';
-        this.value = '';
-      }, 300);
-    },
-    // 键盘事件处理
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+const form = ref<any>(null)
+const nameInput = ref<any>(null)
+const valueInput = ref<any>(null)
+const name = ref('')
+const value = ref('')
+const localParamItem = ref<any>(null)
+
+const title = computed(() =>
+  props.operation === 'add' ? t('dialog.paramItem.add') : t('dialog.paramItem.edit')
+)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    name.value = props.paramItem?.name || ''
+    value.value = props.paramItem?.value || ''
+    localParamItem.value = props.paramItem ? { ...props.paramItem } : null
+  }
+})
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function handleOk() {
+  if (name.value === '' || value.value === '') {
+    showAlert(t('dialog.paramItem.tip'))
+    return
+  }
+
+  if (localParamItem.value) {
+    localParamItem.value.name = name.value
+    localParamItem.value.value = value.value
+  } else {
+    localParamItem.value = {
+      name: name.value,
+      value: value.value
     }
   }
-};
+
+  emit('saveAfter', {
+    paramItem: localParamItem.value,
+    operation: props.operation
+  })
+
+  handleClose()
+}
+
+function handleClose() {
+  emit('update:visible', false)
+
+  setTimeout(() => {
+    name.value = ''
+    value.value = ''
+  }, 300)
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
+    }
+  }
+}
 </script>
 
 <style scoped>

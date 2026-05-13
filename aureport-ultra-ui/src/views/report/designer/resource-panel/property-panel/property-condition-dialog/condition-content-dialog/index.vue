@@ -1,6 +1,6 @@
 <template>
   <UDialog
-      :title="$t('dialog.editPropCondition.title')"
+      :title="t('dialog.editPropCondition.title')"
       width="550px"
       :visible="visible"
       :z-index="20002"
@@ -9,7 +9,7 @@
     <div class="dialog-content">
       <u-form ref="form" :label-width="80">
         <!-- 关系选择 -->
-        <u-form-item v-if="showJoin" :label="$t('dialog.editPropCondition.relation')">
+        <u-form-item v-if="showJoin" :label="t('dialog.editPropCondition.relation')">
           <u-select
               v-model="join"
               :clearable="true"
@@ -25,7 +25,7 @@
         </u-form-item>
 
         <!-- 左值类型选择 -->
-        <u-form-item :label="$t('dialog.editPropCondition.leftValue')">
+        <u-form-item :label="t('dialog.editPropCondition.leftValue')">
           <u-select
               v-model="leftType"
               :clearable="true"
@@ -41,7 +41,7 @@
         </u-form-item>
 
         <!-- 属性名选择 -->
-        <u-form-item v-if="leftType === 'property'" :label="$t('dialog.editPropCondition.propName')">
+        <u-form-item v-if="leftType === 'property'" :label="t('dialog.editPropCondition.propName')">
           <u-select
               v-model="property"
               :clearable="true"
@@ -57,7 +57,7 @@
         </u-form-item>
 
         <!-- 表达式输入 -->
-        <u-form-item v-if="leftType === 'expression'" :label="$t('dialog.editPropCondition.expr')">
+        <u-form-item v-if="leftType === 'expression'" :label="t('dialog.editPropCondition.expr')">
           <u-input
             v-model="expression"
             style="width: 300px;"
@@ -66,7 +66,7 @@
         </u-form-item>
 
         <!-- 运算符选择 -->
-        <u-form-item :label="$t('dialog.editPropCondition.operator')">
+        <u-form-item :label="t('dialog.editPropCondition.operator')">
           <u-select
               v-model="operator"
               :clearable="true"
@@ -82,7 +82,7 @@
         </u-form-item>
 
         <!-- 值表达式输入 -->
-        <u-form-item :label="$t('dialog.editPropCondition.valueExpr')">
+        <u-form-item :label="t('dialog.editPropCondition.valueExpr')">
           <u-input
             v-model="value"
             style="width: 300px;"
@@ -91,249 +91,216 @@
         </u-form-item>
       </u-form>
     </div>
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import { conditionScriptValidation } from '@/api/designer';
-import UButton from "@/components/button/index.vue";
-import UInput from '@/components/input/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { conditionScriptValidation } from '@/api/designer'
 
-export default {
-  name: 'EditPropertyConditionDialog',
-  components: {
-    UButton,
-    UDialog,
-    USelect,
-    UOption,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    dialogFields: {
-      type: Array,
-      default: () => []
-    },
-    dialogCondition: {
-      type: Object,
-      default: null
-    },
-    dialogConditions: {
-      type: Array,
-      default: () => []
+defineOptions({ name: 'EditPropertyConditionDialog' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+  dialogFields?: any[]
+  dialogCondition?: any | null
+  dialogConditions?: any[]
+}>(), {
+  visible: false,
+  dialogFields: () => [],
+  dialogCondition: null,
+  dialogConditions: () => []
+})
+
+const emit = defineEmits<{
+  (e: 'saveAfter', type: string, property: string, operator: string, value: string, join?: string): void
+  (e: 'close'): void
+}>()
+
+const form = ref<any>(null)
+const join = ref('and')
+const leftType = ref('current')
+const property = ref('')
+const expression = ref('')
+const operator = ref('')
+const value = ref('')
+const showJoin = ref(false)
+
+const joinOptions = computed(() => [
+  { value: 'and', label: t('dialog.editPropCondition.and') },
+  { value: 'or', label: t('dialog.editPropCondition.or') }
+])
+
+const leftTypeOptions = computed(() => [
+  { value: 'current', label: t('dialog.editPropCondition.currentValue') },
+  { value: 'property', label: t('dialog.editPropCondition.property') },
+  { value: 'expression', label: t('dialog.editPropCondition.expression') }
+])
+
+const fieldOptions = computed(() =>
+  props.dialogFields.map((field: any) => ({
+    value: field.name,
+    label: field.name
+  }))
+)
+
+const operatorOptions = computed(() => [
+  { value: '>', label: t('dialog.editPropCondition.greater') },
+  { value: '>=', label: t('dialog.editPropCondition.greaterEquals') },
+  { value: '<', label: t('dialog.editPropCondition.less') },
+  { value: '<=', label: t('dialog.editPropCondition.lessEquals') },
+  { value: '==', label: t('dialog.editPropCondition.equals') },
+  { value: '!=', label: t('dialog.editPropCondition.notEquals') },
+  { value: 'in', label: t('dialog.editPropCondition.in') },
+  { value: 'like', label: t('dialog.editPropCondition.like') }
+])
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    initFormData()
+  }
+})
+
+function initFormData() {
+  if (props.dialogCondition) {
+    showJoin.value = !!props.dialogCondition.join
+  } else {
+    showJoin.value = props.dialogConditions.length > 0
+  }
+
+  if (props.dialogCondition) {
+    leftType.value = props.dialogCondition.type || 'current'
+    if (leftType.value === 'expression') {
+      expression.value = props.dialogCondition.left || ''
+    } else if (props.dialogCondition.left) {
+      property.value = props.dialogCondition.left
     }
-  },
-  data() {
-    return {
-      join: 'and',
-      leftType: 'current',
-      property: '',
-      expression: '',
-      operator: '',
-      value: '',
-      showJoin: false
-    };
-  },
-  computed: {
-    // 关系选项
-    joinOptions() {
-      return [
-        { value: 'and', label: this.$t('dialog.editPropCondition.and') },
-        { value: 'or', label: this.$t('dialog.editPropCondition.or') }
-      ];
-    },
-    // 左值类型选项
-    leftTypeOptions() {
-      return [
-        { value: 'current', label: this.$t('dialog.editPropCondition.currentValue') },
-        { value: 'property', label: this.$t('dialog.editPropCondition.property') },
-        { value: 'expression', label: this.$t('dialog.editPropCondition.expression') }
-      ];
-    },
-    // 字段选项
-    fieldOptions() {
-      return this.dialogFields.map(field => ({
-        value: field.name,
-        label: field.name
-      }));
-    },
-    // 运算符选项
-    operatorOptions() {
-      return [
-        { value: '>', label: this.$t('dialog.editPropCondition.greater') },
-        { value: '>=', label: this.$t('dialog.editPropCondition.greaterEquals') },
-        { value: '<', label: this.$t('dialog.editPropCondition.less') },
-        { value: '<=', label: this.$t('dialog.editPropCondition.lessEquals') },
-        { value: '==', label: this.$t('dialog.editPropCondition.equals') },
-        { value: '!=', label: this.$t('dialog.editPropCondition.notEquals') },
-        { value: 'in', label: this.$t('dialog.editPropCondition.in') },
-        { value: 'like', label: this.$t('dialog.editPropCondition.like') }
-      ];
+    if (leftType.value === 'property' && (!property.value || property.value === '')) {
+      leftType.value = 'current'
     }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.initFormData();
-      }
+    operator.value = props.dialogCondition.operation || props.dialogCondition.op || ''
+    value.value = props.dialogCondition.right || ''
+    join.value = props.dialogCondition.join || 'and'
+  } else {
+    leftType.value = 'current'
+    property.value = ''
+    expression.value = ''
+    operator.value = ''
+    value.value = ''
+    join.value = 'and'
+  }
+}
+
+function handleOk() {
+  if (leftType.value === 'property' && !property.value) {
+    showAlert(t('dialog.editPropCondition.selectProp'))
+    return
+  }
+
+  if (leftType.value === 'expression' && !expression.value) {
+    showAlert(t('dialog.editPropCondition.leftValueExpr'))
+    return
+  }
+
+  if (!operator.value) {
+    showAlert(t('dialog.editPropCondition.selectOperator'))
+    return
+  }
+
+  if (!value.value) {
+    showAlert(t('dialog.editPropCondition.inputExpr'))
+    return
+  }
+
+  let prop = property.value
+  if (leftType.value === 'expression') {
+    prop = expression.value
+  } else if (leftType.value === 'current') {
+    prop = null as any
+  }
+
+  let type = leftType.value
+  if (type === 'current') {
+    type = 'property'
+  }
+
+  if (props.dialogCondition) {
+    if (props.dialogCondition.join) {
+      emit('saveAfter', type, prop, operator.value, value.value, join.value)
+    } else {
+      emit('saveAfter', type, prop, operator.value, value.value)
     }
-  },
-  methods: {
+  } else if (props.dialogConditions.length > 0) {
+    emit('saveAfter', type, prop, operator.value, value.value, join.value)
+  } else {
+    emit('saveAfter', type, prop, operator.value, value.value)
+  }
 
-    initFormData() {
-      // 根据条件决定是否显示关系选择
-      if (this.dialogCondition) {
-        this.showJoin = !!this.dialogCondition.join;
-      } else {
-        this.showJoin = this.dialogConditions.length > 0;
-      }
+  handleClose()
+}
 
-      // 初始化表单数据
-      if (this.dialogCondition) {
-        this.leftType = this.dialogCondition.type || 'current';
-        if (this.leftType === 'expression') {
-          this.expression = this.dialogCondition.left || '';
-        } else if (this.dialogCondition.left) {
-          this.property = this.dialogCondition.left;
-        }
-        if(this.leftType === 'property' && (!this.property || this.property === '')){
-          this.leftType = 'current'
-        }
-        this.operator = this.dialogCondition.operation || this.dialogCondition.op || '';
-        this.value = this.dialogCondition.right || '';
-        this.join = this.dialogCondition.join || 'and';
-      } else {
-        this.leftType = 'current';
-        this.property = '';
-        this.expression = '';
-        this.operator = '';
-        this.value = '';
-        this.join = 'and';
-      }
-    },
+function handleClose() {
+  emit('close')
+  setTimeout(() => {
+    join.value = 'and'
+    leftType.value = 'current'
+    property.value = ''
+    expression.value = ''
+    operator.value = ''
+    value.value = ''
+    showJoin.value = false
+  }, 300)
+}
 
-    handleOk() {
-      if (this.leftType === 'property' && !this.property) {
-        showAlert(this.$t('dialog.editPropCondition.selectProp'));
-        return;
-      }
+async function validateExpression() {
+  if (!expression.value) return
+  try {
+    const errors = await conditionScriptValidation(expression.value) as any[]
+    if (errors && errors.length > 0) {
+      showAlert(`${expression.value} ${t('dialog.editPropCondition.syntaxError')}`)
+    }
+  } catch (error) {
+    console.error('验证表达式失败:', error)
+  }
+}
 
-      if (this.leftType === 'expression' && !this.expression) {
-        showAlert(this.$t('dialog.editPropCondition.leftValueExpr'));
-        return;
-      }
+async function validateValueExpression() {
+  if (!value.value) return
+  try {
+    const errors = await conditionScriptValidation(value.value) as any[]
+    if (errors && errors.length > 0) {
+      showAlert(`${value.value} ${t('dialog.editPropCondition.syntaxError')}`)
+    }
+  } catch (error) {
+    console.error('验证值表达式失败:', error)
+  }
+}
 
-      if (!this.operator) {
-        showAlert(this.$t('dialog.editPropCondition.selectOperator'));
-        return;
-      }
-
-      if (!this.value) {
-        showAlert(this.$t('dialog.editPropCondition.inputExpr'));
-        return;
-      }
-
-      // 准备参数
-      let property = this.property;
-      if (this.leftType === 'expression') {
-        property = this.expression;
-      } else if (this.leftType === 'current') {
-        property = null;
-      }
-
-      let type = this.leftType;
-      if (type === 'current') {
-        type = 'property';
-      }
-
-      // 触发保存后事件
-      if (this.dialogCondition) {
-        if (this.dialogCondition.join) {
-          this.$emit('saveAfter', type, property, this.operator, this.value, this.join);
-        } else {
-          this.$emit('saveAfter', type, property, this.operator, this.value);
-        }
-      } else if (this.dialogConditions.length > 0) {
-        this.$emit('saveAfter', type, property, this.operator, this.value, this.join);
-      } else {
-        this.$emit('saveAfter', type, property, this.operator, this.value);
-      }
-
-      this.handleClose();
-    },
-
-    handleClose() {
-      this.$emit('close');
-      setTimeout(() => {
-        this.join = 'and';
-        this.leftType = 'current';
-        this.property = '';
-        this.expression = '';
-        this.operator = '';
-        this.value = '';
-        this.showJoin = false;
-      }, 300);
-    },
-
-    // 验证表达式
-    async validateExpression() {
-      if (!this.expression) return;
-      try {
-        const errors = await conditionScriptValidation(this.expression);
-        if (errors && errors.length > 0) {
-          showAlert(`${this.expression} ${this.$t('dialog.editPropCondition.syntaxError')}`);
-        }
-      } catch (error) {
-        console.error('验证表达式失败:', error);
-      }
-    },
-
-    async validateValueExpression() {
-      if (!this.value) return;
-      try {
-        const errors = await conditionScriptValidation(this.value);
-        if (errors && errors.length > 0) {
-          showAlert(`${this.value} ${this.$t('dialog.editPropCondition.syntaxError')}`);
-        }
-      } catch (error) {
-        console.error('验证值表达式失败:', error);
-        // 错误处理
-      }
-    },
-
-    // 键盘事件处理
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
     }
   }
-};
+}
 </script>
 
 <style scoped>

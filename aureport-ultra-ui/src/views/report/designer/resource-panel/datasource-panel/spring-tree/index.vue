@@ -23,7 +23,7 @@
           class="node-list"
         >
           <li
-            v-for="(dataset, index) in datasets"
+            v-for="(dataset, index) in localDatasets"
             :key="dataset.name + '_' + index"
           >
             <!-- 数据集节点 -->
@@ -100,424 +100,349 @@
   </div>
 </template>
 
-<script>
-import { v1 as uuidv1 } from 'uuid';
-import { showAlert, showConfirm } from '@/utils/comnon.js';
-import { deepCopy } from '@/components/utils/index.js';
-import BeanMethodDialog from '@/views/report/designer/resource-panel/datasource-panel/bean-method-dialog/index.vue';
-import SpringDialog from '@/views/report/designer/resource-panel/datasource-panel/spring-dialog/index.vue';
-import FieldNameDialog from '../field-name-dialog/index.vue';
-import ContextMenu from '../context-menu/index.vue';
-import { buildClass } from '@/api/designer/index.js';
-import { mapGetters } from 'vuex';
-import {addCell, getCell, setCell} from "@/utils/contextActions";
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, computed, watch, onMounted } from 'vue'
+import { useReportStore } from '@/stores/report'
+import { useI18n } from 'vue-i18n'
+import { v1 as uuidv1 } from 'uuid'
+import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils/index.js'
+import BeanMethodDialog from '@/views/report/designer/resource-panel/datasource-panel/bean-method-dialog/index.vue'
+import SpringDialog from '@/views/report/designer/resource-panel/datasource-panel/spring-dialog/index.vue'
+import FieldNameDialog from '../field-name-dialog/index.vue'
+import ContextMenu from '../context-menu/index.vue'
+import { buildClass } from '@/api/designer/index.js'
+import { addCell, getCell, setCell } from '@/utils/contextActions'
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
-export default {
-  name: 'SpringTree',
-  components: {
-    BeanMethodDialog,
-    SpringDialog,
-    FieldNameDialog,
-    ContextMenu
-  },
-  props: {
-    name: {
-      type: String,
-      required: true
-    },
-    datasets: {
-      type: Array,
-      default: () => []
-    },
-    datasources: {
-      type: Array,
-      required: true
-    },
-    beanId: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      id: 'spring_' + uuidv1(),
-      datasourceExpanded: true,
-      datasetExpanded: {},
-      localName: this.name,
-      localBeanId: this.beanId,
-      currentDataset: null,
-      beanMethodDialogVisible: false,
-      springDialogVisible: false,
-      currentSpringDatasource: null,
-      fieldNameDialogVisible: false
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  created() {
-    // 初始化数据集展开状态
-    if (this.datasets && this.datasets.length > 0) {
-      for (let i = 0; i < this.datasets.length; i++) {
-        this.$set(this.datasetExpanded, i, true);
-      }
-    }
-  },
-  watch: {
-    name(newName) {
-      this.localName = newName;
-    },
-    beanId(newBeanId) {
-      this.localBeanId = newBeanId;
-    }
-  },
-  methods: {
-    /**
-     * 切换数据源展开/折叠状态
-     */
-    toggleDatasource() {
-      this.datasourceExpanded = !this.datasourceExpanded;
-    },
+defineOptions({ name: 'SpringTree' })
 
-    /**
-     * 切换数据集展开/折叠状态
-     */
-    toggleDataset(index) {
-      this.$set(this.datasetExpanded, index, !this.datasetExpanded[index]);
-    },
+const { t } = useI18n()
+const store = useReportStore()
 
-    /**
-     * 显示数据源右键菜单
-     */
-    showDatasourceContextMenu(event) {
-      const items = [
-        { key: 'add', name: this.$t('tree.addDataset'), icon: 'add' },
-        { key: 'edit', name: this.$t('tree.edit'), icon: 'edit' },
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' }
-      ];
-      let that = this;
-      this.$refs.contextMenu.show(event, items, (key) => {
-          that.handleDatasourceMenuAction(key);
-      });
-    },
+const props = withDefaults(defineProps<{
+  name: string
+  datasets: any[]
+  datasources: any[]
+  beanId: string
+}>(), {
+  name: '',
+  datasets: () => [],
+  datasources: () => [],
+  beanId: ''
+})
 
-    /**
-     * 处理数据源菜单操作
-     */
-    handleDatasourceMenuAction(key) {
-      if (key === 'add') {
-        this.addDatasetAction();
-      } else if (key === 'delete') {
-        this.deleteDatasourceAction();
-      } else if (key === 'edit') {
-        this.editDatasourceAction();
-      }
-    },
+const emit = defineEmits<{
+  (e: 'remove', name: string): void
+  (e: 'update-datasource', data: any): void
+  (e: 'update-datasets', datasets: any[]): void
+}>()
 
-    /**
-     * 添加数据集操作
-     */
-    addDatasetAction() {
-      this.currentDataset = null;
-      this.beanMethodDialogVisible = true;
-    },
+const id = 'spring_' + uuidv1()
+const datasourceExpanded = ref(true)
+const datasetExpanded = ref<Record<number, boolean>>({})
+const localName = ref(props.name)
+const localBeanId = ref(props.beanId)
+const localDatasets = ref<any[]>(props.datasets)
+const currentDataset = ref<any>(null)
+const beanMethodDialogVisible = ref(false)
+const springDialogVisible = ref(false)
+const currentSpringDatasource = ref<any>(null)
+const fieldNameDialogVisible = ref(false)
+const contextMenu = ref<any>(null)
+const springDialog = ref<any>(null)
 
-    /**
-     * 删除数据源操作
-     */
-    deleteDatasourceAction() {
-      let that = this;
-      showConfirm(`${this.$t('tree.delConfirm')}[${this.name}]？`).then(() => {
-        that.$emit('remove', this.name);
-      });
-    },
+const context = computed(() => store.context)
 
-    /**
-     * 编辑数据源操作
-     */
-    editDatasourceAction() {
-      this.currentSpringDatasource = {
-        name: this.localName,
-        beanId: this.localBeanId
-      };
-      this.springDialogVisible = true;
-    },
-
-    /**
-     * 显示数据集右键菜单
-     */
-    showDatasetContextMenu(event, dataset, index) {
-      const items = [
-        { key: 'add', name: this.$t('tree.addField'), icon: 'add' },
-        { key: 'edit', name: this.$t('tree.edit'), icon: 'edit' },
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' },
-        { key: 'refresh', name: this.$t('tree.refresh'), icon: 'loading' }
-      ];
-
-      this.$refs.contextMenu.show(event, items, (key) => {
-        this.handleDatasetMenuAction(key, dataset, index);
-      });
-    },
-
-    /**
-     * 处理数据集菜单操作
-     */
-    handleDatasetMenuAction(key, dataset, index) {
-      if (key === 'add') {
-        this.addFieldAction(dataset);
-      } else if (key === 'delete') {
-        this.deleteDatasetAction(dataset, index);
-      } else if (key === 'edit') {
-        this.editDatasetAction(dataset, index);
-      } else if (key === 'refresh') {
-        this.refreshDatasetAction(dataset, index);
-      }
-    },
-
-    /**
-     * 添加字段操作
-     */
-    addFieldAction(dataset) {
-      this.currentDataset = dataset;
-      this.fieldNameDialogVisible = true;
-    },
-
-    /**
-     * 处理字段名保存事件
-     */
-    handleFieldNameSave(fieldName, dataset) {
-      if (fieldName) {
-        const newDatasets = deepCopy(this.datasets);
-        const targetDataset = newDatasets.find(d => d.name === dataset.name);
-
-        if (!targetDataset.fields) {
-          targetDataset.fields = [];
-        }
-
-        const exists = targetDataset.fields.some(field => field.name === fieldName);
-        if (exists) {
-          showAlert(this.$t('tree.fieldExist'));
-          return;
-        }
-
-        const field = { name: fieldName };
-        targetDataset.fields.push(field);
-        this.$emit('update-datasets', newDatasets);
-      }
-    },
-
-    /**
-     * 编辑数据集操作
-     */
-    editDatasetAction(dataset, index) {
-      this.currentDataset = dataset;
-      this.beanMethodDialogVisible = true;
-    },
-
-    /**
-     * 处理Bean方法保存事件
-     */
-    handleBeanMethodSave(name, method, clazz, oldName) {
-      const newDatasets = deepCopy(this.datasets);
-
-      if (oldName && oldName !== '') {
-        const index = newDatasets.findIndex(dataset => dataset.name === oldName);
-        if (index !== -1) {
-          const dataset = newDatasets[index];
-          const originalClazz = dataset.clazz || '';
-
-          dataset.name = name;
-          dataset.method = method;
-          dataset.clazz = clazz;
-
-          if (clazz !== originalClazz) {
-            if (!clazz || clazz === '') {
-              dataset.fields = [];
-            } else {
-              this.buildFields(dataset, index, false, newDatasets);
-            }
-          }
-
-          this.$emit('update-datasets', newDatasets);
-          return;
-        }
-      }
-
-      const dataset = { name, method, clazz, fields: [] };
-      newDatasets.push(dataset);
-      const index = newDatasets.length - 1;
-      this.$set(this.datasetExpanded, index, true);
-
-      if (clazz && clazz !== '') {
-        this.buildFields(dataset, index, false, newDatasets);
-      }
-
-      this.$emit('update-datasets', newDatasets);
-    },
-
-    /**
-     * 删除数据集操作
-     */
-    deleteDatasetAction(dataset, index) {
-        let that = this;
-        showConfirm(`${this.$t('tree.delDatasetConfirm')}[${dataset.name}]?`).then(() => {
-          const newDatasets = deepCopy(this.datasets);
-          newDatasets.splice(index, 1);
-          that.$delete(that.datasetExpanded, index);
-          that.$emit('update-datasets', newDatasets);
-        });
-    },
-
-    /**
-     * 刷新数据集操作
-     */
-    refreshDatasetAction(dataset, index) {
-      const newDatasets = deepCopy(this.datasets);
-      const targetDataset = newDatasets.find(d => d.name === dataset.name);
-      this.buildFields(targetDataset, index, true, newDatasets);
-    },
-
-    /**
-     * 显示字段右键菜单
-     */
-    showFieldContextMenu(event, dataset, field, fieldIndex) {
-      const items = [
-        { key: 'delete', name: this.$t('tree.del'), icon: 'delete' }
-      ];
-
-      let that = this;
-      this.$refs.contextMenu.show(event, items, (key) => {
-          that.handleFieldMenuAction(key, dataset, field, fieldIndex);
-      });
-    },
-
-    /**
-     * 处理字段菜单操作
-     */
-    handleFieldMenuAction(key, dataset, field, fieldIndex) {
-      if (key === 'delete') {
-        this.deleteFieldAction(dataset, field, fieldIndex);
-      }
-    },
-
-    /**
-     * 删除字段操作
-     */
-    deleteFieldAction(dataset, field, fieldIndex) {
-      let that = this;
-      showConfirm(`${this.$t('tree.delFieldConfirm')}[${field.name}]?`).then(() => {
-        const newDatasets = deepCopy(this.datasets);
-        const targetDataset = newDatasets.find(d => d.name === dataset.name);
-        if (targetDataset.fields) {
-          targetDataset.fields.splice(fieldIndex, 1);
-          that.$emit('update-datasets', newDatasets);
-        }
-      });
-    },
-
-    /**
-     * 字段双击事件
-     */
-    handleFieldDoubleClick(dataset, field) {
-      this._buildClickEvent(dataset, field, this.context);
-    },
-
-    /**
-     * 构建字段列表
-     */
-    async buildFields(dataset, index, refresh = false, newDatasets = null) {
-      const defaultFields = dataset.fields;
-
-      if (!refresh && defaultFields) {
-        if (newDatasets) {
-          this.$emit('update-datasets', newDatasets);
-        }
-        return;
-      }
-
-      try {
-        const response = await buildClass(dataset.clazz);
-        const fields = response;
-        this.$set(dataset, 'fields', fields);
-        if (newDatasets) {
-          this.$emit('update-datasets', newDatasets);
-        }
-      } catch (error) {
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });;
-        } else {
-          showAlert(this.$t('tree.loadFieldFail'));
-        }
-      }
-    },
-
-    _buildClickEvent(dataset, field, context) {
-      const hot = TableManager.get();
-      if (!hot) {
-        showAlert(this.$t('tree.cellTip'));
-        return;
-      }
-      const cellsMap = context.cellsMap;
-      const selected = hot.getSelected();
-
-      if (!selected || selected.length === 0) {
-        showAlert(this.$t('tree.cellTip'));
-        return;
-      }
-
-      const [rowIndex, colIndex, endRow, endCol] = selected[0];
-      const cellDef = getCell(rowIndex, colIndex);
-
-      let newCellDef = deepCopy(cellDef);
-
-      if (newCellDef.value.type !== 'dataset') {
-        newCellDef = {
-          value: { type: 'dataset', conditions: [] },
-          rowNumber: newCellDef.rowNumber,
-          columnNumber: newCellDef.columnNumber,
-          cellStyle: newCellDef.cellStyle
-        };
-        addCell( newCellDef);
-      } else {
-        setCell( rowIndex, colIndex, newCellDef )
-      }
-
-      newCellDef.expand = "Down";
-      const value = newCellDef.value;
-      value.aggregate = "group";
-      value.datasetName = dataset.name;
-      value.property = field.name;
-      value.order = 'none';
-
-      const text = value.datasetName + "." + value.aggregate + "(";
-      const prop = value.property;
-      text += prop + ')';
-      hot.setDataAtCell(rowIndex, colIndex, text);
-
-      hot.render();
-
-      if (hot.hooks) {
-        hot.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol);
-      }
-    },
-
-    /**
-     * 处理Spring数据源保存事件
-     */
-    handleSpringDatasourceSave(datasourceData) {
-      // 更新本地数据源名称和beanId
-      this.localName = datasourceData.name;
-      this.localBeanId = datasourceData.beanId;
-
-      // 通过事件通知父组件更新
-      this.$emit('update-datasource', datasourceData);
+onMounted(() => {
+  if (localDatasets.value && localDatasets.value.length > 0) {
+    for (let i = 0; i < localDatasets.value.length; i++) {
+      datasetExpanded.value[i] = true
     }
   }
-};
+})
+
+watch(() => props.name, (newName) => {
+  localName.value = newName
+})
+
+watch(() => props.beanId, (newBeanId) => {
+  localBeanId.value = newBeanId
+})
+
+watch(() => props.datasets, (newDatasets) => {
+  localDatasets.value = newDatasets || []
+}, { deep: true })
+
+function toggleDatasource() {
+  datasourceExpanded.value = !datasourceExpanded.value
+}
+
+function toggleDataset(index: number) {
+  datasetExpanded.value[index] = !datasetExpanded.value[index]
+}
+
+function showDatasourceContextMenu(event: MouseEvent) {
+  const items = [
+    { key: 'add', name: t('tree.addDataset'), icon: 'add' },
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
+    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+  ]
+  contextMenu.value.show(event, items, (key: string) => {
+    handleDatasourceMenuAction(key)
+  })
+}
+
+function handleDatasourceMenuAction(key: string) {
+  if (key === 'add') {
+    addDatasetAction()
+  } else if (key === 'delete') {
+    deleteDatasourceAction()
+  } else if (key === 'edit') {
+    editDatasourceAction()
+  }
+}
+
+function addDatasetAction() {
+  currentDataset.value = null
+  beanMethodDialogVisible.value = true
+}
+
+function deleteDatasourceAction() {
+  showConfirm(`${t('tree.delConfirm')}[${props.name}]？`).then(() => {
+    emit('remove', props.name)
+  })
+}
+
+function editDatasourceAction() {
+  currentSpringDatasource.value = {
+    name: localName.value,
+    beanId: localBeanId.value
+  }
+  springDialogVisible.value = true
+}
+
+function showDatasetContextMenu(event: MouseEvent, dataset: any, index: number) {
+  const items = [
+    { key: 'add', name: t('tree.addField'), icon: 'add' },
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
+    { key: 'delete', name: t('tree.del'), icon: 'delete' },
+    { key: 'refresh', name: t('tree.refresh'), icon: 'loading' }
+  ]
+
+  contextMenu.value.show(event, items, (key: string) => {
+    handleDatasetMenuAction(key, dataset, index)
+  })
+}
+
+function handleDatasetMenuAction(key: string, dataset: any, index: number) {
+  if (key === 'add') {
+    addFieldAction(dataset)
+  } else if (key === 'delete') {
+    deleteDatasetAction(dataset, index)
+  } else if (key === 'edit') {
+    editDatasetAction(dataset, index)
+  } else if (key === 'refresh') {
+    refreshDatasetAction(dataset, index)
+  }
+}
+
+function addFieldAction(dataset: any) {
+  currentDataset.value = dataset
+  fieldNameDialogVisible.value = true
+}
+
+function handleFieldNameSave(fieldName: string, dataset: any) {
+  if (fieldName) {
+    const newDatasets = deepCopy(localDatasets.value)
+    const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
+
+    if (!targetDataset.fields) {
+      targetDataset.fields = []
+    }
+
+    const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
+    if (exists) {
+      showAlert(t('tree.fieldExist'))
+      return
+    }
+
+    const field = { name: fieldName }
+    targetDataset.fields.push(field)
+    emit('update-datasets', newDatasets)
+  }
+}
+
+function editDatasetAction(dataset: any, index: number) {
+  currentDataset.value = dataset
+  beanMethodDialogVisible.value = true
+}
+
+function handleBeanMethodSave(nameVal: string, method: string, clazz: string, oldName: string) {
+  const newDatasets = deepCopy(localDatasets.value)
+
+  if (oldName && oldName !== '') {
+    const index = newDatasets.findIndex((dataset: any) => dataset.name === oldName)
+    if (index !== -1) {
+      const dataset = newDatasets[index]
+      const originalClazz = dataset.clazz || ''
+
+      dataset.name = nameVal
+      dataset.method = method
+      dataset.clazz = clazz
+
+      if (clazz !== originalClazz) {
+        if (!clazz || clazz === '') {
+          dataset.fields = []
+        } else {
+          buildFields(dataset, index, false, newDatasets)
+        }
+      }
+
+      emit('update-datasets', newDatasets)
+      return
+    }
+  }
+
+  const dataset = { name: nameVal, method, clazz, fields: [] }
+  newDatasets.push(dataset)
+  const newIndex = newDatasets.length - 1
+  datasetExpanded.value[newIndex] = true
+
+  if (clazz && clazz !== '') {
+    buildFields(dataset, newIndex, false, newDatasets)
+  }
+
+  emit('update-datasets', newDatasets)
+}
+
+function deleteDatasetAction(dataset: any, index: number) {
+  showConfirm(`${t('tree.delDatasetConfirm')}[${dataset.name}]?`).then(() => {
+    const newDatasets = deepCopy(localDatasets.value)
+    newDatasets.splice(index, 1)
+    delete datasetExpanded.value[index]
+    emit('update-datasets', newDatasets)
+  })
+}
+
+function refreshDatasetAction(dataset: any, index: number) {
+  const newDatasets = deepCopy(localDatasets.value)
+  const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
+  buildFields(targetDataset, index, true, newDatasets)
+}
+
+function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
+  const items = [
+    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+  ]
+
+  contextMenu.value.show(event, items, (key: string) => {
+    handleFieldMenuAction(key, dataset, field, fieldIndex)
+  })
+}
+
+function handleFieldMenuAction(key: string, dataset: any, field: any, fieldIndex: number) {
+  if (key === 'delete') {
+    deleteFieldAction(dataset, field, fieldIndex)
+  }
+}
+
+function deleteFieldAction(dataset: any, field: any, fieldIndex: number) {
+  showConfirm(`${t('tree.delFieldConfirm')}[${field.name}]?`).then(() => {
+    const newDatasets = deepCopy(localDatasets.value)
+    const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
+    if (targetDataset.fields) {
+      targetDataset.fields.splice(fieldIndex, 1)
+      emit('update-datasets', newDatasets)
+    }
+  })
+}
+
+function handleFieldDoubleClick(dataset: any, field: any) {
+  _buildClickEvent(dataset, field, context.value)
+}
+
+async function buildFields(dataset: any, index: number, refresh = false, newDatasets: any[] | null = null) {
+  const defaultFields = dataset.fields
+
+  if (!refresh && defaultFields) {
+    if (newDatasets) {
+      emit('update-datasets', newDatasets)
+    }
+    return
+  }
+
+  try {
+    const response = await buildClass(dataset.clazz)
+    dataset.fields = response
+    if (newDatasets) {
+      emit('update-datasets', newDatasets)
+    }
+  } catch (error: any) {
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('tree.loadFieldFail'))
+    }
+  }
+}
+
+function _buildClickEvent(dataset: any, field: any, ctx: any) {
+  const hot = TableManager.get()
+  if (!hot) {
+    showAlert(t('tree.cellTip'))
+    return
+  }
+  const cellsMap = ctx.cellsMap
+  const selected = hot.getSelected()
+
+  if (!selected || selected.length === 0) {
+    showAlert(t('tree.cellTip'))
+    return
+  }
+
+  const [rowIndex, colIndex, endRow, endCol] = selected[0]
+  const cellDef = getCell(rowIndex, colIndex)
+
+  let newCellDef = deepCopy(cellDef)
+
+  if (newCellDef.value.type !== 'dataset') {
+    newCellDef = {
+      value: { type: 'dataset', conditions: [] },
+      rowNumber: newCellDef.rowNumber,
+      columnNumber: newCellDef.columnNumber,
+      cellStyle: newCellDef.cellStyle
+    }
+    addCell(newCellDef)
+  } else {
+    setCell(rowIndex, colIndex, newCellDef)
+  }
+
+  newCellDef.expand = "Down"
+  const value = newCellDef.value
+  value.aggregate = "group"
+  value.datasetName = dataset.name
+  value.property = field.name
+  value.order = 'none'
+
+  let text = value.datasetName + "." + value.aggregate + "("
+  const prop = value.property
+  text += prop + ')'
+  hot.setDataAtCell(rowIndex, colIndex, text)
+
+  hot.render()
+
+  if (hot.hooks) {
+    hot.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+  }
+}
+
+function handleSpringDatasourceSave(datasourceData: any) {
+  localName.value = datasourceData.name
+  localBeanId.value = datasourceData.beanId
+  emit('update-datasource', datasourceData)
+}
 </script>
 <style scoped>
 .tree{

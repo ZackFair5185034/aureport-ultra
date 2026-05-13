@@ -1,61 +1,48 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+defineOptions({ name: 'UDivider' })
+
+const props = withDefaults(defineProps<{
+  type?: 'horizontal' | 'vertical'
+  align?: 'left' | 'right' | 'center'
+  dashed?: boolean
+}>(), {
+  type: 'horizontal',
+  align: 'center',
+  dashed: false,
+})
+
+const classes = computed(() => [
+  'u-divider',
+  `u-divider-${props.type}`,
+  { 'u-divider-dashed': props.dashed },
+])
+
+const slotClasses = computed(() => [
+  'u-divider-inner-text',
+  `is-${props.align}`,
+])
+</script>
+
 <template>
   <div :class="classes">
     <span v-if="$slots.default" :class="slotClasses">
-      <slot></slot>
+      <slot />
     </span>
   </div>
 </template>
 
-<script>
-const prefixCls = 'u-divider'
-export default {
-  name: 'UDivider',
-  props: {
-    type: {
-      type: String,
-      default: 'horizontal'// 'horizontal', 'vertical'
-    },
-    align: {
-      type: String,
-      default: 'center'// 'left', 'right', 'center'
-    },
-    dashed: {
-      type: Boolean,
-      default: false
-    }
-  },
-  computed: {
-    classes() {
-      return [
-        `${prefixCls}`,
-        `${prefixCls}-${this.type}`,
-        {
-          [`${prefixCls}-dashed`]: !!this.dashed
-        }
-      ]
-    },
-    slotClasses() {
-      return [
-        `${prefixCls}-inner-text`, `is-${this.align}`
-      ]
-    }
-  }
-}
-</script>
 <style scoped>
 .u-divider {
-
-}
-
-.u-divider {
-  position: relative
+  position: relative;
 }
 
 .u-divider-horizontal {
   display: block;
   height: 1px;
   width: 100%;
-  margin: 24px 0
+  margin: 24px 0;
 }
 
 .u-divider-vertical {
@@ -65,7 +52,7 @@ export default {
   height: 1em;
   width: 1px;
   vertical-align: middle;
-  top: -.06em
+  top: -0.06em;
 }
 
 .u-divider-dashed {
@@ -78,22 +65,21 @@ export default {
   padding: 0 16px;
   font-weight: 600;
   color: #303133;
-  font-size: 14px
+  font-size: 14px;
 }
 
 .u-divider-inner-text.is-left {
   left: 24px;
-  transform: translateY(-50%)
+  transform: translateY(-50%);
 }
 
 .u-divider-inner-text.is-center {
   left: 50%;
-  transform: translate(-50%) translateY(-50%)
+  transform: translate(-50%) translateY(-50%);
 }
 
 .u-divider-inner-text.is-right {
   right: 24px;
-  transform: translateY(-50%)
+  transform: translateY(-50%);
 }
-
 </style>

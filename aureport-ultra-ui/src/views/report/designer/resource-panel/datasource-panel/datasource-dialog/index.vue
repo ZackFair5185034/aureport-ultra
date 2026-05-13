@@ -29,216 +29,195 @@
             </u-form>
         </div>
 
-        <div slot="footer" style="text-align: right">
+        <template #footer><div style="text-align: right">
             <u-button @click="testConnection(true)" type="info" style="margin-right: 10px;">{{ $t('dialog.datasource.test') }}</u-button>
             <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-        </div>
+        </div></template>
     </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import { setDirty } from '@/utils/table';
-import { testConnection } from '@/api/designer';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
-import UInput from '@/components/input/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { setDirty } from '@/utils/table'
+import { testConnection } from '@/api/designer'
 
-export default {
-  name: 'DatasourceDialog',
-  components: {
-    UDialog,
-    UButton,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    // 用于检查名称是否重复
-    datasources: {
-      type: Array,
-      default: () => []
-    },
-    // 控制弹窗显示
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    // 数据源数据
-    datasource: {
-      type: Object,
-      default: null
+defineOptions({ name: 'DatasourceDialog' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  datasources: any[]
+  visible: boolean
+  datasource: any
+}>(), {
+  datasources: () => [],
+  visible: false,
+  datasource: null
+})
+
+const emit = defineEmits<{
+  (e: 'save', data: any): void
+  (e: 'close'): void
+}>()
+
+const form = ref<any>(null)
+const oldName = ref<string | null>(null)
+const formData = reactive({
+  dsName: '',
+  username: '',
+  password: '',
+  driver: '',
+  url: ''
+})
+
+const validateDsName = (rule: any, value: string, callback: (error?: Error) => void) => {
+  if (!value) {
+    callback(new Error(t('dialog.datasource.nameTip')))
+  } else if (checkDuplicateName(value)) {
+    callback()
+  } else {
+    callback(new Error(`${t('dialog.datasource.datasource')}[${value}]${t('dialog.datasource.existTip')}`))
+  }
+}
+
+const rules = reactive({
+  dsName: [{
+    required: true,
+    validator: validateDsName,
+    trigger: 'blur'
+  }],
+  username: [{
+    required: true,
+    message: t('dialog.datasource.usernameTip'),
+    trigger: 'blur'
+  }],
+  password: [{
+    required: true,
+    message: t('dialog.datasource.passwordTip'),
+    trigger: 'blur'
+  }],
+  driver: [{
+    required: true,
+    message: t('dialog.datasource.driverTip'),
+    trigger: 'blur'
+  }],
+  url: [{
+    required: true,
+    message: t('dialog.datasource.urlTip'),
+    trigger: 'blur'
+  }]
+})
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    if (props.datasource) {
+      fillForm(props.datasource)
     }
-  },
-  data() {
-    const validateDsName = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error(this.$t('dialog.datasource.nameTip')));
-      } else if (this.checkDuplicateName(value)) {
-        callback();
-      } else {
-        callback(new Error(`${this.$t('dialog.datasource.datasource')}[${value}]${this.$t('dialog.datasource.existTip')}`));
-      }
-    };
-    return {
-      formData: {
-        dsName: '',
-        username: '',
-        password: '',
-        driver: '',
-        url: ''
-      },
-      oldName: null,
-      backdrop: null,
-      rules: {
-        dsName: [{
-          required: true,
-          validator: validateDsName,
-          trigger: 'blur'
-        }],
-        username: [{
-          required: true,
-          message: this.$t('dialog.datasource.usernameTip'),
-          trigger: 'blur'
-        }],
-        password: [{
-          required: true,
-          message: this.$t('dialog.datasource.passwordTip'),
-          trigger: 'blur'
-        }],
-        driver: [{
-          required: true,
-          message: this.$t('dialog.datasource.driverTip'),
-          trigger: 'blur'
-        }],
-        url: [{
-          required: true,
-          message: this.$t('dialog.datasource.urlTip'),
-          trigger: 'blur'
-        }]
-      }
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        if (this.datasource) {
-          this.fillForm(this.datasource);
-        this.resetForm();
-        }
-      }
-    }
-  },
-  methods: {
-    resetForm() {
-      let that = this;
-      that.$refs.form && that.$refs.form.resetFields();
-      this.oldName = null;
-    },
+    resetForm()
+  }
+})
 
-    fillForm(ds) {
-      if (ds) {
-        this.oldName = ds.name;
-        this.formData.dsName = ds.name;
-        this.formData.username = ds.username || '';
-        this.formData.password = ds.password || '';
-        this.formData.driver = ds.driver || '';
-        this.formData.url = ds.url || '';
-      }
-    },
+function resetForm() {
+  form.value && form.value.resetFields()
+  oldName.value = null
+}
 
-    closeDialog() {
-      this.$emit('close');
-    },
+function fillForm(ds: any) {
+  if (ds) {
+    oldName.value = ds.name
+    formData.dsName = ds.name
+    formData.username = ds.username || ''
+    formData.password = ds.password || ''
+    formData.driver = ds.driver || ''
+    formData.url = ds.url || ''
+  }
+}
 
-    handleClose() {
-      this.closeDialog();
-    },
+function closeDialog() {
+  emit('close')
+}
 
-    handleOk() {
-      this.save();
-    },
+function handleClose() {
+  closeDialog()
+}
 
-    validateForm() {
-      return new Promise((resolve) => {
-        this.$refs.form.validate((valid) => {
-          resolve(valid);
-        });
-      });
-    },
+function handleOk() {
+  save()
+}
 
-    /**
-     * 检查是否有重名的数据源
-     * @param name
-     * @returns {boolean}
-     */
-    checkDuplicateName(name) {
-      if (!this.oldName || name !== this.oldName) {
-        for (let source of this.datasources) {
-          if (source.name === name) {
-            return false;
-          }
-        }
-      }
-      return true;
-    },
+function validateForm(): Promise<boolean> {
+  return new Promise((resolve) => {
+    form.value.validate((valid: boolean) => {
+      resolve(valid)
+    })
+  })
+}
 
-    async testConnection(showSuccessTips) {
-      const valid = await this.validateForm();
-      if (!valid) {
-        return false;
-      }
-
-      let formData = new FormData();
-      formData.append('username', this.formData.username);
-      formData.append('password', this.formData.password);
-      formData.append('driver', this.formData.driver);
-      formData.append('url', this.formData.url);
-
-      try {
-        const data = await testConnection(formData);
-        if (data.result && showSuccessTips) {
-          showAlert(this.$t('dialog.datasource.testSuccess'));
-        }
-        return true;
-      } catch (error) {
-        console.error('Error testing connection:', error);
-        if (error.msg) {
-          showAlert(this.$t('dialog.datasource.failTip') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('dialog.datasource.failTip'));
-        }
-      }
-      return false;
-    },
-
-    async save() {
-      const valid = await this.validateForm();
-      if (!valid) {
-        return;
-      }
-
-      const success = await this.testConnection(false);
-      if (success) {
-        this.$emit('save', {
-          name: this.formData.dsName,
-          username: this.formData.username,
-          password: this.formData.password,
-          driver: this.formData.driver,
-          url: this.formData.url,
-          oldName: this.oldName,
-          type: 'jdbc'
-        });
-        setDirty();
-        this.closeDialog();
+function checkDuplicateName(name: string) {
+  if (!oldName.value || name !== oldName.value) {
+    for (let source of props.datasources) {
+      if (source.name === name) {
+        return false
       }
     }
+  }
+  return true
+}
+
+async function testConnection(showSuccessTips: boolean) {
+  const valid = await validateForm()
+  if (!valid) {
+    return false
+  }
+
+  let formDataObj = new FormData()
+  formDataObj.append('username', formData.username)
+  formDataObj.append('password', formData.password)
+  formDataObj.append('driver', formData.driver)
+  formDataObj.append('url', formData.url)
+
+  try {
+    const data = await testConnection(formDataObj)
+    if (data.result && showSuccessTips) {
+      showAlert(t('dialog.datasource.testSuccess'))
+    }
+    return true
+  } catch (error: any) {
+    console.error('Error testing connection:', error)
+    if (error.msg) {
+      showAlert(t('dialog.datasource.failTip') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('dialog.datasource.failTip'))
+    }
+  }
+  return false
+}
+
+async function save() {
+  const valid = await validateForm()
+  if (!valid) {
+    return
+  }
+
+  const success = await testConnection(false)
+  if (success) {
+    emit('save', {
+      name: formData.dsName,
+      username: formData.username,
+      password: formData.password,
+      driver: formData.driver,
+      url: formData.url,
+      oldName: oldName.value,
+      type: 'jdbc'
+    })
+    setDirty()
+    closeDialog()
   }
 }
 </script>
 
 <style scoped>
-/* 样式可以根据需要自定义 */
 </style>

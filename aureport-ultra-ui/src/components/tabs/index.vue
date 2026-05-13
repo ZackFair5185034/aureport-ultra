@@ -1,83 +1,88 @@
+<script setup lang="ts">
+import { ref, computed, provide } from 'vue'
+
+defineOptions({ name: 'UTabs' })
+
+export interface TabsContext {
+  registerPane: (pane: { label: string; index: string }) => void
+  unregisterPane: (pane: { label: string; index: string }) => void
+  activeValue: unknown
+}
+
+const props = withDefaults(defineProps<{
+  modelValue?: string | number
+  type?: string
+  navPosition?: string
+  navCenter?: boolean
+  padding?: string
+  height?: string
+  minHeight?: string
+  maxHeight?: string
+  overflow?: string
+}>(), {
+  modelValue: '',
+  type: '',
+  navPosition: 'top',
+  navCenter: false,
+  minHeight: '',
+  maxHeight: '',
+  overflow: '',
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string | number]
+  'tab-change': [value: string | number]
+}>()
+
+const panes = ref<Array<{ label: string; index: string }>>([])
+
+function registerPane(pane: { label: string; index: string }) {
+  panes.value.push(pane)
+}
+
+function unregisterPane(pane: { label: string; index: string }) {
+  const idx = panes.value.indexOf(pane)
+  if (idx !== -1) panes.value.splice(idx, 1)
+}
+
+function selectTab(idx: string) {
+  emit('update:modelValue', idx)
+  emit('tab-change', idx)
+}
+
+const tabsContext: TabsContext = {
+  registerPane,
+  unregisterPane,
+  get activeValue() { return props.modelValue },
+}
+provide('tabsContext', tabsContext)
+
+const contentStyle = computed(() => {
+  const { padding, height, overflow, minHeight, maxHeight } = props
+  return { padding, height, minHeight, maxHeight, overflow }
+})
+</script>
+
 <template>
-  <div :class="['u-tabs tabs', `-${this.type}`]">
-    <div class="content" :style="contentStyle" v-if="navPosition === 'bottom' || navPosition === 'right'">
-      <slot></slot>
+  <div :class="['u-tabs tabs', type ? `-${type}` : '']">
+    <div v-if="navPosition === 'bottom' || navPosition === 'right'" class="content" :style="contentStyle">
+      <slot />
     </div>
-    <ul :class="['nav', navPosition, {'center': navCenter}]">
-      <li v-for="(tab, index) in tabs" v-html="tab" :key="tab"
-          :class="{'active': index === activeIndex }"
-          @click.stop="tabClickHandler(index)"></li>
+    <ul :class="['nav', navPosition, { center: navCenter }]">
+      <li
+        v-for="pane in panes"
+        :key="pane.index"
+        v-html="pane.label"
+        :class="{ active: pane.index === modelValue }"
+        @click.stop="selectTab(pane.index)"
+      />
     </ul>
-    <div class="content" :style="contentStyle" v-if="navPosition === 'top' || navPosition === 'left'">
-      <slot></slot>
+    <div v-if="navPosition === 'top' || navPosition === 'left'" class="content" :style="contentStyle">
+      <slot />
     </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'UTabs',
-  props: {
-    value: { type: [Number, String], required: true },
-    type: { type: String, default: '' },
-    navPosition: { type: String, default: 'top' },
-    navCenter: { type: Boolean, default: false },
-    padding: { type: String },
-    height: { type: String },
-    minHeight: { type: String, default: '' },
-    maxHeight: { type: String, default: '' },
-    overflow: { type: String, default: '' }
-  },
-  data () {
-    return {
-      tabs: [],
-      activeIndex: 0
-    }
-  },
-  watch: {
-    value (nVal, oVal) {
-      this.init(nVal)
-    }
-  },
-  computed: {
-    contentStyle () {
-      const { padding, height, overflow, minHeight, maxHeight } = this
-      return {
-        padding,
-        height,
-        minHeight,
-        maxHeight,
-        overflow
-      }
-    }
-  },
-  mounted () {
-    this.init(this.value)
-  },
-  methods: {
-    init (indexValue) {
-      this.tabs = []
-      this.$children.forEach((ele, index) => {
-        this.tabs.push(ele.label)
-        // if (ele.index !== undefined) index = ele.index
-        if (ele.index === indexValue) {
-          ele.visible = true
-          this.activeIndex = index
-        } else {
-          ele.visible = false
-        }
-      })
-    },
-    tabClickHandler (index) {
-      this.$children[this.activeIndex].visible = false
-      let ele = this.$children[index]
-      ele.visible = true
-      this.activeIndex = index
-      this.$emit('input', ele.index)
-      this.$emit('tab-change', ele.index)
-    }
-  }
-}
-</script>
+
 <style scoped>
 .u-tabs.tabs {
   font-size: 1rem;

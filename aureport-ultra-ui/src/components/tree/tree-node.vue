@@ -1,231 +1,149 @@
 <template>
-  <div class="u-tree-node" v-show="node.visible">
+  <div class="u-tree-node" v-show="Boolean(node.visible)">
     <div class="u-tree-node-label">
       <span
-        @click="handleExpand"
+        @click="() => handleExpand()"
         class="u-tree-node-angle"
-        :class="{ 'u-tree-node-angle-expand': node.expand }"
+        :class="{ 'u-tree-node-angle-expand': Boolean(node.expand) }"
       >
-        <i class="iconfont icon-right" v-if="showAngle" /> </span
-      ><checkbox
+        <i class="iconfont icon-right" v-if="showAngle" />
+      </span>
+      <UCheckbox
         v-if="showCheckbox"
-        :value="node.checked"
-        :indeterminate="node.indeterminate"
-        :disabled="node.disabled"
+        :model-value="Boolean(node.checked)"
+        :indeterminate="Boolean(node.indeterminate)"
+        :disabled="Boolean(node.disabled)"
         class="u-tree-node-checkbox"
-        @change="handleCheck"
-      /><span class="u-tree-node-loading" v-if="lazy && loading"
-        ><i class="iconfont icon-loading"/></span
-      ><span class="u-tree-node-text" @click="handleExpand">
-        <node-content :node="node" />
+        @update:model-value="handleCheck"
+      />
+      <span class="u-tree-node-loading" v-if="lazy && loading">
+        <i class="iconfont icon-loading" />
+      </span>
+      <span class="u-tree-node-text" @click="() => handleExpand()">
+        <component :is="treeContext?.renderNodeContent(treeNodeInstance, node)" />
       </span>
     </div>
     <auto-height>
       <div
         class="u-tree-node-content"
-        v-if="node.children && node.children.length > 0 && rendered"
-        v-show="node.expand"
+        v-if="nodeChildren.length > 0 && rendered"
+        v-show="Boolean(node.expand)"
       >
-        <u-tree-node
+        <UTreeNode
           :show-checkbox="showCheckbox"
-          v-for="item in node.children"
+          v-for="(item, idx) in nodeChildren"
           :level="level + 1"
-          :key="item.value"
+          :key="idx"
           :node="item"
           :lazy="lazy"
           :load="load"
-          :nodeKey="nodeKey"
-        >
-        </u-tree-node>
+          :node-key="nodeKey"
+        />
       </div>
     </auto-height>
   </div>
 </template>
 
-<script>
-import { setNodeChecked } from "./utils";
-import { deepCopy } from "../utils";
-import autoHeight from "./auto-height.vue";
-import checkbox from "../checkbox";
+<script setup lang="ts">
+import { ref, computed, watch, inject, nextTick } from 'vue'
+import type { TreeContext, TreeNodeRef, TreeNodeData } from './index.vue'
+import { setNodeChecked } from './utils'
+import { deepCopy } from '../utils'
 
-import Emitter from "../mixins/emitter";
+defineOptions({ name: 'UTreeNode' })
 
-export default {
-  name: "UTreeNode",
-  components: {
-    autoHeight,
-    checkbox,
-    nodeContent: {
-      props: {
-        // 提供给用户自定义内容时的节点信息
-        node: {
-          required: true
-        }
-      },
-      render(h) {
-        const { tree } = this.$parent;
-        // 1.有自定义的作用域插槽-执行作用域插槽
-        const defaultSlot = tree.$scopedSlots.default;
+const props = withDefaults(defineProps<{
+  node: TreeNodeData
+  showCheckbox?: boolean
+  lazy?: boolean
+  load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
+  level?: number
+  nodeKey?: string
+}>(), {
+  node: () => ({}),
+  showCheckbox: false,
+  lazy: false,
+  level: 1,
+  nodeKey: 'value',
+})
 
-        if (defaultSlot) {
-          return defaultSlot({ node: this, data: this.node });
-        }
+const treeContext = inject<TreeContext>('treeContext')
 
-        // 2.有自定义render函数时，执行自定义render
-        const renderContent = tree.renderContent;
-        if (renderContent) {
-          return renderContent(h, { node: this, data: this.node });
-        }
+const rendered = ref(true)
+const loading = ref(false)
 
-        // 否则直接显示label
-        return h("span", this.node.label);
-      }
-    }
-  },
-  mixins: [Emitter],
-  data() {
-    return {
-      // 是否渲染，只有第一次
-      rendered: true,
-      loading: false
-    };
-  },
-  props: {
-    // 节点数据
-    node: {
-      default() {
-        return {};
-      }
-    },
-    // 节点是否可以被选择
-    showCheckbox: {
-      type: Boolean,
-      default: false
-    },
-    // 子节点是否为懒加载
-    lazy: {
-      type: Boolean,
-      default: false
-    },
-    // 懒加载函数
-    load: {
-      type: Function
-    },
-    level: {
-      type: Number
-    },
-    nodeKey: {
-      type: String,
-      default: "value"
-    }
-  },
-  computed: {
-    // 是否显示展开/收起按钮
-    showAngle() {
-      return (
-        (this.lazy && !this.node.isLeaf) ||
-        (this.node.children && this.node.children.length > 0)
-      );
-    }
-  },
-  watch: {
-    "node.children": {
-      handler(newVal) {
-        if (newVal) {
-          // 选中状态计算
-          this.calcChecked(newVal);
-          // 显示/隐藏状态计算
-          this.calcVisible(newVal);
-        }
-      },
-      deep: true
-    }
-  },
-  created() {
-    this.dispatch("UTree", "on-tree-node-add", this);
-  },
-  methods: {
-    /**
-     * @description 是否需要展开
-     */
-    handleExpand() {
-      // 按钮不存在或者正在loading时
-      if (!this.showAngle || this.loading) {
-        return;
-      }
+const nodeChildren = computed(() => props.node.children || [])
 
-      if (this.lazy && !this.node.loaded) {
-        this.loading = true;
-        this.load(
-          {
-            level: this.level,
-            ...this.node
-          },
-          data => {
-            this.loading = false;
-            this.$set(this.node, "loaded", true);
-            // 空数据和空数组
-            if (!data || data.length === 0) {
-              this.$set(this.node, "isLeaf", true);
-            } else {
-              // 添加children属性
-              this.$set(this.node, "children", deepCopy(data));
-              if (this.node.checked) {
-                this.handleCheck(true);
-              }
-              this.$nextTick(() => {
-                this.$set(this.node, "expand", !this.node.expand);
-              });
-              this.dispatch("UTree", "on-tree-node-expand", this);
-            }
-          }
-        );
+const showAngle = computed(() => {
+  return (props.lazy && !props.node.isLeaf) || nodeChildren.value.length > 0
+})
+
+const treeNodeInstance: TreeNodeRef = {
+  get node() { return props.node },
+  handleExpand,
+  handleCheck,
+}
+
+treeContext?.registerTreeNode(treeNodeInstance)
+
+watch(() => props.node.children, (newVal: TreeNodeData[] | undefined) => {
+  if (newVal) {
+    calcChecked(newVal)
+    calcVisible(newVal)
+  }
+}, { deep: true })
+
+function handleExpand(expand?: boolean) {
+  if (!showAngle.value || loading.value) return
+
+  if (props.lazy && !props.node.loaded) {
+    loading.value = true
+    props.load?.({ level: props.level ?? 1, ...(props.node as Record<string, unknown>) }, data => {
+      loading.value = false
+      props.node.loaded = true
+      if (!data || (data as unknown[]).length === 0) {
+        props.node.isLeaf = true
       } else {
-        if (this.node.children && this.node.children.length > 0) {
-          this.$set(this.node, "expand", !this.node.expand);
-          this.dispatch("UTree", "on-tree-node-expand", this);
+        props.node.children = deepCopy(data) as TreeNodeData[]
+        if (props.node.checked) {
+          handleCheck(true)
         }
+        nextTick(() => {
+          props.node.expand = !props.node.expand
+        })
       }
-    },
-    /**
-     * @description 是否被选中
-     */
-    handleCheck(checked) {
-      this.$set(this.node, "checked", checked);
-      this.dispatch("UTree", "on-tree-node-check", this, checked);
-
-      // 处理自身及以下的选择状态
-      setNodeChecked(this, this.node, checked);
-    },
-    /**
-     * @description 选择状态计算
-     */
-    calcChecked(newVal) {
-      // 全选判断
-      const checkedAll = !newVal.some(item => !item.checked);
-      // 不确定态判断
-      const indeterminate = !!newVal.find(item => item.checked);
-
-      // 全选状态下
-      if (checkedAll) {
-        this.$set(this.node, "checked", checkedAll);
-        this.$set(this.node, "indeterminate", false);
-      } else {
-        this.$set(this.node, "checked", checkedAll);
-        this.$set(this.node, "indeterminate", indeterminate);
-      }
-    },
-    /**
-     * @description 显示状态计算
-     */
-    calcVisible(newVal) {
-      const visible = !!newVal.find(item => item.visible);
-
-      this.$set(this.node, "visible", visible);
+    })
+  } else {
+    if (nodeChildren.value.length > 0) {
+      props.node.expand = expand !== undefined ? expand : !props.node.expand
     }
   }
-};
+}
+
+function handleCheck(val: unknown) {
+  const checked = Boolean(val)
+  props.node.checked = checked
+  setNodeChecked(props.node as Record<string, unknown>, checked)
+}
+
+function calcChecked(newVal: TreeNodeData[]) {
+  const checkedAll = !newVal.some(item => !item.checked)
+  const indeterminate = !!newVal.find(item => item.checked)
+  if (checkedAll) {
+    props.node.checked = true
+    props.node.indeterminate = false
+  } else {
+    props.node.checked = false
+    props.node.indeterminate = indeterminate
+  }
+}
+
+function calcVisible(newVal: TreeNodeData[]) {
+  const visible = !!newVal.find(item => item.visible)
+  props.node.visible = visible
+}
 </script>
+
 <style scoped>
 .u-tree-node {
   font-size: 14px
@@ -285,5 +203,4 @@ export default {
   padding: 20px;
   text-align: center
 }
-
 </style>

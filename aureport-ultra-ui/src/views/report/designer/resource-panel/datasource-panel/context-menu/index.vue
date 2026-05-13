@@ -17,108 +17,86 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ContextMenu',
-  data() {
-    return {
-      visible: false,
-      x: 0,
-      y: 0,
-      items: [],
-      callback: null,
-      justShown: false
-    };
-  },
-  mounted() {
-    // 点击其他地方关闭菜单
-    document.addEventListener('click', this.handleDocumentClick, true);
-  },
-  beforeDestroy() {
-    document.removeEventListener('click', this.handleDocumentClick, true);
-  },
-  methods: {
-    /**
-     * 显示右键菜单
-     */
-    show(event, items, callback) {
-      this.x = event.clientX;
-      this.y = event.clientY;
-      this.items = items;
-      this.callback = callback;
-      this.visible = true;
-      this.justShown = true;
+<script setup lang="ts">
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
-      let that = this;
-      // 重置 justShown 标志
-      setTimeout(() => {
-          that.justShown = false;
-      }, 100);
+defineOptions({ name: 'ContextMenu' })
 
-      // 确保菜单不超出视口
-      this.$nextTick(() => {
-        const menu = that.$el;
-        if (menu) {
-          const rect = menu.getBoundingClientRect();
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight;
+const visible = ref(false)
+const x = ref(0)
+const y = ref(0)
+const items = ref<any[]>([])
+const callback = ref<((key: string) => void) | null>(null)
+const justShown = ref(false)
 
-          if (rect.right > viewportWidth) {
-              that.x = viewportWidth - rect.width - 5;
-          }
-          if (rect.bottom > viewportHeight) {
-              that.y = viewportHeight - rect.height - 5;
-          }
-        }
-      });
-    },
-
-    /**
-     * 隐藏菜单
-     */
-    hideMenu() {
-      this.visible = false;
-    },
-
-    /**
-     * 处理文档点击事件
-     */
-    handleDocumentClick(e) {
-      // 如果刚刚显示，不处理
-      if (this.justShown) {
-        return;
-      }
-
-      // 如果菜单可见且点击的不是菜单本身，关闭菜单
-      if (this.visible && this.$el && !this.$el.contains(e.target)) {
-        this.hideMenu();
-      }
-    },
-
-    /**
-     * 处理菜单项点击
-     */
-    handleItemClick(item) {
-      if (this.callback) {
-        this.callback(item.key);
-      }
-      this.hideMenu();
-    },
-
-    /**
-     * 获取图标class
-     */
-    getIconClass(icon) {
-      const iconMap = {
-        'add': 'iconfont icon-plus-circle',
-        'edit': 'iconfont icon-edit',
-        'delete': 'iconfont icon-delete',
-        'loading': 'iconfont icon-refresh'
-      };
-      return iconMap[icon] || '';
-    }
+function handleDocumentClick(e: MouseEvent) {
+  if (justShown.value) {
+    return
   }
-};
+  if (visible.value && !document.contains(e.target as Node)) {
+    hideMenu()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleDocumentClick, true)
+})
+
+function show(event: MouseEvent, menuItems: any[], cb: (key: string) => void) {
+  x.value = event.clientX
+  y.value = event.clientY
+  items.value = menuItems
+  callback.value = cb
+  visible.value = true
+  justShown.value = true
+
+  setTimeout(() => {
+    justShown.value = false
+  }, 100)
+
+  nextTick(() => {
+    // ensure menu doesn't go out of viewport
+    setTimeout(() => {
+      const menuEl = document.querySelector('.context-menu') as HTMLElement | null
+      if (menuEl) {
+        const rect = menuEl.getBoundingClientRect()
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
+        if (rect.right > viewportWidth) {
+          x.value = viewportWidth - rect.width - 5
+        }
+        if (rect.bottom > viewportHeight) {
+          y.value = viewportHeight - rect.height - 5
+        }
+      }
+    }, 0)
+  })
+}
+
+function hideMenu() {
+  visible.value = false
+}
+
+function handleItemClick(item: any) {
+  if (callback.value) {
+    callback.value(item.key)
+  }
+  hideMenu()
+}
+
+function getIconClass(icon: string) {
+  const iconMap: Record<string, string> = {
+    'add': 'iconfont icon-plus-circle',
+    'edit': 'iconfont icon-edit',
+    'delete': 'iconfont icon-delete',
+    'loading': 'iconfont icon-refresh'
+  }
+  return iconMap[icon] || ''
+}
 </script>
 
 <style scoped>
@@ -155,4 +133,3 @@ export default {
   text-align: center;
 }
 </style>
-

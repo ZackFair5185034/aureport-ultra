@@ -28,10 +28,10 @@
         </u-form>
       </div>
 
-      <div slot="footer" style="text-align: right">
+      <template #footer><div style="text-align: right">
         <u-button type="info" @click="handleClose" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
         <u-button type="primary" @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-      </div>
+      </div></template>
     </UDialog>
 
     <!-- 方法选择对话框 -->
@@ -44,141 +44,122 @@
   </div>
 </template>
 
-<script>
-import { setDirty } from '@/utils/table.js';
-import MethodSelectDialog from '@/views/report/designer/resource-panel/datasource-panel/method-select-dialog/index.vue';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
-import UInput from '@/components/input/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
-import {showAlert} from "@/utils/comnon";
-import {$t} from "@/locales";
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { setDirty } from '@/utils/table.js'
+import MethodSelectDialog from '@/views/report/designer/resource-panel/datasource-panel/method-select-dialog/index.vue'
+import { showAlert } from '@/utils/comnon'
 
-export default {
-  name: 'BeanMethodDialog',
-  components: {
-    MethodSelectDialog,
-    UDialog,
-    UButton,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    datasources: {
-      type: Array,
-      default: () => []
-    },
-    beanId: {
-      type: String,
-      default: ''
-    },
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    dataset: {
-      type: Object,
-      default: null
-    }
-  },
-  data() {
-    return {
-      oldName: '',
-      name: '',
-      method: '',
-      clazz: '',
-      methodSelectDialogVisible: false
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.initData();
-      }
-    },
-    dataset(newVal) {
-      if (newVal) {
-        this.initData();
-      }
-    }
-  },
-  methods: {
-    initData() {
-      this.name = '';
-      this.method = '';
-      this.clazz = '';
-      this.oldName = '';
+defineOptions({ name: 'BeanMethodDialog' })
 
-      if (this.dataset) {
-        this.oldName = this.dataset.name;
-        this.name = this.dataset.name;
-        this.method = this.dataset.method;
-        this.clazz = this.dataset.clazz;
-      }
-    },
+const { t } = useI18n()
 
-    closeDialog() {
-      this.$emit('close');
-    },
+const props = withDefaults(defineProps<{
+  datasources: any[]
+  beanId: string
+  visible: boolean
+  dataset: any
+}>(), {
+  datasources: () => [],
+  beanId: '',
+  visible: false,
+  dataset: null
+})
 
-    handleClose() {
-      this.closeDialog();
-    },
+const emit = defineEmits<{
+  (e: 'save', name: string, method: string, clazz: string, oldName: string): void
+  (e: 'close'): void
+}>()
 
-    handleOk() {
-      this.save();
-    },
+const oldName = ref('')
+const name = ref('')
+const method = ref('')
+const clazz = ref('')
+const methodSelectDialogVisible = ref(false)
 
-    selectMethod(event) {
-      if (event) {
-        event.preventDefault();
-      }
-      this.methodSelectDialogVisible = true;
-    },
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    initData()
+  }
+})
 
-    handleMethodSelect(method) {
-      this.method = method;
-    },
+watch(() => props.dataset, (newVal) => {
+  if (newVal) {
+    initData()
+  }
+})
 
-    validateName() {
-      let check = false;
-      if (!this.oldName || this.name !== this.oldName) {
-        check = true;
+function initData() {
+  name.value = ''
+  method.value = ''
+  clazz.value = ''
+  oldName.value = ''
+
+  if (props.dataset) {
+    oldName.value = props.dataset.name
+    name.value = props.dataset.name
+    method.value = props.dataset.method
+    clazz.value = props.dataset.clazz
+  }
+}
+
+function closeDialog() {
+  emit('close')
+}
+
+function handleClose() {
+  closeDialog()
+}
+
+function handleOk() {
+  save()
+}
+
+function selectMethod(event?: Event) {
+  if (event) {
+    event.preventDefault()
+  }
+  methodSelectDialogVisible.value = true
+}
+
+function handleMethodSelect(selectedMethod: string) {
+  method.value = selectedMethod
+}
+
+function validateName(): boolean {
+  let check = false
+  if (!oldName.value || name.value !== oldName.value) {
+    check = true
+  }
+
+  if (check) {
+    for (let datasource of props.datasources) {
+      let datasets = datasource.datasets
+      if (!datasets || !Array.isArray(datasets)) {
+        continue
       }
 
-      if (check) {
-        for (let datasource of this.datasources) {
-          // 确保datasets属性存在且可迭代
-          let datasets = datasource.datasets;
-          if (!datasets || !Array.isArray(datasets)) {
-            continue;
-          }
-
-          for (let dataset of datasets) {
-            if (dataset.name === this.name) {
-              showAlert(`${this.name} ${$t('dialog.bean.datasetExist')}`);
-              return false;
-            }
-          }
+      for (let dataset of datasets) {
+        if (dataset.name === name.value) {
+          showAlert(`${name.value} ${t('dialog.bean.datasetExist')}`)
+          return false
         }
       }
-      return true;
-    },
-
-    save() {
-      if (!this.validateName()) {
-        return;
-      }
-
-      this.$emit('save', this.name, this.method, this.clazz, this.oldName);
-
-      setDirty();
-      this.closeDialog();
     }
   }
-};
+  return true
+}
+
+function save() {
+  if (!validateName()) {
+    return
+  }
+
+  emit('save', name.value, method.value, clazz.value, oldName.value)
+  setDirty()
+  closeDialog()
+}
 </script>
 
 <style scoped>

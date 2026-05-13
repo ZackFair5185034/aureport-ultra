@@ -8,57 +8,52 @@
   </u-button>
 </template>
 
-<script>
-import { tableToXml } from '@/utils/table.js';
-import { showAlert } from '@/utils/comnon.js';
-import { savePreviewFile } from '@/api/designer/index.js';
-import UButton from "@/components/button/index.vue";
-import { mapGetters, mapActions } from 'vuex';
-import { createNavigator, getLibMode } from '@/lib/navigator';
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { useRouter, useRoute } from 'vue-router'
+import { tableToXml } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon.js'
+import { savePreviewFile } from '@/api/designer/index.js'
+import { createNavigator, getLibMode } from '@/lib/navigator'
 
-export default {
-  name: 'PreviewTool',
-  components: {UButton},
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    },
-    isLibMode() {
-      return getLibMode();
-    },
-    navigator() {
-      return createNavigator(this);
-    }
-  },
-  methods: {
-    handleClick() {
-      const content = tableToXml(this.context);
-      let fileName = this.$store.state.report.fileName;
-      if(fileName){
-        fileName = fileName + ".ureport.xml";
-      }else{
-        fileName = 'p'
-      }
+defineOptions({ name: 'PreviewTool' })
 
-      savePreviewFile(fileName, content)
-          .then(() => {
-            this.navigator.openPreview({
-              reportPath: fileName,
-              mode: 'preview'
-            }, true);
-          })
-          .catch(error => {
-            console.error('预览失败:', error);
-            if (error.msg) {
-              showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });;
-            } else {
-              showAlert(this.$t('tools.preview.previewFail'));
-            }
-          });
-    }
+const { t } = useI18n()
+const store = useReportStore()
+const router = useRouter()
+const route = useRoute()
+
+const context = computed(() => store.context)
+const isLibMode = computed(() => getLibMode())
+const navigator = computed(() => createNavigator({ $router: router, $route: route }))
+
+function handleClick() {
+  const content = tableToXml(context.value)
+  let fileName = store.fileName
+  if (fileName) {
+    fileName = fileName + ".ureport.xml"
+  } else {
+    fileName = 'p'
   }
-};
+
+  savePreviewFile(fileName, content)
+    .then(() => {
+      navigator.value.openPreview({
+        reportPath: fileName,
+        mode: 'preview'
+      }, true)
+    })
+    .catch((error: any) => {
+      console.error('预览失败:', error)
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      } else {
+        showAlert(t('tools.preview.previewFail'))
+      }
+    })
+}
 </script>
 
 <style scoped>

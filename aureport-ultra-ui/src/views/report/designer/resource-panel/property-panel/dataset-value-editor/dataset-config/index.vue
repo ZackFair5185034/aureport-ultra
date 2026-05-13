@@ -1,7 +1,7 @@
 <template>
   <div>
     <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="$t('property.dataset.dataset')" style="margin-top: 10px">
+      <u-form-item class="property-label" :label="t('property.dataset.dataset')" style="margin-top: 10px">
         <u-select
             v-model="internalSelectedDataset"
             :clearable="true"
@@ -17,7 +17,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.dataset.property')">
+      <u-form-item class="property-label" :label="t('property.dataset.property')">
         <u-select
             v-model="internalSelectedProperty"
             :clearable="true"
@@ -33,7 +33,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.dataset.aggregateType')">
+      <u-form-item class="property-label" :label="t('property.dataset.aggregateType')">
         <u-select
             v-model="internalSelectedAggregate"
             :clearable="true"
@@ -52,11 +52,11 @@
             v-show="internalSelectedAggregate === 'customgroup'"
             @click="handleCustomGroupConfig"
         >
-          {{ $t('property.dataset.configCustomGroup') }}
+          {{ t('property.dataset.configCustomGroup') }}
         </u-button>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.dataset.sortType')" v-show="internalShowSortOptions">
+      <u-form-item class="property-label" :label="t('property.dataset.sortType')" v-show="internalShowSortOptions">
         <u-radio-group v-model="internalSelectedSort" @change="handleSortChange">
           <u-radio
               v-for="option in sortOptions"
@@ -68,7 +68,7 @@
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.dataset.expand')" v-show="internalShowExpandOptions">
+      <u-form-item class="property-label" :label="t('property.dataset.expand')" v-show="internalShowExpandOptions">
         <u-radio-group :value="internalSelectedExpand" @change="handleExpandChange">
           <u-radio
               v-for="option in expandOptions"
@@ -80,15 +80,15 @@
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.dataset.lineHeight')">
+      <u-form-item class="property-label" :label="t('property.dataset.lineHeight')">
         <u-input-number
-            :placeholder="$t('property.dataset.lineHeightTip')"
+            :placeholder="t('property.dataset.lineHeightTip')"
             v-model="internalLineHeight"
             @change="handleLineHeightChange"
         />
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.base.newLineCompute')">
+      <u-form-item class="property-label" :label="t('property.base.newLineCompute')">
         <u-radio-group v-model="internalWrapCompute" @change="handleWrapComputeChange">
           <u-radio
               v-for="option in wrapComputeOptions"
@@ -100,18 +100,18 @@
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.base.format')">
+      <u-form-item class="property-label" :label="t('property.base.format')">
         <vue-simple-suggest
             :value="internalFormat"
             :list="suggestionList"
             :filter-by-query="true"
-            :placeholder="$t('property.base.formatTip')"
+            :placeholder="t('property.base.formatTip')"
             class="simple-suggest"
             @input="handleFormatChange"
         ></vue-simple-suggest>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.base.fillBlank')">
+      <u-form-item class="property-label" :label="t('property.base.fillBlank')">
         <u-radio-group v-model="internalFillBlankRows" @change="handleFillBlankRowsChange">
           <u-radio
               v-for="option in fillBlankRowsOptions"
@@ -123,28 +123,28 @@
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.base.rowTimes')" v-show="internalFillBlankRows === 'default'">
+      <u-form-item class="property-label" :label="t('property.base.rowTimes')" v-show="internalFillBlankRows === 'default'">
         <u-input-number
             v-model="internalMultiple"
             @change="handleMultipleChange"
         />
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('property.base.conditionProp')">
+      <u-form-item class="property-label" :label="t('property.base.conditionProp')">
         <u-button
             type="info"
             size="mini"
             icon="icon-filter"
             @click="handleConditionPropertyConfig"
         >
-          {{ $t('property.base.configCondition') }}
+          {{ t('property.base.configCondition') }}
         </u-button>
       </u-form-item>
     </u-form>
 
     <!-- 自定义分组对话框组件 -->
     <CustomGroupDialog
-      :visible.sync="customGroupDialogVisible"
+      v-model:visible="customGroupDialogVisible"
       :group-items="groupItems"
       :fields="customGroupDialogFields"
       @save="handleCustomGroupSave"
@@ -152,8 +152,7 @@
 
     <!-- 属性条件对话框组件 -->
     <PropertyConditionDialog
-        ref="propertyConditionDialog"
-        :visible.sync="propertyConditionDialogVisible"
+        v-model:visible="propertyConditionDialogVisible"
         :dataset-name="propertyConditionDialogDatasetName"
         :condition-property-items="propertyConditionDialogItems"
         @saveAfter="handlePropertyConditionSave"
@@ -161,462 +160,322 @@
   </div>
 </template>
 
-<script>
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import URadioGroup from '@/components/radio-group/index.vue';
-import URadio from '@/components/radio/index.vue';
-import UInputNumber from '@/components/input-number/index.vue';
-import UButton from '@/components/button/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
-import PropertyConditionDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/index.vue';
-import CustomGroupDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-dialog/index.vue';
-import { setDirty } from '@/utils/table.js';
-import { showAlert } from '@/utils/comnon.js';
-import { deepCopy } from '@/components/utils/index.js';
+<script setup lang="ts">
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import PropertyConditionDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/index.vue'
+import CustomGroupDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-dialog/index.vue'
+import { setDirty } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils/index.js'
 import VueSimpleSuggest from 'vue-simple-suggest'
 import 'vue-simple-suggest/dist/styles.css'
-import { mapGetters } from 'vuex';
 
-export default {
-  name: 'DatasetConfigTab',
-  components: {
-    USelect,
-    UOption,
-    URadioGroup,
-    URadio,
-    UInputNumber,
-    UButton,
-    UForm,
-    UFormItem,
-    PropertyConditionDialog,
-    CustomGroupDialog,
-    VueSimpleSuggest
-  },
-  props: {
-    datasets: {
-      type: Array,
-      default: () => []
-    },
-    currentFields: {
-      type: Array,
-      default: () => []
-    },
-    groupItems: {
-      type: Array,
-      default: () => []
-    },
-    // 数据集配置相关属性
-    selectedDataset: {
-      type: String,
-      default: ''
-    },
-    selectedProperty: {
-      type: String,
-      default: ''
-    },
-    selectedAggregate: {
-      type: String,
-      default: 'select'
-    },
-    selectedSort: {
-      type: String,
-      default: 'none'
-    },
-    selectedExpand: {
-      type: String,
-      default: 'None'
-    },
-    lineHeight: {
-      type: [String, Number],
-      default: 10
-    },
-    wrapCompute: {
-      type: String,
-      default: 'custom'
-    },
-    format: {
-      type: String,
-      default: ''
-    },
-    fillBlankRows: {
-      type: String,
-      default: 'custom'
-    },
-    multiple: {
-      type: Number,
-      default: 0
-    },
-    showSortOptions: {
-      type: Boolean,
-      default: true
-    },
-    showExpandOptions: {
-      type: Boolean,
-      default: true
-    },
-    // 新增属性：条件属性项
-    conditionPropertyItems: {
-      type: Array,
-      default: () => []
-    }
-  },
-  data() {
-    return {
-      internalSelectedDataset: '',
-      internalSelectedProperty: '',
-      internalSelectedAggregate: 'select',
-      internalSelectedSort: 'none',
-      internalSelectedExpand: 'None',
-      internalLineHeight: 10,
-      internalWrapCompute: 'custom',
-      internalFormat: '',
-      internalFillBlankRows: 'custom',
-      internalMultiple: 0,
-      internalShowSortOptions: true,
-      internalShowExpandOptions: true,
-      isInitialized: false,
-      propertyConditionDialogVisible: false,
-      propertyConditionDialogDatasetName: '',
-      propertyConditionDialogItems: [],
-      customGroupDialogVisible: false,
-      customGroupDialogFields: null,
-      suggestionList:[
-        "yyyy/MM/dd",
-        "yyyy/MM",
-        "yyyy-MM",
-        "yyyy",
-        "yyyy-MM-dd HH:mm:ss",
-        "yyyy年MM月dd日 HH:mm:ss",
-        "yyyy-MM-dd",
-        "yyyy年MM月dd日",
-        "HH:mm",
-        "HH:mm:ss",
-        "#.##",
-        "#.00",
-        "##.##%",
-        "##.00%",
-        "##,###.##",
-        "￥##,###.##",
-        "$##,###.##",
-        "0.00E00",
-        "##0.0E0"
-      ]
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    },
-    datasources() {
-      return this.context.reportDef.datasources || [];
-    },
-    datasetOptions() {
-      return this.datasets.map(dataset => ({
-        value: dataset.name,
-        label: dataset.name
-      }));
-    },
-    propertyOptions() {
-      return this.currentFields.map(field => ({
-        value: field.name,
-        label: field.name
-      }));
-    },
-    aggregateOptions() {
-      return [
-        { value: 'select', label: this.$t('property.dataset.select') },
-        { value: 'group', label: this.$t('property.dataset.group') },
-        { value: 'customgroup', label: this.$t('property.dataset.customGroup') },
-        { value: 'sum', label: this.$t('property.dataset.sum') },
-        { value: 'count', label: this.$t('property.dataset.count') },
-        { value: 'max', label: this.$t('property.dataset.max') },
-        { value: 'min', label: this.$t('property.dataset.min') },
-        { value: 'avg', label: this.$t('property.dataset.avg') }
-      ];
-    },
-    sortOptions() {
-      return [
-        { value: 'none', label: this.$t('property.dataset.notSort') },
-        { value: 'asc', label: this.$t('property.dataset.asc') },
-        { value: 'desc', label: this.$t('property.dataset.desc') }
-      ];
-    },
-    expandOptions() {
-      return [
-        { value: 'Down', label: this.$t('property.dataset.down') },
-        { value: 'Right', label: this.$t('property.dataset.right') },
-        { value: 'None', label: this.$t('property.dataset.noneExpand') }
-      ];
-    },
-    wrapComputeOptions() {
-      return [
-        { value: 'default', label: this.$t('property.base.open'), title: this.$t('property.base.newLineComputeTip') },
-        { value: 'custom', label: this.$t('property.base.close') }
-      ];
-    },
-    fillBlankRowsOptions() {
-      return [
-        { value: 'default', label: this.$t('property.base.open') },
-        { value: 'custom', label: this.$t('property.base.close') }
-      ];
-    }
-  },
-  watch: {
-    // 监听外部props变化，同步到内部状态
-    selectedDataset(val) {
-      this.internalSelectedDataset = val;
-    },
-    selectedProperty(val) {
-      this.internalSelectedProperty = val;
-    },
-    selectedAggregate(val) {
-      this.internalSelectedAggregate = val;
-    },
-    selectedSort(val) {
-      this.internalSelectedSort = val;
-    },
-    selectedExpand(val) {
-      this.internalSelectedExpand = val;
-    },
-    lineHeight(val) {
-      this.internalLineHeight = val;
-    },
-    wrapCompute(val) {
-      this.internalWrapCompute = val;
-    },
-    format(val) {
-      this.internalFormat = val;
-    },
-    fillBlankRows(val) {
-      this.internalFillBlankRows = val;
-    },
-    multiple(val) {
-      this.internalMultiple = val;
-    },
-    showSortOptions(val) {
-      this.internalShowSortOptions = val;
-    },
-    showExpandOptions(val) {
-      this.internalShowExpandOptions = val;
-    }
-  },
-  created() {
-    this.initData();
-  },
-  mounted() {
+defineOptions({ name: 'DatasetConfigTab' })
 
-    // 标记组件已完成初始化
-    this.$nextTick(() => {
-      this.isInitialized = true;
-    });
-  },
-  methods: {
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context)
+const datasources = computed(() => context.value!.reportDef.datasources || [])
 
-    /**
-     * 初始化数据
-     */
-    initData(){
-      this.internalSelectedDataset = this.selectedDataset;
-      this.internalSelectedProperty = this.selectedProperty;
-      this.internalSelectedAggregate = this.selectedAggregate;
-      this.internalSelectedSort = this.selectedSort;
-      this.internalSelectedExpand = this.selectedExpand;
-      this.internalLineHeight = this.lineHeight;
-      this.internalWrapCompute = this.wrapCompute;
-      this.internalFormat = this.format;
-      this.internalFillBlankRows = this.fillBlankRows;
-      this.internalMultiple = this.multiple;
-      this.internalShowSortOptions = this.showSortOptions;
-      this.internalShowExpandOptions = this.showExpandOptions;
-    },
+const props = withDefaults(defineProps<{
+  datasets?: any[]
+  currentFields?: any[]
+  groupItems?: any[]
+  selectedDataset?: string
+  selectedProperty?: string
+  selectedAggregate?: string
+  selectedSort?: string
+  selectedExpand?: string
+  lineHeight?: string | number
+  wrapCompute?: string
+  format?: string
+  fillBlankRows?: string
+  multiple?: number
+  showSortOptions?: boolean
+  showExpandOptions?: boolean
+  conditionPropertyItems?: any[]
+}>(), {
+  datasets: () => [],
+  currentFields: () => [],
+  groupItems: () => [],
+  selectedDataset: '',
+  selectedProperty: '',
+  selectedAggregate: 'select',
+  selectedSort: 'none',
+  selectedExpand: 'None',
+  lineHeight: 10,
+  wrapCompute: 'custom',
+  format: '',
+  fillBlankRows: 'custom',
+  multiple: 0,
+  showSortOptions: true,
+  showExpandOptions: true,
+  conditionPropertyItems: () => []
+})
 
-    /**
-     * 处理数据集变化
-     */
-    handleDatasetChange(value) {
-      this.internalSelectedDataset = value;
-      // 触发事件，通知父组件
-      this.$emit('update:selectedDataset', this.internalSelectedDataset);
-      this.$emit('dataset-change', this.internalSelectedDataset);
-    },
+const emit = defineEmits<{
+  (e: 'update:selectedDataset', value: string): void
+  (e: 'update:selectedProperty', value: string): void
+  (e: 'update:selectedAggregate', value: string): void
+  (e: 'update:selectedSort', value: string): void
+  (e: 'update:selectedExpand', value: string): void
+  (e: 'update:lineHeight', value: string | number): void
+  (e: 'update:wrapCompute', value: string): void
+  (e: 'update:format', value: string): void
+  (e: 'update:fillBlankRows', value: string): void
+  (e: 'update:multiple', value: number): void
+  (e: 'update:showSortOptions', value: boolean): void
+  (e: 'update:showExpandOptions', value: boolean): void
+  (e: 'update:conditionPropertyItems', value: any[]): void
+  (e: 'dataset-change', value: string): void
+  (e: 'property-change', value: string): void
+  (e: 'aggregate-change', value: any): void
+  (e: 'sort-change', value: string): void
+  (e: 'expand-change', value: string): void
+  (e: 'line-height-change', value: string | number): void
+  (e: 'wrap-compute-change', value: string): void
+  (e: 'format-change', value: string): void
+  (e: 'fill-blank-rows-change', value: string): void
+  (e: 'multiple-change', value: number): void
+  (e: 'condition-property-items-change', value: any[]): void
+  (e: 'update-custom-group', value: any[]): void
+}>()
 
-    /**
-     * 处理属性变化
-     */
-    handlePropertyChange() {
-      // 触发事件，通知父组件
-      this.$emit('update:selectedProperty', this.internalSelectedProperty);
-      this.$emit('property-change', this.internalSelectedProperty);
-    },
+const internalSelectedDataset = ref('')
+const internalSelectedProperty = ref('')
+const internalSelectedAggregate = ref('select')
+const internalSelectedSort = ref('none')
+const internalSelectedExpand = ref('None')
+const internalLineHeight = ref<string | number>(10)
+const internalWrapCompute = ref('custom')
+const internalFormat = ref('')
+const internalFillBlankRows = ref('custom')
+const internalMultiple = ref(0)
+const internalShowSortOptions = ref(true)
+const internalShowExpandOptions = ref(true)
+const isInitialized = ref(false)
+const propertyConditionDialogVisible = ref(false)
+const propertyConditionDialogDatasetName = ref('')
+const propertyConditionDialogItems = ref<any[]>([])
+const customGroupDialogVisible = ref(false)
+const customGroupDialogFields = ref<any[] | null>(null)
+const suggestionList = ref<string[]>([
+  "yyyy/MM/dd", "yyyy/MM", "yyyy-MM", "yyyy",
+  "yyyy-MM-dd HH:mm:ss", "yyyy年MM月dd日 HH:mm:ss",
+  "yyyy-MM-dd", "yyyy年MM月dd日", "HH:mm", "HH:mm:ss",
+  "#.##", "#.00", "##.##%", "##.00%", "##,###.##",
+  "￥##,###.##", "$##,###.##", "0.00E00", "##0.0E0"
+])
 
-    /**
-     * 处理聚合类型变化
-     */
-    handleAggregateChange() {
-      if (this.internalSelectedAggregate === 'sum' || this.internalSelectedAggregate === 'count' ||
-          this.internalSelectedAggregate === 'max' || this.internalSelectedAggregate === 'min' ||
-          this.internalSelectedAggregate === 'avg') {
-        this.internalShowSortOptions = false;
-        this.internalShowExpandOptions = false;
-      } else {
-        this.internalShowSortOptions = true;
-        this.internalShowExpandOptions = true;
-      }
+const datasetOptions = computed(() =>
+  props.datasets.map((dataset: any) => ({
+    value: dataset.name,
+    label: dataset.name
+  }))
+)
 
-      // 触发事件，通知父组件
-      this.$emit('update:selectedAggregate', this.internalSelectedAggregate);
-      this.$emit('update:showSortOptions', this.internalShowSortOptions);
-      this.$emit('update:showExpandOptions', this.internalShowExpandOptions);
-      this.$emit('aggregate-change', {
-        aggregate: this.internalSelectedAggregate,
-        showSortOptions: this.internalShowSortOptions,
-        showExpandOptions: this.internalShowExpandOptions
-      });
-    },
+const propertyOptions = computed(() =>
+  props.currentFields.map((field: any) => ({
+    value: field.name,
+    label: field.name
+  }))
+)
 
-    /**
-     * 处理排序变化
-     */
-    handleSortChange(value) {
-      this.internalSelectedSort = value;
-      // 触发事件，通知父组件
-      this.$emit('update:selectedSort', this.internalSelectedSort);
-      this.$emit('sort-change', this.internalSelectedSort);
-    },
+const aggregateOptions = computed(() => [
+  { value: 'select', label: t('property.dataset.select') },
+  { value: 'group', label: t('property.dataset.group') },
+  { value: 'customgroup', label: t('property.dataset.customGroup') },
+  { value: 'sum', label: t('property.dataset.sum') },
+  { value: 'count', label: t('property.dataset.count') },
+  { value: 'max', label: t('property.dataset.max') },
+  { value: 'min', label: t('property.dataset.min') },
+  { value: 'avg', label: t('property.dataset.avg') }
+])
 
-    /**
-     * 处理展开方向变化
-     */
-    handleExpandChange(value) {
-      this.internalSelectedExpand = value;
-      // 触发事件，通知父组件
-      this.$emit('update:selectedExpand', this.internalSelectedExpand);
-      this.$emit('expand-change', this.internalSelectedExpand);
-    },
+const sortOptions = computed(() => [
+  { value: 'none', label: t('property.dataset.notSort') },
+  { value: 'asc', label: t('property.dataset.asc') },
+  { value: 'desc', label: t('property.dataset.desc') }
+])
 
-    /**
-     * 处理行高变化
-     */
-    handleLineHeightChange(value) {
-      this.internalLineHeight = value;
-      // 触发事件，通知父组件
-      this.$emit('update:lineHeight', this.internalLineHeight);
-      this.$emit('line-height-change', this.internalLineHeight);
-    },
+const expandOptions = computed(() => [
+  { value: 'Down', label: t('property.dataset.down') },
+  { value: 'Right', label: t('property.dataset.right') },
+  { value: 'None', label: t('property.dataset.noneExpand') }
+])
 
-    /**
-     * 处理换行计算变化
-     */
-    handleWrapComputeChange() {
-      this.$emit('update:wrapCompute', this.internalWrapCompute);
-      this.$emit('wrap-compute-change', this.internalWrapCompute);
-    },
+const wrapComputeOptions = computed(() => [
+  { value: 'default', label: t('property.base.open') },
+  { value: 'custom', label: t('property.base.close') }
+])
 
-    /**
-     * 处理格式变化
-     */
-    handleFormatChange(value) {
-      if (!this.isInitialized) {
-        return;
-      }
-      this.internalFormat = value;
-      this.$emit('update:format', this.internalFormat);
-      this.$emit('format-change', this.internalFormat);
-    },
+const fillBlankRowsOptions = computed(() => [
+  { value: 'default', label: t('property.base.open') },
+  { value: 'custom', label: t('property.base.close') }
+])
 
-    /**
-     * 处理填充空白行变化
-     */
-    handleFillBlankRowsChange() {
-      // 触发事件，通知父组件
-      this.$emit('update:fillBlankRows', this.internalFillBlankRows);
-      this.$emit('fill-blank-rows-change', this.internalFillBlankRows);
-    },
+watch(() => props.selectedDataset, (val) => { internalSelectedDataset.value = val })
+watch(() => props.selectedProperty, (val) => { internalSelectedProperty.value = val })
+watch(() => props.selectedAggregate, (val) => { internalSelectedAggregate.value = val })
+watch(() => props.selectedSort, (val) => { internalSelectedSort.value = val })
+watch(() => props.selectedExpand, (val) => { internalSelectedExpand.value = val })
+watch(() => props.lineHeight, (val) => { internalLineHeight.value = val })
+watch(() => props.wrapCompute, (val) => { internalWrapCompute.value = val })
+watch(() => props.format, (val) => { internalFormat.value = val })
+watch(() => props.fillBlankRows, (val) => { internalFillBlankRows.value = val })
+watch(() => props.multiple, (val) => { internalMultiple.value = val })
+watch(() => props.showSortOptions, (val) => { internalShowSortOptions.value = val })
+watch(() => props.showExpandOptions, (val) => { internalShowExpandOptions.value = val })
 
-    /**
-     * 处理倍数变化
-     */
-    handleMultipleChange() {
-      if (!this.isInitialized) {
-        return;
-      }
-      // 触发事件，通知父组件
-      this.$emit('update:multiple', this.internalMultiple);
-      this.$emit('multiple-change', this.internalMultiple);
-    },
+initData()
 
-    /**
-     * 处理条件属性配置
-     */
-    handleConditionPropertyConfig() {
-      const conditionPropertyItems = this.conditionPropertyItems
-        ? deepCopy(this.conditionPropertyItems)
-        : [];
+function initData() {
+  internalSelectedDataset.value = props.selectedDataset
+  internalSelectedProperty.value = props.selectedProperty
+  internalSelectedAggregate.value = props.selectedAggregate
+  internalSelectedSort.value = props.selectedSort
+  internalSelectedExpand.value = props.selectedExpand
+  internalLineHeight.value = props.lineHeight
+  internalWrapCompute.value = props.wrapCompute
+  internalFormat.value = props.format
+  internalFillBlankRows.value = props.fillBlankRows
+  internalMultiple.value = props.multiple
+  internalShowSortOptions.value = props.showSortOptions
+  internalShowExpandOptions.value = props.showExpandOptions
+}
 
-      this.propertyConditionDialogDatasetName = this.internalSelectedDataset;
-      this.propertyConditionDialogItems = conditionPropertyItems;
-      this.propertyConditionDialogVisible = true;
-    },
+onMounted(() => {
+  nextTick(() => {
+    isInitialized.value = true
+  })
+})
 
-    /**
-     * 处理属性条件保存后的回调
-     */
-    handlePropertyConditionSave(propertyConditions) {
-      const updatedConditions = deepCopy(propertyConditions);
-      this.$emit('update:conditionPropertyItems', updatedConditions);
-      this.$emit('condition-property-items-change', updatedConditions);
-      setDirty();
-    },
+function handleDatasetChange(value: string) {
+  internalSelectedDataset.value = value
+  emit('update:selectedDataset', internalSelectedDataset.value)
+  emit('dataset-change', internalSelectedDataset.value)
+}
 
-    /**
-     * 处理自定义分组配置
-     */
-    handleCustomGroupConfig() {
-      const fields = this._buildFields();
-      if (fields) {
-        this.customGroupDialogFields = fields;
-        this.customGroupDialogVisible = true;
-      }
-      setDirty();
-    },
+function handlePropertyChange() {
+  emit('update:selectedProperty', internalSelectedProperty.value)
+  emit('property-change', internalSelectedProperty.value)
+}
 
-    /**
-     * 处理自定义分组保存
-     */
-    handleCustomGroupSave(groupItems) {
-      this.$emit('update-custom-group', groupItems);
-      setDirty();
-    },
-
-    /**
-     * 构建字段列表
-     */
-    _buildFields() {
-      let fields = [];
-      if (this.internalSelectedDataset === '') {
-        showAlert(this.$t('property.dataset.bindDatasetTip'));
-        return null;
-      }
-      for (let ds of this.datasources) {
-        let datasets = ds.datasets || [];
-        for (let dataset of datasets) {
-          if (dataset.name === this.internalSelectedDataset) {
-            fields = dataset.fields || [];
-            break;
-          }
-        }
-        if (fields.length > 0) {
-          break;
-        }
-      }
-      return fields;
-    },
-
+function handleAggregateChange() {
+  if (internalSelectedAggregate.value === 'sum' || internalSelectedAggregate.value === 'count' ||
+      internalSelectedAggregate.value === 'max' || internalSelectedAggregate.value === 'min' ||
+      internalSelectedAggregate.value === 'avg') {
+    internalShowSortOptions.value = false
+    internalShowExpandOptions.value = false
+  } else {
+    internalShowSortOptions.value = true
+    internalShowExpandOptions.value = true
   }
-};
+
+  emit('update:selectedAggregate', internalSelectedAggregate.value)
+  emit('update:showSortOptions', internalShowSortOptions.value)
+  emit('update:showExpandOptions', internalShowExpandOptions.value)
+  emit('aggregate-change', {
+    aggregate: internalSelectedAggregate.value,
+    showSortOptions: internalShowSortOptions.value,
+    showExpandOptions: internalShowExpandOptions.value
+  })
+}
+
+function handleSortChange(value: string) {
+  internalSelectedSort.value = value
+  emit('update:selectedSort', internalSelectedSort.value)
+  emit('sort-change', internalSelectedSort.value)
+}
+
+function handleExpandChange(value: string) {
+  internalSelectedExpand.value = value
+  emit('update:selectedExpand', internalSelectedExpand.value)
+  emit('expand-change', internalSelectedExpand.value)
+}
+
+function handleLineHeightChange(value: string | number) {
+  internalLineHeight.value = value
+  emit('update:lineHeight', internalLineHeight.value)
+  emit('line-height-change', internalLineHeight.value)
+}
+
+function handleWrapComputeChange() {
+  emit('update:wrapCompute', internalWrapCompute.value)
+  emit('wrap-compute-change', internalWrapCompute.value)
+}
+
+function handleFormatChange(value: string) {
+  if (!isInitialized.value) return
+  internalFormat.value = value
+  emit('update:format', internalFormat.value)
+  emit('format-change', internalFormat.value)
+}
+
+function handleFillBlankRowsChange() {
+  emit('update:fillBlankRows', internalFillBlankRows.value)
+  emit('fill-blank-rows-change', internalFillBlankRows.value)
+}
+
+function handleMultipleChange() {
+  if (!isInitialized.value) return
+  emit('update:multiple', internalMultiple.value)
+  emit('multiple-change', internalMultiple.value)
+}
+
+function handleConditionPropertyConfig() {
+  const conditionPropertyItems = props.conditionPropertyItems
+    ? deepCopy(props.conditionPropertyItems)
+    : []
+
+  propertyConditionDialogDatasetName.value = internalSelectedDataset.value
+  propertyConditionDialogItems.value = conditionPropertyItems
+  propertyConditionDialogVisible.value = true
+}
+
+function handlePropertyConditionSave(propertyConditions: any[]) {
+  const updatedConditions = deepCopy(propertyConditions)
+  emit('update:conditionPropertyItems', updatedConditions)
+  emit('condition-property-items-change', updatedConditions)
+  setDirty()
+}
+
+function handleCustomGroupConfig() {
+  const fields = _buildFields()
+  if (fields) {
+    customGroupDialogFields.value = fields
+    customGroupDialogVisible.value = true
+  }
+  setDirty()
+}
+
+function handleCustomGroupSave(groupItems: any[]) {
+  emit('update-custom-group', groupItems)
+  setDirty()
+}
+
+function _buildFields(): any[] | null {
+  let fields: any[] = []
+  if (internalSelectedDataset.value === '') {
+    showAlert(t('property.dataset.bindDatasetTip'))
+    return null
+  }
+  for (let ds of datasources.value) {
+    let datasets = ds.datasets || []
+    for (let dataset of datasets) {
+      if (dataset.name === internalSelectedDataset.value) {
+        fields = dataset.fields || []
+        break
+      }
+    }
+    if (fields.length > 0) {
+      break
+    }
+  }
+  return fields
+}
 </script>
 
 <style scoped>

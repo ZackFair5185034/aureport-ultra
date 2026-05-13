@@ -147,147 +147,132 @@
   </div>
 </template>
 
-<script>
-import { pointToMM, mmToPoint, buildPageSizeList } from '@/utils/table.js';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UInputNumber from "@/components/input-number/index.vue";
-import UInput from "@/components/input/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { pointToMM, mmToPoint, buildPageSizeList } from '@/utils/table.js'
 
-export default {
-  name: 'PageSettings',
-  components: {
-    USelect,
-    UOption,
-    UInputNumber,
-    UInput
-  },
-  props: {
-    paper: {
-      type: Object,
-      required: true
-    }
-  },
-  data() {
-    return {
-      localPaper: { ...this.paper },
-      paperSizeList: buildPageSizeList()
-    };
-  },
-  computed: {
-    pageWidth() {
-      return pointToMM(this.localPaper.width);
-    },
-    pageHeight() {
-      return pointToMM(this.localPaper.height);
-    },
-    leftMargin() {
-      return pointToMM(this.localPaper.leftMargin);
-    },
-    rightMargin() {
-      return pointToMM(this.localPaper.rightMargin);
-    },
-    topMargin() {
-      return pointToMM(this.localPaper.topMargin);
-    },
-    bottomMargin() {
-      return pointToMM(this.localPaper.bottomMargin);
-    },
-    paperTypeOptions() {
-      const options = [];
-      for (const [key, value] of Object.entries(this.paperSizeList)) {
-        options.push({
-          value: key,
-          label: key
-        });
-      }
-      options.push({
-        value: 'CUSTOM',
-        label: this.$t('dialog.setting.custom')
-      });
-      return options;
-    },
-    orientationOptions() {
-      return [
-        { value: 'portrait', label: this.$t('dialog.setting.portrait') },
-        { value: 'landscape', label: this.$t('dialog.setting.landscape') }
-      ];
-    },
-    htmlAlignOptions() {
-      return [
-        { value: 'left', label: this.$t('dialog.setting.left') },
-        { value: 'center', label: this.$t('dialog.setting.center') },
-        { value: 'right', label: this.$t('dialog.setting.right') }
-      ];
-    }
-  },
-  watch: {
-    paper: {
-      handler(newVal) {
-        this.localPaper = { ...newVal };
-      },
-      deep: true
-    }
-  },
-  methods: {
-    handlePaperTypeChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, paperType: value });
-      this.$emit('paper-type-change', value);
-    },
-    handlePageWidthChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, width: mmToPoint(value) });
-        this.$emit('paper-size-change');
-      }
-    },
-    handlePageHeightChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, height: mmToPoint(value) });
-        this.$emit('paper-size-change');
-      }
-    },
-    handleLeftMarginChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, leftMargin: mmToPoint(value) });
-        this.$emit('margins-change');
-      }
-    },
-    handleRightMarginChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, rightMargin: mmToPoint(value) });
-        this.$emit('margins-change');
-      }
-    },
-    handleTopMarginChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, topMargin: mmToPoint(value) });
-        this.$emit('margins-change');
-      }
-    },
-    handleBottomMarginChange(value) {
-      if (!isNaN(value)) {
-        this.$emit('update:paper', { ...this.localPaper, bottomMargin: mmToPoint(value) });
-        this.$emit('margins-change');
-      }
-    },
-    handleOrientationChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, orientation: value });
-      this.$emit('orientation-change');
-    },
-    handleHtmlAlignChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, htmlReportAlign: value });
-      this.$emit('html-align-change');
-    },
-    handleHtmlIntervalRefreshValueChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, htmlIntervalRefreshValue: value });
-      this.$emit('html-interval-refresh-value-change', value);
-    },
-    handleBgImageChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, bgImage: value });
-      this.$emit('background-image-change', value);
-    }
+defineOptions({ name: 'PageSettings' })
+
+const emit = defineEmits<{
+  (e: 'update:paper', value: any): void
+  (e: 'paper-type-change', value: string): void
+  (e: 'paper-size-change'): void
+  (e: 'margins-change'): void
+  (e: 'orientation-change'): void
+  (e: 'html-align-change'): void
+  (e: 'html-interval-refresh-value-change', value: number): void
+  (e: 'background-image-change', value: string): void
+}>()
+
+const props = withDefaults(defineProps<{
+  paper?: any
+}>(), {
+  paper: () => ({})
+})
+
+const { t } = useI18n()
+
+const localPaper = ref({ ...props.paper })
+const paperSizeList = buildPageSizeList()
+
+const pageWidth = computed(() => pointToMM(localPaper.value.width))
+const pageHeight = computed(() => pointToMM(localPaper.value.height))
+const leftMargin = computed(() => pointToMM(localPaper.value.leftMargin))
+const rightMargin = computed(() => pointToMM(localPaper.value.rightMargin))
+const topMargin = computed(() => pointToMM(localPaper.value.topMargin))
+const bottomMargin = computed(() => pointToMM(localPaper.value.bottomMargin))
+
+const paperTypeOptions = computed(() => {
+  const options: any[] = []
+  for (const [key] of Object.entries(paperSizeList)) {
+    options.push({ value: key, label: key })
   }
-};
+  options.push({ value: 'CUSTOM', label: t('dialog.setting.custom') })
+  return options
+})
+
+const orientationOptions = computed(() => [
+  { value: 'portrait', label: t('dialog.setting.portrait') },
+  { value: 'landscape', label: t('dialog.setting.landscape') }
+])
+
+const htmlAlignOptions = computed(() => [
+  { value: 'left', label: t('dialog.setting.left') },
+  { value: 'center', label: t('dialog.setting.center') },
+  { value: 'right', label: t('dialog.setting.right') }
+])
+
+watch(() => props.paper, (newVal) => {
+  localPaper.value = { ...newVal }
+}, { deep: true })
+
+function handlePaperTypeChange(value: string) {
+  emit('update:paper', { ...localPaper.value, paperType: value })
+  emit('paper-type-change', value)
+}
+
+function handlePageWidthChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, width: mmToPoint(value) })
+    emit('paper-size-change')
+  }
+}
+
+function handlePageHeightChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, height: mmToPoint(value) })
+    emit('paper-size-change')
+  }
+}
+
+function handleLeftMarginChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, leftMargin: mmToPoint(value) })
+    emit('margins-change')
+  }
+}
+
+function handleRightMarginChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, rightMargin: mmToPoint(value) })
+    emit('margins-change')
+  }
+}
+
+function handleTopMarginChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, topMargin: mmToPoint(value) })
+    emit('margins-change')
+  }
+}
+
+function handleBottomMarginChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, bottomMargin: mmToPoint(value) })
+    emit('margins-change')
+  }
+}
+
+function handleOrientationChange(value: string) {
+  emit('update:paper', { ...localPaper.value, orientation: value })
+  emit('orientation-change')
+}
+
+function handleHtmlAlignChange(value: string) {
+  emit('update:paper', { ...localPaper.value, htmlReportAlign: value })
+  emit('html-align-change')
+}
+
+function handleHtmlIntervalRefreshValueChange(value: number) {
+  emit('update:paper', { ...localPaper.value, htmlIntervalRefreshValue: value })
+  emit('html-interval-refresh-value-change', value)
+}
+
+function handleBgImageChange(value: string) {
+  emit('update:paper', { ...localPaper.value, bgImage: value })
+  emit('background-image-change', value)
+}
 </script>
 
 <style scoped>

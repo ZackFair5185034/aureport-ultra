@@ -18,74 +18,64 @@
         </u-form-item>
       </u-form>
     </div>
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'CrosstabDialog',
-  components: {
-    UButton,
-    UDialog,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      crosstabValue: ''
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.crosstabValue = '';
-      }
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    handleOk() {
-      this.$emit('saveAfter', this.crosstabValue);
-      this.handleClose();
-    },
-    handleClose() {
-      this.$emit('close');
-      this.crosstabValue = '';
-    },
-    // 键盘事件处理
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+defineOptions({ name: 'CrosstabDialog' })
+
+const emit = defineEmits<{
+  (e: 'saveAfter', value: string): void
+  (e: 'close'): void
+}>()
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false
+})
+
+const { t } = useI18n()
+const crosstabValue = ref('')
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    crosstabValue.value = ''
+  }
+})
+
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
     }
   }
-};
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function handleOk() {
+  emit('saveAfter', crosstabValue.value)
+  handleClose()
+}
+
+function handleClose() {
+  emit('close')
+  crosstabValue.value = ''
+}
 </script>
 
 <style scoped>

@@ -1,18 +1,12 @@
-<template>
-  <div id="app">
-    <router-view />
-  </div>
-</template>
-
-<script>
-
-export default {
-  name: 'App'
-}
+<script setup lang="ts">
 </script>
 
+<template>
+  <router-view />
+</template>
+
 <style>
-body{
+body {
   margin: 0;
   padding: 0;
 }

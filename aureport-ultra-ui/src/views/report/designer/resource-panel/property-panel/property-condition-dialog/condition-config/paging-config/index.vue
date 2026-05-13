@@ -2,7 +2,7 @@
   <div class="form-group" style="margin-bottom: 5px;">
     <div class="u-inline">
       <u-checkbox v-model="pagingBreakChecked" @change="onPagingBreakChange">
-        {{ $t('dialog.propCondition.paging') }}
+        {{ t('dialog.propCondition.paging') }}
       </u-checkbox>
     </div>
     <span v-show="pagingBreakChecked" style="margin-left: 10px;">
@@ -28,93 +28,66 @@
   </div>
 </template>
 
-<script>
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UInputNumber from '@/components/input-number/index.vue';
-import UCheckbox from '@/components/checkbox/index.vue';
-import configOptions from '../constants/config-options.js';
+<script setup lang="ts">
+import { ref, watch, onBeforeMount } from 'vue'
+import { useI18n } from 'vue-i18n'
+// @ts-ignore
+import configOptions from '../constants/config-options.js'
 
-export default {
-  name: 'PagingConfig',
-  components: {
-    USelect,
-    UOption,
-    UInputNumber,
-    UCheckbox
-  },
-  props: {
-    paging: {
-      type: Object,
-      default: null
-    }
-  },
-  data() {
-    return {
-      pagingBreakChecked: false,
-      pagingPosition: 'after',
-      pagingLine: 0,
+defineOptions({ name: 'PagingConfig' })
 
-      pagingPositionOptions: []
-    };
-  },
-  created() {
-    this.pagingPositionOptions = configOptions.getPagingPositionOptions(this.$t);
-  },
-  watch: {
-    paging: {
-      handler(newVal) {
-        this.loadPagingProperties(newVal);
-      },
-      immediate: true,
-      deep: true
-    }
-  },
-  methods: {
-    loadPagingProperties(paging) {
-      this.pagingBreakChecked = !!paging;
-      if (this.pagingBreakChecked) {
-        this.pagingPosition = paging.position || 'after';
-        this.pagingLine = paging.line || 0;
-      } else {
-        this.pagingPosition = 'after';
-        this.pagingLine = 0;
-      }
-    },
+const { t } = useI18n()
 
-    onPagingBreakChange() {
-      this.$emit('paging-change', {
-        checked: this.pagingBreakChecked,
-        paging: this.pagingBreakChecked ? {
-          position: this.pagingPosition,
-          line: this.pagingLine
-        } : null
-      });
-    },
+const props = withDefaults(defineProps<{
+  paging?: any
+}>(), {
+  paging: null
+})
 
-    onPagingPositionChange() {
-      if (this.pagingBreakChecked) {
-        this.$emit('paging-change', {
-          checked: true,
-          paging: {
-            position: this.pagingPosition,
-            line: this.pagingLine
-          }
-        });
-      }
-    },
+const emit = defineEmits<{
+  (e: 'paging-change', value: any): void
+}>()
 
-    onPagingLineChange() {
-      if (this.pagingBreakChecked) {
-        this.$emit('paging-change', {
-          checked: true,
-          paging: {
-            position: this.pagingPosition,
-            line: this.pagingLine
-          }
-        });
-      }
-    }
+const pagingBreakChecked = ref(false)
+const pagingPosition = ref('after')
+const pagingLine = ref(0)
+const pagingPositionOptions = ref<any[]>([])
+
+onBeforeMount(() => {
+  pagingPositionOptions.value = configOptions.getPagingPositionOptions(t)
+})
+
+watch(() => props.paging, (newVal) => {
+  loadPagingProperties(newVal)
+}, { immediate: true, deep: true })
+
+function loadPagingProperties(paging: any) {
+  pagingBreakChecked.value = !!paging
+  if (pagingBreakChecked.value) {
+    pagingPosition.value = paging.position || 'after'
+    pagingLine.value = paging.line || 0
+  } else {
+    pagingPosition.value = 'after'
+    pagingLine.value = 0
   }
-};
+}
+
+function onPagingBreakChange() {
+  emit('paging-change', {
+    checked: pagingBreakChecked.value,
+    paging: pagingBreakChecked.value ? { position: pagingPosition.value, line: pagingLine.value } : null
+  })
+}
+
+function onPagingPositionChange() {
+  if (pagingBreakChecked.value) {
+    emit('paging-change', { checked: true, paging: { position: pagingPosition.value, line: pagingLine.value } })
+  }
+}
+
+function onPagingLineChange() {
+  if (pagingBreakChecked.value) {
+    emit('paging-change', { checked: true, paging: { position: pagingPosition.value, line: pagingLine.value } })
+  }
+}
 </script>

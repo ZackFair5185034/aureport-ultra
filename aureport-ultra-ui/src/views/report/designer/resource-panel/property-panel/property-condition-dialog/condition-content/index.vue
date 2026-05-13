@@ -4,21 +4,21 @@
       <u-button
         type="info"
         icon="icon-plus-circle"
-        :title="$t('dialog.propCondition.addValue')"
+        :title="t('dialog.propCondition.addValue')"
         @click="addCondition"
       >
       </u-button>
       <u-button
         type="info"
         icon="icon-edit"
-        :title="$t('dialog.propCondition.editConditionItem')"
+        :title="t('dialog.propCondition.editConditionItem')"
         @click="editCondition"
       >
       </u-button>
       <u-button
         type="info"
         icon="icon-delete"
-        :title="$t('dialog.propCondition.delCondition')"
+        :title="t('dialog.propCondition.delCondition')"
         @click="deleteCondition"
       >
       </u-button>
@@ -53,209 +53,193 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import { showAlert } from '@/utils/comnon.js';
-import { setDirty } from '@/utils/table.js';
-import { v1 as uuid } from 'uuid';
-import ConditionContentDialog from '../condition-content-dialog/index.vue';
-import UButton from '@/components/button/index.vue';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { showAlert } from '@/utils/comnon.js'
+import { setDirty } from '@/utils/table.js'
+import { v1 as uuid } from 'uuid'
+import ConditionContentDialog from '../condition-content-dialog/index.vue'
 
-export default {
-  name: 'ConditionContent',
-  components: {
-    ConditionContentDialog,
-    UButton
-  },
-  props: {
-    propertyConditions: {
-      type: Array,
-      default: () => []
-    },
-    selectedItem: {
-      type: Object,
-      default: null
-    },
-    datasetName: {
-      type: String,
-      default: ''
-    },
-    conditions: {
-      type: Array,
-      default: () => []
-    },
-    resetSelection: {
-      type: Boolean,
-      default: true
+defineOptions({ name: 'ConditionContent' })
+
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context || {})
+// @ts-ignore
+const datasources = computed(() => context.value.reportDef?.datasources || [])
+
+const props = withDefaults(defineProps<{
+  propertyConditions?: any[]
+  selectedItem?: any
+  datasetName?: string
+  conditions?: any[]
+  resetSelection?: boolean
+}>(), {
+  propertyConditions: () => [],
+  selectedItem: null,
+  datasetName: '',
+  conditions: () => [],
+  resetSelection: true
+})
+
+const emit = defineEmits<{
+  (e: 'condition-added', value: any): void
+  (e: 'condition-updated', value: any): void
+  (e: 'condition-deleted', value: any): void
+  (e: 'condition-selected', value: any): void
+}>()
+
+const conditionList = ref<HTMLSelectElement | null>(null)
+const selectedConditionIndex = ref(-1)
+const isAddingCondition = ref(false)
+const dialogVisible = ref(false)
+const dialogFields = ref<any[]>([])
+const dialogCondition = ref<any>(null)
+const dialogConditions = ref<any[]>([])
+
+watch(() => props.resetSelection, (newVal) => {
+  if (newVal) {
+    selectedConditionIndex.value = -1
+  }
+})
+
+watch(() => props.conditions, (newVal) => {
+  if (newVal) {
+    selectedConditionIndex.value = -1
+  }
+}, { immediate: true })
+
+watch(() => props.selectedItem, () => {
+}, { immediate: true })
+
+function getConditionText(condition: any): string {
+  let text = condition.left + ' ' + condition.operation + ' ' + condition.right
+  if (condition.type === 'property' && (!condition.left || condition.left === '')) {
+    text = t('dialog.propCondition.currentValue') + ' ' + condition.operation + ' ' + (condition.right || condition.expr)
+  }
+  if (condition.join && props.conditions.indexOf(condition) > 0) {
+    text = condition.join + ' ' + text
+  }
+  return text
+}
+
+function addCondition() {
+  if (!props.selectedItem) {
+    showAlert(t('dialog.propCondition.selectItem'))
+    return
+  }
+
+  const fields = buildFields()
+  const conditions = props.selectedItem.conditions || []
+
+  isAddingCondition.value = true
+  dialogFields.value = fields
+  dialogCondition.value = null
+  dialogConditions.value = conditions
+  dialogVisible.value = true
+}
+
+function editCondition() {
+  if (selectedConditionIndex.value < 0 || selectedConditionIndex.value >= props.conditions.length) {
+    showAlert(t('dialog.propCondition.editConditionTip'))
+    return
+  }
+
+  if (!props.selectedItem) {
+    showAlert(t('dialog.propCondition.selectConditionItem'))
+    return
+  }
+
+  const fields = buildFields()
+  const condition = props.conditions[selectedConditionIndex.value]
+  const conditions = props.selectedItem.conditions || []
+
+  isAddingCondition.value = false
+  dialogFields.value = fields
+  dialogCondition.value = condition
+  dialogConditions.value = conditions
+  dialogVisible.value = true
+}
+
+function handleSaveAfter(type: string, left: string, op: string, right: string, join?: string) {
+  if (!props.selectedItem) return
+
+  if (isAddingCondition.value) {
+    const newCondition = {
+      type,
+      left,
+      operation: op,
+      right,
+      join,
+      id: uuid()
     }
-  },
-  data() {
-    return {
-      selectedConditionIndex: -1,
-      isAddingCondition: false,
-      dialogVisible: false,
-      dialogFields: [],
-      dialogCondition: null,
-      dialogConditions: []
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext || {};
-    },
-    datasources() {
-      return this.context.reportDef?.datasources || [];
+    emit('condition-added', newCondition)
+    isAddingCondition.value = false
+  } else {
+    if (selectedConditionIndex.value >= 0 && selectedConditionIndex.value < props.conditions.length) {
+      const condition = props.conditions[selectedConditionIndex.value]
+      const updatedCondition = {
+        ...condition,
+        type,
+        left,
+        operation: op,
+        right,
+        join
+      }
+      emit('condition-updated', updatedCondition)
     }
-  },
-  watch: {
-    resetSelection(newVal) {
-      if (newVal) {
-        this.selectedConditionIndex = -1;
+    isAddingCondition.value = false
+  }
+
+  setDirty()
+}
+
+function deleteCondition() {
+  if (selectedConditionIndex.value < 0 || selectedConditionIndex.value >= props.conditions.length) {
+    showAlert(t('dialog.propCondition.delConditionTip'))
+    return
+  }
+
+  if (!props.selectedItem) {
+    showAlert(t('dialog.propCondition.selectDelCondition'))
+    return
+  }
+
+  const condition = props.conditions[selectedConditionIndex.value]
+  emit('condition-deleted', condition)
+  selectedConditionIndex.value = -1
+  setDirty()
+}
+
+function buildFields(): any[] {
+  let fields: any[] = []
+  if (!props.datasetName || props.datasetName === '') {
+    return fields
+  }
+
+  for (let ds of datasources.value) {
+    let datasets = ds.datasets || []
+    for (let dataset of datasets) {
+      if (dataset.name === props.datasetName) {
+        fields = dataset.fields || []
+        break
       }
-    },
-    conditions: {
-      handler(newVal) {
-        if (newVal) {
-          this.selectedConditionIndex = -1;
-        }
-      },
-      immediate: true
-    },
-    selectedItem: {
-      handler(newVal) {
-      },
-      immediate: true
     }
-  },
-  methods: {
-    getConditionText(condition) {
-      let text = condition.left + ' ' + condition.operation + ' ' + condition.right;
-      if (condition.type === 'property' && (!condition.left || condition.left === '')) {
-        text = this.$t('dialog.propCondition.currentValue') + ' ' + condition.operation + ' ' + (condition.right || condition.expr);
-      }
-      if (condition.join && this.conditions.indexOf(condition) > 0) {
-        text = condition.join + ' ' + text;
-      }
-      return text;
-    },
-    addCondition() {
-      if (!this.selectedItem) {
-        showAlert(this.$t('dialog.propCondition.selectItem'));
-        return;
-      }
-
-      const fields = this.buildFields();
-      const conditions = this.selectedItem.conditions || [];
-
-      this.isAddingCondition = true;
-      this.dialogFields = fields;
-      this.dialogCondition = null;
-      this.dialogConditions = conditions;
-      this.dialogVisible = true;
-    },
-    editCondition() {
-      if (this.selectedConditionIndex < 0 || this.selectedConditionIndex >= this.conditions.length) {
-        showAlert(this.$t('dialog.propCondition.editConditionTip'));
-        return;
-      }
-
-      if (!this.selectedItem) {
-        showAlert(this.$t('dialog.propCondition.selectConditionItem'));
-        return;
-      }
-
-      const fields = this.buildFields();
-      const condition = this.conditions[this.selectedConditionIndex];
-      const conditions = this.selectedItem.conditions || [];
-
-      this.isAddingCondition = false;
-      this.dialogFields = fields;
-      this.dialogCondition = condition;
-      this.dialogConditions = conditions;
-      this.dialogVisible = true;
-    },
-
-    handleSaveAfter(type, left, op, right, join) {
-      if (!this.selectedItem) {
-        return;
-      }
-
-      if (this.isAddingCondition) {
-        const newCondition = {
-          type,
-          left,
-          operation: op,
-          right,
-          join,
-          id: uuid()
-        };
-        this.$emit('condition-added', newCondition);
-        this.isAddingCondition = false;
-      } else {
-        if (this.selectedConditionIndex >= 0 && this.selectedConditionIndex < this.conditions.length) {
-          const condition = this.conditions[this.selectedConditionIndex];
-          const updatedCondition = {
-            ...condition,
-            type,
-            left,
-            operation: op,
-            right,
-            join
-          };
-          this.$emit('condition-updated', updatedCondition);
-        }
-        this.isAddingCondition = false;
-      }
-
-      setDirty();
-    },
-    deleteCondition() {
-      if (this.selectedConditionIndex < 0 || this.selectedConditionIndex >= this.conditions.length) {
-        showAlert(this.$t('dialog.propCondition.delConditionTip'));
-        return;
-      }
-
-      if (!this.selectedItem) {
-        showAlert(this.$t('dialog.propCondition.selectDelCondition'));
-        return;
-      }
-
-      const condition = this.conditions[this.selectedConditionIndex];
-      this.$emit('condition-deleted', condition);
-      this.selectedConditionIndex = -1;
-      setDirty();
-    },
-    buildFields() {
-      let fields = [];
-      if (!this.datasetName || this.datasetName === '') {
-        return fields;
-      }
-
-      for (let ds of this.datasources) {
-        let datasets = ds.datasets || [];
-        for (let dataset of datasets) {
-          if (dataset.name === this.datasetName) {
-            fields = dataset.fields || [];
-            break;
-          }
-        }
-        if (fields.length > 0) {
-          break;
-        }
-      }
-      return fields;
-    },
-    onConditionSelectChange() {
-      this.$nextTick(() => {
-        if (this.selectedConditionIndex >= 0 && this.selectedConditionIndex < this.conditions.length) {
-          const selectedCondition = this.conditions[this.selectedConditionIndex];
-          this.$emit('condition-selected', selectedCondition);
-        }
-      });
+    if (fields.length > 0) {
+      break
     }
   }
-};
+  return fields
+}
+
+function onConditionSelectChange() {
+  if (selectedConditionIndex.value >= 0 && selectedConditionIndex.value < props.conditions.length) {
+    const selectedCondition = props.conditions[selectedConditionIndex.value]
+    emit('condition-selected', selectedCondition)
+  }
+}
 </script>
 
 <style scoped>

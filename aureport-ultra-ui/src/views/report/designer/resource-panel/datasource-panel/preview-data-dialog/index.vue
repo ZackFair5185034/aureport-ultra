@@ -34,79 +34,70 @@
           </div>
         </div>
 
-        <div slot="footer" style="text-align: right">
+        <template #footer><div style="text-align: right">
             <u-button @click="closeDialog" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-        </div>
+        </div></template>
     </UDialog>
 </template>
 
-<script>
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
-import { LoadingDirective } from '@/components/loading/instance.js';
-import { previewData } from '@/api/designer/index.js';
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { LoadingDirective } from '@/components/loading/instance.js'
+import { previewData } from '@/api/designer/index.js'
 
-export default {
-  name: 'PreviewDataDialog',
-  components: {
-    UDialog,
-    UButton
-  },
-  directives: {
-    loading: LoadingDirective
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    parameters: {
-      type: Object,
-      default: null
-    }
-  },
-  data() {
-    return {
-      loading: false,
-      errorInfo: null,
-      resultData: null
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.loadPreviewData();
-      }
-    }
-  },
-  methods: {
-    async loadPreviewData() {
-      if (!this.parameters) {
-        return;
-      }
+defineOptions({ name: 'PreviewDataDialog' })
 
-      this.loading = true;
-      this.errorInfo = null;
-      this.resultData = null;
+const { t } = useI18n()
 
-      try {
-        const data = await previewData(this.parameters);
-        this.loading = false;
-        this.resultData = data;
-      } catch (error) {
-        let msg = this.$t('dialog.sql.previewFail');
-        if (error.msg) {
-          msg = msg + this.$t('colon') + error.msg;
-        }
-        this.loading = false;
-        this.errorInfo = `<div style='color: #d30e00;'>${msg}</div>`;
-      }
-    },
-    closeDialog() {
-      this.$emit('close');
-    }
+const props = withDefaults(defineProps<{
+  visible: boolean
+  parameters: any
+}>(), {
+  visible: false,
+  parameters: null
+})
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
+const loading = ref(false)
+const errorInfo = ref<string | null>(null)
+const resultData = ref<any>(null)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    loadPreviewData()
   }
-};
+})
+
+async function loadPreviewData() {
+  if (!props.parameters) {
+    return
+  }
+
+  loading.value = true
+  errorInfo.value = null
+  resultData.value = null
+
+  try {
+    const data = await previewData(props.parameters)
+    loading.value = false
+    resultData.value = data
+  } catch (error: any) {
+    let msg = t('dialog.sql.previewFail')
+    if (error.msg) {
+      msg = msg + t('colon') + error.msg
+    }
+    loading.value = false
+    errorInfo.value = `<div style='color: #d30e00;'>${msg}</div>`
+  }
+}
+
+function closeDialog() {
+  emit('close')
+}
 </script>
 
 <style scoped>

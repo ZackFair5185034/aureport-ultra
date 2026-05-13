@@ -2,182 +2,152 @@
   <div class="u-color-picker">
     <div class="u-color-picker-trigger" @click="togglePicker">
       <slot>
-        <u-button
-            :size="size"
-            type="info"
-            native-type="button"
-            style="border: none"
+        <UButton
+          :size="size"
+          type="info"
+          native-type="button"
+          style="border: none"
         >
           <span class="color-block" :style="{ backgroundColor: displayColor }"></span>
-        </u-button>
+        </UButton>
       </slot>
     </div>
-    <div class="u-color-picker-popover" v-if="pickerVisible" ref="popover" @mousedown="handlePopoverMouseDown">
-      <sketch-picker
-        :value="colors"
-        @input="updateColor"
-      />
+    <div class="u-color-picker-popover" v-if="pickerVisible" ref="popoverRef">
+      <Sketch v-model="colors" />
     </div>
   </div>
 </template>
 
-<script>
-import { Sketch } from 'vue-color'
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { Sketch } from '@ckpack/vue-color'
 
-export default {
-  name: 'UColorPicker',
-  components: {
-    UButton,
-    'sketch-picker': Sketch
-  },
-  props: {
-    value: {
-      type: String,
-      default: '#000000'
-    },
-    // 颜色模式：hex, rgb, rgba, hsl, hsv
-    colorMode: {
-      type: String,
-      default: 'hex',
-      validator: function(value) {
-        return ['hex', 'rgb', 'rgba', 'hsl', 'hsv'].indexOf(value) !== -1
-      }
-    },
-    // 是否禁用
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    // 切换前的回调，返回 false 则阻止切换
-    beforeToggle: {
-      type: Function,
-      default: null
-    },
-    // 颜色改变后是否自动关闭
-    closeOnChange: {
-      type: Boolean,
-      default: false
-    },
-    // 尺寸
-    size: {
-      type: String,
-      default: 'medium',
-      validator: function(value) {
-        return ['large', 'medium', 'small', 'mini'].indexOf(value) !== -1
-      }
-    }
-  },
-  data() {
-    return {
-      pickerVisible: false,
-      shouldCloseAfterUpdate: false,
-      colors: {
-        hex: '#000000',
-        hsl: { h: 0, s: 0, l: 0, a: 1 },
-        hsv: { h: 0, s: 0, v: 0, a: 1 },
-        rgba: { r: 0, g: 0, b: 0, a: 1 },
-        a: 1
-      }
-    }
-  },
-  computed: {
-    displayColor() {
-      if (!this.value) return '#ffffff'
-      return this.value
-    }
-  },
-  watch: {
-    value: {
-      handler(newVal) {
-        this.setColorFromValue(newVal)
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    // 添加点击外部关闭事件
-    document.addEventListener('click', this.handleClickOutside)
-  },
-  beforeDestroy() {
-    // 移除点击外部关闭事件
-    document.removeEventListener('click', this.handleClickOutside)
-  },
-  methods: {
-    togglePicker() {
-      if (this.disabled) return
-      if (!this.pickerVisible && typeof this.beforeToggle === 'function' && !this.beforeToggle()) return
-      this.pickerVisible = !this.pickerVisible
-    },
-    closePicker() {
-      this.pickerVisible = false
-    },
-    handleClickOutside(event) {
-      // 如果点击的不是组件内部元素，则关闭选择器
-      if (this.pickerVisible && this.$el && !this.$el.contains(event.target)) {
-        this.closePicker()
-      }
-    },
-    updateColor(val) {
-      this.colors = val
-      let colorValue
+defineOptions({ name: 'UColorPicker' })
 
-      switch (this.colorMode) {
-        case 'hex':
-          colorValue = val.hex
-          break
-        case 'rgb':
-          colorValue = `rgb(${val.rgba.r}, ${val.rgba.g}, ${val.rgba.b})`
-          break
-        case 'rgba':
-          colorValue = `rgba(${val.rgba.r}, ${val.rgba.g}, ${val.rgba.b}, ${val.rgba.a})`
-          break
-        case 'hsl':
-          colorValue = `hsl(${val.hsl.h}, ${val.hsl.s * 100}%, ${val.hsl.l * 100}%)`
-          break
-        case 'hsv':
-          colorValue = `hsv(${val.hsv.h}, ${val.hsv.s * 100}%, ${val.hsv.v * 100}%)`
-          break
-        default:
-          colorValue = val.hex
-      }
+interface FullColor {
+  hex: string
+  hex8?: string
+  hsl: { h: number; s: number; l: number; a: number }
+  hsv: { h: number; s: number; v: number; a: number }
+  rgba: { r: number; g: number; b: number; a: number }
+  a: number
+}
 
-      this.$emit('input', colorValue)
-      this.$emit('change', colorValue)
+const props = withDefaults(defineProps<{
+  modelValue?: string
+  colorMode?: 'hex' | 'rgb' | 'rgba' | 'hsl' | 'hsv'
+  disabled?: boolean
+  beforeToggle?: () => boolean | undefined
+  closeOnChange?: boolean
+  size?: 'large' | 'medium' | 'small' | 'mini'
+}>(), {
+  modelValue: '#000000',
+  colorMode: 'hex',
+  disabled: false,
+  closeOnChange: false,
+  size: 'medium',
+})
 
-      this.$nextTick(() => {
-        if (this.closeOnChange || this.shouldCloseAfterUpdate) {
-          this.shouldCloseAfterUpdate = false
-          this.pickerVisible = false
-        }
-      })
-    },
-    handlePopoverMouseDown(event) {
-      if (event.target.closest('.vc-sketch-presets-color')) {
-        this.shouldCloseAfterUpdate = true
-      }
-    },
-    setColorFromValue(value) {
-      if (!value) return
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  'change': [value: string]
+}>()
 
-      // 简单的颜色解析，实际项目中可能需要更复杂的解析逻辑
-      if (value.startsWith('#')) {
-        this.colors.hex = value
-      } else if (value.startsWith('rgb')) {
-        // 解析 rgb/rgba 值
-        const matches = value.match(/\d+/g)
-        if (matches && matches.length >= 3) {
-          this.colors.rgba = {
-            r: parseInt(matches[0]),
-            g: parseInt(matches[1]),
-            b: parseInt(matches[2]),
-            a: matches[3] ? parseFloat(matches[3]) : 1
-          }
-        }
+const pickerVisible = ref(false)
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const colors = ref<any>({
+  hex: '#000000',
+  hsl: { h: 0, s: 0, l: 0, a: 1 },
+  hsv: { h: 0, s: 0, v: 0, a: 1 },
+  rgba: { r: 0, g: 0, b: 0, a: 1 },
+  a: 1,
+})
+
+const displayColor = computed(() => props.modelValue || '#ffffff')
+
+function togglePicker() {
+  if (props.disabled) return
+  if (!pickerVisible.value && typeof props.beforeToggle === 'function' && !props.beforeToggle()) return
+  pickerVisible.value = !pickerVisible.value
+}
+
+function closePicker() {
+  pickerVisible.value = false
+}
+
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (pickerVisible.value && !(target.closest('.u-color-picker') || target.closest('.vc-sketch'))) {
+    closePicker()
+  }
+}
+
+function emitColor(val: { hex: string; hsl: { h: number; s: number; l: number; a: number }; hsv: { h: number; s: number; v: number; a: number }; rgba: { r: number; g: number; b: number; a: number } }) {
+  let colorValue: string
+  switch (props.colorMode) {
+    case 'hex':
+      colorValue = val.hex
+      break
+    case 'rgb':
+      colorValue = `rgb(${val.rgba.r}, ${val.rgba.g}, ${val.rgba.b})`
+      break
+    case 'rgba':
+      colorValue = `rgba(${val.rgba.r}, ${val.rgba.g}, ${val.rgba.b}, ${val.rgba.a})`
+      break
+    case 'hsl':
+      colorValue = `hsl(${val.hsl.h}, ${val.hsl.s * 100}%, ${val.hsl.l * 100}%)`
+      break
+    case 'hsv':
+      colorValue = `hsv(${val.hsv.h}, ${val.hsv.s * 100}%, ${val.hsv.v * 100}%)`
+      break
+    default:
+      colorValue = val.hex
+  }
+  emit('update:modelValue', colorValue)
+  emit('change', colorValue)
+}
+
+function setColorFromValue(value: string) {
+  if (!value) return
+  if (value.startsWith('#')) {
+    colors.value = { ...colors.value, hex: value }
+  } else if (value.startsWith('rgb')) {
+    const matches = value.match(/\d+/g)
+    if (matches && matches.length >= 3) {
+      colors.value = {
+        ...colors.value,
+        rgba: {
+          r: parseInt(matches[0]),
+          g: parseInt(matches[1]),
+          b: parseInt(matches[2]),
+          a: matches[3] ? parseFloat(matches[3]) : 1,
+        },
       }
     }
   }
 }
+
+watch(colors, (val) => {
+  emitColor(val)
+  if (props.closeOnChange) {
+    closePicker()
+  }
+}, { deep: true })
+
+watch(() => props.modelValue, (newVal) => {
+  if (newVal && newVal !== colors.value.hex) {
+    setColorFromValue(newVal)
+  }
+})
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
@@ -208,17 +178,5 @@ export default {
   border-radius: 2px;
   vertical-align: middle;
   border: 1px solid #dcdfe6;
-}
-
-
-/* vue-color 组件样式覆盖 */
-.vc-sketch {
-  position: relative;
-  width: 200px;
-  padding: 0;
-  box-sizing: initial;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: none;
 }
 </style>

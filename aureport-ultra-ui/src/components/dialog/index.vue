@@ -1,155 +1,118 @@
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+
+defineOptions({ name: 'UDialog' })
+
+const props = withDefaults(defineProps<{
+  visible: boolean
+  title?: string
+  width?: string
+  top?: string
+  zIndex?: number
+  showClose?: boolean
+  closeOnPressEscape?: boolean
+  closeOnClickModal?: boolean
+  appendToBody?: boolean
+  beforeClose?: (done: () => void) => void
+}>(), {
+  title: '标题',
+  width: '50%',
+  top: '15vh',
+  zIndex: 20000,
+  showClose: true,
+  closeOnPressEscape: true,
+  closeOnClickModal: false,
+  appendToBody: true,
+})
+
+const emit = defineEmits<{
+  'update:visible': [value: boolean]
+  open: []
+  close: []
+  opend: []
+  closed: []
+}>()
+
+const rendered = ref(false)
+const dialogRef = ref<HTMLElement | null>(null)
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    rendered.value = true
+    emit('open')
+  } else {
+    emit('close')
+  }
+})
+
+function handleClose() {
+  if (typeof props.beforeClose === 'function') {
+    props.beforeClose(() => {
+      emit('update:visible', false)
+      emit('close')
+    })
+  } else {
+    emit('update:visible', false)
+    emit('close')
+  }
+}
+
+function handleClickMask() {
+  if (props.closeOnClickModal) {
+    handleClose()
+  }
+}
+
+function handleCloseByEsc(event: KeyboardEvent) {
+  if (event.keyCode === 27 && props.closeOnPressEscape && props.visible) {
+    handleClose()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleCloseByEsc)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleCloseByEsc)
+})
+</script>
+
 <template>
   <div
+    ref="dialogRef"
     class="u-dialog"
     :class="{ 'u-dialog-show': visible }"
-    :style="{ 'z-index': zIndex }"
+    :style="{ zIndex }"
     @click.self="handleClickMask"
   >
     <transition
-      name="messagebox-fade"
-      @after-enter="$emit('opend')"
-      @after-leave="$emit('closed')"
+      name="msgbox-fade"
+      @after-enter="emit('opend')"
+      @after-leave="emit('closed')"
     >
-      <div
-        class="u-dialog-wrap"
-        v-show="visible"
-        :style="{ width: width, 'margin-top': top }"
-      >
-        <!-- 标题区 -->
-        <div class="u-dialog-wrap-title">
+      <div v-show="visible" class="u-dialog-wrap" :style="{ width, marginTop: top }">
+        <div class="u-dialog-header">
           <slot name="title">{{ title }}</slot>
           <i
-            class="iconfont icon-close u-dialog-wrap-close-btn"
             v-if="showClose"
+            class="iconfont icon-close u-dialog-close"
             @click="handleClose"
           />
         </div>
-        <!-- 内容区域 -->
-        <div class="u-dialog-wrap-content" v-if="rendered">
-          <slot>
-
-          </slot>
+        <div v-if="rendered" class="u-dialog-body">
+          <slot />
         </div>
-
-        <div class="u-dialog-wrap-footer" v-if="$slots.footer">
-          <slot name="footer"></slot>
+        <div v-if="$slots.footer" class="u-dialog-footer">
+          <slot name="footer" />
         </div>
       </div>
     </transition>
   </div>
 </template>
 
-<script>
-export default {
-  name: "UDialog",
-  data() {
-    return {
-      // 是否已经渲染，该属性用来控制
-      rendered: false
-    };
-  },
-  props: {
-    // 是否可见
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    title: {
-      type: String,
-      default: "标题"
-    },
-    // 是否可以通过按下ESC键来关闭弹窗
-    closeOnPressEscape: {
-      type: Boolean,
-      default: true
-    },
-    // 弹框的宽度
-    width: {
-      type: String,
-      default: "50%"
-    },
-    top: {
-      type: String,
-      default: "15vh"
-    },
-    // 关闭前的回调
-    beforeClose: {
-      type: Function
-    },
-    // 是否将元素挂到body上
-    appendToBody: {
-      type: Boolean,
-      default: true
-    },
-    // 是否显示关闭按钮
-    showClose: {
-      type: Boolean,
-      default: true
-    },
-    // 是否允许点击遮罩层关闭弹窗
-    closeOnClickModal: {
-      type: Boolean,
-      default: false
-    },
-    zIndex: {
-      type: Number,
-      default: 20000
-    },
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.rendered = true;
-        this.$emit("open");
-        if (this.appendToBody) {
-          document.body.appendChild(this.$el);
-        }
-      } else {
-        this.$emit("close");
-      }
-    }
-  },
-  mounted() {
-    window.addEventListener("keydown", this.handleCloseByEsc);
-  },
-  methods: {
-    handleClickMask() {
-      if (this.closeOnClickModal) {
-        this.handleClose();
-      }
-    },
-    /**
-     * @description 关闭函数,如果存在关闭前回调，则暂停关闭操作。
-     */
-    handleClose() {
-      if (typeof this.beforeClose === "function") {
-        this.beforeClose(() => {
-          this.$emit("update:visible", false);
-          this.$emit("close");
-        });
-      } else {
-        this.$emit("update:visible", false);
-        this.$emit("close");
-      }
-    },
-    /**
-     * @description 按键esc关闭当前弹窗
-     */
-    handleCloseByEsc(event) {
-      if (event.keyCode === 27 && this.closeOnPressEscape && this.visible) {
-        this.handleClose();
-      }
-    }
-  },
-  beforeDestroy() {
-    window.removeEventListener("keydown", this.handleCloseByEsc);
-  }
-};
-</script>
 <style scoped>
-
 .u-dialog {
-  z-index: 2000;
   position: fixed;
   left: 0;
   top: 0;
@@ -157,49 +120,65 @@ export default {
   height: 100%;
   background-color: rgba(0, 0, 0, 0);
   visibility: hidden;
-  transition: all .2s
+  transition: all 0.2s;
+  overflow: auto;
 }
 
 .u-dialog-show {
-  background-color: rgba(0, 0, 0, .5);
-  visibility: visible
+  background-color: rgba(0, 0, 0, 0.5);
+  visibility: visible;
 }
 
 .u-dialog-wrap {
-  width: 50%;
   margin: 15vh auto 0;
   background-color: #fff;
   border-radius: 6px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-  box-sizing: border-box
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
-.u-dialog-wrap-title {
+.u-dialog-header {
   position: relative;
-  padding: 10px;
+  padding: 12px 16px;
   line-height: 20px;
   color: #fff;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  background-color: #00554a
+  border-radius: 6px 6px 0 0;
+  background-color: #00554a;
+  font-size: 15px;
 }
 
-.u-dialog-wrap-close-btn {
+.u-dialog-close {
   position: absolute;
+  right: 12px;
+  top: 12px;
   width: 20px;
   height: 20px;
-  right: 10px;
-  top: 10px;
   line-height: 20px;
   text-align: center;
-  cursor: pointer
+  cursor: pointer;
+  color: #fff;
+  opacity: 0.8;
 }
 
-.u-dialog-wrap-content {
-  padding: 20px
+.u-dialog-close:hover { opacity: 1; }
+
+.u-dialog-body {
+  padding: 20px;
 }
 
-.u-dialog-wrap-footer {
-  padding: 20px
+.u-dialog-footer {
+  padding: 0 20px 20px;
+  text-align: right;
+}
+
+.msgbox-fade-enter-active,
+.msgbox-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.msgbox-fade-enter-from,
+.msgbox-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 </style>

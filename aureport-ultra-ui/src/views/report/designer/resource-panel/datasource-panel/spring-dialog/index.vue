@@ -14,122 +14,105 @@
                 <u-input v-model="beanId" />
             </u-form-item>
         </u-form>
-        <div slot="footer" style="text-align: right">
+        <template #footer><div style="text-align: right">
             <u-button @click="closeDialog" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
             <u-button @click="saveData">{{ $t('dialog.common.ok') }}</u-button>
-        </div>
+        </div></template>
     </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import { setDirty } from '@/utils/table.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from '@/components/input/index.vue';
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { setDirty } from '@/utils/table.js'
 
-export default {
-  name: 'SpringDialog',
-  components: {
-    UButton,
-    UDialog,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    // 用于比对数据源名称
-    datasources: {
-      type: Array,
-      default: () => []
-    },
-    // 控制弹窗显示
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    // 数据源数据
-    datasource: {
-      type: Object,
-      default: null
-    }
-  },
-  data() {
-    return {
-      dsName: '',
-      beanId: '',
-      oldName: null
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.resetForm();
-        if (this.datasource) {
-          this.fillForm(this.datasource);
-        }
-      }
-    }
-  },
-  methods: {
-    resetForm() {
-      this.dsName = '';
-      this.beanId = '';
-      this.oldName = null;
-    },
+defineOptions({ name: 'SpringDialog' })
 
-    fillForm(ds) {
-      if (ds) {
-        this.oldName = ds.name;
-        this.dsName = ds.name;
-        this.beanId = ds.beanId;
-      }
-    },
+const { t } = useI18n()
 
-    saveData() {
-      if (this.dsName === '') {
-        showAlert(this.$t('dialog.springDS.nameTip'));
-        return;
-      }
+const props = withDefaults(defineProps<{
+  datasources: any[]
+  visible: boolean
+  datasource: any
+}>(), {
+  datasources: () => [],
+  visible: false,
+  datasource: null
+})
 
-      if (this.beanId === '') {
-        showAlert(this.$t('dialog.springDS.beanTip'));
-        return;
-      }
+const emit = defineEmits<{
+  (e: 'save', data: any): void
+  (e: 'close'): void
+}>()
 
-      let check = false;
-      if (!this.oldName || this.dsName !== this.oldName) {
-        check = true;
-      }
+const dsName = ref('')
+const beanId = ref('')
+const oldName = ref<string | null>(null)
 
-      if (check) {
-        for (let source of this.datasources) {
-          if (source.name === this.dsName) {
-            showAlert(`${this.$t('dialog.springDS.ds')}[${this.dsName}]${this.$t('dialog.springDS.exist')}`);
-            return;
-          }
-        }
-      }
-
-      this.$emit('save', {
-        name: this.dsName,
-        beanId: this.beanId,
-        type: 'spring',
-        datasets: [],
-        oldName: this.oldName
-      });
-      this.closeDialog();
-      setDirty();
-    },
-    closeDialog() {
-      this.$emit('close');
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    resetForm()
+    if (props.datasource) {
+      fillForm(props.datasource)
     }
   }
-};
+})
+
+function resetForm() {
+  dsName.value = ''
+  beanId.value = ''
+  oldName.value = null
+}
+
+function fillForm(ds: any) {
+  if (ds) {
+    oldName.value = ds.name
+    dsName.value = ds.name
+    beanId.value = ds.beanId
+  }
+}
+
+function saveData() {
+  if (dsName.value === '') {
+    showAlert(t('dialog.springDS.nameTip'))
+    return
+  }
+
+  if (beanId.value === '') {
+    showAlert(t('dialog.springDS.beanTip'))
+    return
+  }
+
+  let check = false
+  if (!oldName.value || dsName.value !== oldName.value) {
+    check = true
+  }
+
+  if (check) {
+    for (let source of props.datasources) {
+      if (source.name === dsName.value) {
+        showAlert(`${t('dialog.springDS.ds')}[${dsName.value}]${t('dialog.springDS.exist')}`)
+        return
+      }
+    }
+  }
+
+  emit('save', {
+    name: dsName.value,
+    beanId: beanId.value,
+    type: 'spring',
+    datasets: [],
+    oldName: oldName.value
+  })
+  closeDialog()
+  setDirty()
+}
+
+function closeDialog() {
+  emit('close')
+}
 </script>
 
 <style scoped>
-/* 样式可以根据需要自定义 */
 </style>

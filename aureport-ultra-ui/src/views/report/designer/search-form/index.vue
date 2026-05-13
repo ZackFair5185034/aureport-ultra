@@ -9,7 +9,7 @@
       <div class="left-scrollbar">
         <div class="components-list">
           <div class="components-title">
-            {{ $t('searchForm.inputComponents') }}
+            {{ t('searchForm.inputComponents') }}
           </div>
           <draggable
             class="components-draggable"
@@ -30,7 +30,7 @@
             </div>
           </draggable>
           <div class="components-title">
-            {{ $t('searchForm.selectComponents') }}
+            {{ t('searchForm.selectComponents') }}
           </div>
           <draggable
             class="components-draggable"
@@ -53,7 +53,7 @@
             </div>
           </draggable>
           <div class="components-title">
-            {{ $t('searchForm.layoutComponents') }}
+            {{ t('searchForm.layoutComponents') }}
           </div>
           <draggable
             class="components-draggable" :list="layoutComponents"
@@ -76,20 +76,20 @@
     <div class="center-board">
       <div class="action-bar">
         <u-button icon="icon-cloud-download" type="text" @click="download">
-          {{ $t('searchForm.exportVueFile') }}
+          {{ t('searchForm.exportVueFile') }}
         </u-button>
         <u-button class="copy-btn-main" icon="icon-copy" type="text" @click="copy">
-          {{ $t('searchForm.copyCode') }}
+          {{ t('searchForm.copyCode') }}
         </u-button>
         <u-button class="delete-btn" icon="icon-delete" type="text" @click="empty">
-          {{ $t('searchForm.clear') }}
+          {{ t('searchForm.clear') }}
         </u-button>
       </div>
       <div class="center-scrollbar">
         <u-row class="center-board-row" :gutter="formConf.gutter">
           <u-form
             :size="formConf.size"
-            :labelPosition="formConf.labelPosition"
+            :label-position="formConf.labelPosition"
             :disabled="formConf.disabled"
             :label-width="formConf.labelWidth"
           >
@@ -108,7 +108,7 @@
               />
             </draggable>
             <div v-show="!drawingList.length" class="empty-info">
-              {{ $t('searchForm.dragComponents') }}
+              {{ t('searchForm.dragComponents') }}
             </div>
           </u-form>
         </u-row>
@@ -123,7 +123,7 @@
     />
 
     <code-type-dialog
-      :visible.sync="dialogVisible"
+      v-model:visible="dialogVisible"
       title="选择生成类型"
       :show-file-name="showFileName"
       @confirm="generate"
@@ -132,7 +132,10 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, watch, nextTick, onMounted, onBeforeUnmount, defineProps, defineExpose, defineOptions } from 'vue'
+import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import beautifier from 'js-beautify'
 import ClipboardJS from 'clipboard'
@@ -140,272 +143,272 @@ import ClipboardJS from 'clipboard'
 import RightPanel from './right-panel/index.vue'
 import CodeTypeDialog from './code-type-dialog/index.vue'
 import DraggableItem from './draggable-item/index.vue'
-import UButton from '@/components/button/index.vue'
-import URow from '@/components/row/index.vue'
-import UCol from '@/components/col/index.vue'
 
-import render from './utils/render'
-import { inputComponents, selectComponents, layoutComponents, formConf } from './utils/config'
+import { inputComponents, selectComponents, layoutComponents, formConf as importedFormConf } from './utils/config'
 import { beautifierConf, titleCase } from './utils'
 import { makeUpHtml, vueTemplate, vueScript, cssStyle } from './utils/html'
 import { makeUpJs } from './utils/js'
 import { makeUpCss } from './utils/css'
 import { drawingDefaultValue, initDrawingDefaultValue, cleanDrawingDefaultValue } from './utils/drawingDefault'
 import logo from '@/assets/images/form-designer/logo.png'
-import UForm from "@/components/form/index.vue";
-import { showAlert, showConfirm } from '@/utils/comnon.js';
-import {deepCopy} from "@/components/utils";
+import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils'
 
+defineOptions({
+  name: 'SearchForm'
+})
+const props = withDefaults(defineProps<{
+  searchFormConfig?: any
+}>(), {
+  searchFormConfig: () => ({})
+})
 
-let oldActiveId
-let tempActiveData
-let clipboard = null
+const { t } = useI18n()
 
-/* eslint-disable */
-export default {
-  components: {
-    UForm,
-    draggable,
-    render,
-    RightPanel,
-    CodeTypeDialog,
-    DraggableItem,
-    UButton,
-    URow,
-    UCol
-  },
-  props:{
-    searchFormConfig: {
-        type: Object,
-        default: () => {}
-     }
-  },
-  data() {
-    return {
-      logo,
-      idGlobal: 100,
-      formConf,
-      inputComponents,
-      selectComponents,
-      layoutComponents,
+// Module-level variables (shared across instances, matching Vue 2 behavior)
+let oldActiveId: any
+let tempActiveData: any
+let clipboard: any = null
 
-      labelWidth: 100,
-      drawingList: drawingDefaultValue,
-      drawingData: {},
-      activeId: drawingDefaultValue[0].formId,
-      drawerVisible: false,
-      formData: {},
-      dialogVisible: false,
-      generateConf: null,
-      showFileName: false,
-      activeData: drawingDefaultValue[0]
+// beforeCreate logic
+initDrawingDefaultValue()
+
+// created logic
+document.body.ondrop = (event: DragEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+// --- Reactive state ---
+const idGlobal = ref(100)
+const formConf = ref(importedFormConf)
+const labelWidth = ref(100)
+const drawingList = ref(drawingDefaultValue)
+const drawingData = ref({})
+const activeId = ref(drawingDefaultValue[0]?.formId)
+const drawerVisible = ref(false)
+const formData = ref({})
+const dialogVisible = ref(false)
+const generateConf = ref<any>(null)
+const showFileName = ref(false)
+const activeData = ref(drawingDefaultValue[0])
+
+// --- Watchers ---
+watch(activeId, (val) => {
+  oldActiveId = val
+}, { immediate: true })
+
+watch(() => props.searchFormConfig, (val: any) => {
+  if (val) {
+    const { fields, ...rest } = val
+    formConf.value = deepCopy(rest)
+    drawingList.value = deepCopy(fields)
+  }
+}, { immediate: true })
+
+// --- Lifecycle ---
+onMounted(() => {
+  clipboard = new ClipboardJS('#copyNode', {
+    text: () => {
+      const codeStr = generateCode()
+      showAlert('代码已复制到剪切板，可粘贴。')
+      return codeStr
     }
-  },
-  beforeCreate() {
-    initDrawingDefaultValue()
-  },
-  created() {
-    // 防止 firefox 下 拖拽 会新打卡一个选项卡
-    document.body.ondrop = event => {
-      event.preventDefault()
-      event.stopPropagation()
-    }
-  },
-  watch: {
-    activeId: {
-      handler(val) {
-        oldActiveId = val
-      },
-      immediate: true
-    },
-    searchFormConfig:{
-      handler(val) {
-        if(val){
-          const { fields, ...rest } = val;
-          this.formConf = deepCopy(rest);
-          this.drawingList = deepCopy(fields)
-        }
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    clipboard = new ClipboardJS('#copyNode', {
-      text: trigger => {
-        const codeStr = this.generateCode()
-        showAlert('代码已复制到剪切板，可粘贴。')
-        return codeStr
-      }
-    })
-    clipboard.on('error', e => {
-      showAlert('代码复制失败')
-    })
-  },
-  beforeDestroy() {
+  })
+  clipboard.on('error', () => {
+    showAlert('代码复制失败')
+  })
+})
+
+onBeforeUnmount(() => {
+  if (clipboard) {
     clipboard.destroy()
-  },
-  methods: {
-    activeFormItem(element) {
-      this.activeData = element
-      this.activeId = element.formId
-    },
-    onEnd(obj, a) {
-      if (obj.from !== obj.to) {
-        this.activeData = tempActiveData
-        this.activeId = this.idGlobal
-      }
-    },
-    addComponent(item) {
-      const clone = this.cloneComponent(item)
-      this.drawingList.push(clone)
-      this.activeFormItem(clone)
-    },
-    cloneComponent(origin) {
-      const clone = JSON.parse(JSON.stringify(origin))
-      clone.formId = ++this.idGlobal
-      clone.span = formConf.span
-      clone.renderKey = +new Date() // 改变renderKey后可以实现强制更新组件
-      if (!clone.layout) clone.layout = 'colFormItem'
-      if (clone.layout === 'colFormItem') {
-        clone.vModel = `field${this.idGlobal}`
-        clone.placeholder !== undefined && (clone.placeholder += clone.label)
-        tempActiveData = clone
-      } else if (clone.layout === 'rowFormItem') {
-        delete clone.label
-        clone.componentName = `row${this.idGlobal}`
-        clone.gutter = this.formConf.gutter
-        tempActiveData = clone
-      }
-      return tempActiveData
-    },
-    AssembleFormData() {
-      this.formData = {
-        fields: JSON.parse(JSON.stringify(this.drawingList)),
-        ...this.formConf
-      }
-    },
-    generate(data) {
-      const func = this[`exec${titleCase(this.operationType)}`]
-      this.generateConf = data
-      func && func(data)
-    },
-    execRun(data) {
-      this.AssembleFormData()
-      this.drawerVisible = true
-    },
-    execDownload(data) {
-      const codeStr = this.generateCode()
-      const blob = new Blob([codeStr], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = data.fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    },
-    execCopy(data) {
-      document.getElementById('copyNode').click()
-    },
-    empty() {
-      showConfirm('确定要清空所有组件吗？', { type: 'warning' }).then(
-        () => {
-          this.drawingList = []
-          cleanDrawingDefaultValue()
-        }
-      )
-    },
-    drawingItemCopy(item, parent) {
-      let clone = JSON.parse(JSON.stringify(item))
-      clone = this.createIdAndKey(clone)
-      parent.push(clone)
-      this.activeFormItem(clone)
-    },
-    createIdAndKey(item) {
-      item.formId = ++this.idGlobal
-      item.renderKey = +new Date()
-      if (item.layout === 'colFormItem') {
-        item.vModel = `field${this.idGlobal}`
-      } else if (item.layout === 'rowFormItem') {
-        item.componentName = `row${this.idGlobal}`
-      }
-      if (Array.isArray(item.children)) {
-        item.children = item.children.map(childItem => this.createIdAndKey(childItem))
-      }
-      return item
-    },
-    drawingItemDelete(index, parent) {
-      parent.splice(index, 1)
-      this.$nextTick(() => {
-        const len = this.drawingList.length
-        if (len) {
-          this.activeFormItem(this.drawingList[len - 1])
-        }
-      })
-    },
-    generateCode() {
-      const { type } = this.generateConf
-      this.AssembleFormData()
-      const script = vueScript(makeUpJs(this.formData, type))
-      const html = vueTemplate(makeUpHtml(this.formData, type))
-      const css = cssStyle(makeUpCss(this.formData))
-      return beautifier.html(html + script + css, beautifierConf.html)
-    },
-    download() {
-      this.dialogVisible = true
-      this.showFileName = true
-      this.operationType = 'download'
-    },
-    run() {
-      this.dialogVisible = true
-      this.showFileName = false
-      this.operationType = 'run'
-    },
-    copy() {
-      this.dialogVisible = true
-      this.showFileName = false
-      this.operationType = 'copy'
-    },
-    tagChange(newTag) {
-      newTag = this.cloneComponent(newTag)
-      newTag.vModel = this.activeData.vModel
-      newTag.formId = this.activeId
-      newTag.span = this.activeData.span
-      delete this.activeData.tag
-      delete this.activeData.tagIcon
-      delete this.activeData.document
-      Object.keys(newTag).forEach(key => {
-        if (this.activeData[key] !== undefined
-          && typeof this.activeData[key] === typeof newTag[key]) {
-          newTag[key] = this.activeData[key]
-        }
-      })
-      this.activeData = newTag
-      this.updateDrawingList(newTag, this.drawingList)
-    },
-    updateDrawingList(newTag, list) {
-      const index = list.findIndex(item => item.formId === this.activeId)
-      if (index > -1) {
-        list.splice(index, 1, newTag)
-      } else {
-        list.forEach(item => {
-          if (Array.isArray(item.children)) this.updateDrawingList(newTag, item.children)
-        })
-      }
-    },
-    generateTemplate() {
-      this.generateConf = {
-        fileName: "",
-        type: "file"
-      }
-      return this.generateCode()
-    }
+  }
+})
+
+// --- Methods ---
+function activeFormItem(element: any) {
+  activeData.value = element
+  activeId.value = element.formId
+}
+
+function onEnd(obj: any) {
+  if (obj.from !== obj.to) {
+    activeData.value = tempActiveData
+    activeId.value = idGlobal.value
   }
 }
+
+function addComponent(item: any) {
+  const clone = cloneComponent(item)
+  drawingList.value.push(clone)
+  activeFormItem(clone)
+}
+
+function cloneComponent(origin: any) {
+  const clone = JSON.parse(JSON.stringify(origin))
+  clone.formId = ++idGlobal.value
+  clone.span = importedFormConf.span
+  clone.renderKey = +new Date()
+  if (!clone.layout) clone.layout = 'colFormItem'
+  if (clone.layout === 'colFormItem') {
+    clone.vModel = `field${idGlobal.value}`
+    clone.placeholder !== undefined && (clone.placeholder += clone.label)
+    tempActiveData = clone
+  } else if (clone.layout === 'rowFormItem') {
+    delete clone.label
+    clone.componentName = `row${idGlobal.value}`
+    clone.gutter = formConf.value.gutter
+    tempActiveData = clone
+  }
+  return tempActiveData
+}
+
+function AssembleFormData() {
+  formData.value = {
+    fields: JSON.parse(JSON.stringify(drawingList.value)),
+    ...formConf.value
+  }
+}
+
+function generate(data: any) {
+  const func = (generateExec as any)[`exec${titleCase(operationType.value)}`]
+  generateConf.value = data
+  func && func(data)
+}
+
+const generateExec: Record<string, (data: any) => void> = {
+  execRun(data: any) {
+    AssembleFormData()
+    drawerVisible.value = true
+  },
+  execDownload(data: any) {
+    const codeStr = generateCode()
+    const blob = new Blob([codeStr], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = data.fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  },
+  execCopy() {
+    document.getElementById('copyNode')?.click()
+  }
+}
+
+const operationType = ref('')
+
+function empty() {
+  showConfirm('确定要清空所有组件吗？', { type: 'warning' }).then(() => {
+    drawingList.value = []
+    cleanDrawingDefaultValue()
+  })
+}
+
+function drawingItemCopy(item: any, parent: any[]) {
+  let clone = JSON.parse(JSON.stringify(item))
+  clone = createIdAndKey(clone)
+  parent.push(clone)
+  activeFormItem(clone)
+}
+
+function createIdAndKey(item: any): any {
+  item.formId = ++idGlobal.value
+  item.renderKey = +new Date()
+  if (item.layout === 'colFormItem') {
+    item.vModel = `field${idGlobal.value}`
+  } else if (item.layout === 'rowFormItem') {
+    item.componentName = `row${idGlobal.value}`
+  }
+  if (Array.isArray(item.children)) {
+    item.children = item.children.map((childItem: any) => createIdAndKey(childItem))
+  }
+  return item
+}
+
+function drawingItemDelete(index: number, parent: any[]) {
+  parent.splice(index, 1)
+  nextTick(() => {
+    const len = drawingList.value.length
+    if (len) {
+      activeFormItem(drawingList.value[len - 1])
+    }
+  })
+}
+
+function generateCode(): string {
+  const { type } = generateConf.value
+  AssembleFormData()
+  const script = vueScript(makeUpJs(formData.value, type))
+  const html = vueTemplate(makeUpHtml(formData.value, type))
+  const css = cssStyle(makeUpCss(formData.value))
+  return beautifier.html(html + script + css, beautifierConf.html)
+}
+
+function download() {
+  dialogVisible.value = true
+  showFileName.value = true
+  operationType.value = 'download'
+}
+
+function run() {
+  dialogVisible.value = true
+  showFileName.value = false
+  operationType.value = 'run'
+}
+
+function copy() {
+  dialogVisible.value = true
+  showFileName.value = false
+  operationType.value = 'copy'
+}
+
+function tagChange(newTag: any) {
+  newTag = cloneComponent(newTag)
+  newTag.vModel = activeData.value.vModel
+  newTag.formId = activeId.value
+  newTag.span = activeData.value.span
+  delete activeData.value.tag
+  delete activeData.value.tagIcon
+  delete activeData.value.document
+  Object.keys(newTag).forEach(key => {
+    if (activeData.value[key] !== undefined
+      && typeof activeData.value[key] === typeof newTag[key]) {
+      newTag[key] = activeData.value[key]
+    }
+  })
+  activeData.value = newTag
+  updateDrawingList(newTag, drawingList.value)
+}
+
+function updateDrawingList(newTag: any, list: any[]) {
+  const index = list.findIndex((item: any) => item.formId === activeId.value)
+  if (index > -1) {
+    list.splice(index, 1, newTag)
+  } else {
+    list.forEach((item: any) => {
+      if (Array.isArray(item.children)) updateDrawingList(newTag, item.children)
+    })
+  }
+}
+
+function generateTemplate(): string {
+  generateConf.value = {
+    fileName: '',
+    type: 'file'
+  }
+  return generateCode()
+}
+
+defineExpose({
+  generateTemplate
+})
 </script>
 
-<style >
+<style lang="scss">
 :root {
   --dialog-height: 560px;
 }
@@ -571,7 +574,7 @@ export default {
   height: 42px;
   text-align: right;
   padding: 0 15px;
-  box-sizing: border-box;;
+  box-sizing: border-box;
   border: 1px solid #f1e8e8;
   border-top: none;
   border-left: none;
@@ -624,7 +627,6 @@ export default {
   overflow-y: scroll;
   overflow-x: hidden;
   position: relative;
-  overflow-x: hidden;
   .components-body {
     padding: 0;
     margin: 0;

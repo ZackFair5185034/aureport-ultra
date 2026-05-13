@@ -2,18 +2,18 @@
   <div class="simple-value-editor">
 
     <div class="property-quote">
-      {{ $t('property.simple.config') }}
+      {{ t('property.simple.config') }}
     </div>
 
     <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="$t('property.simple.lineHeight')">
+      <u-form-item class="property-label" :label="t('property.simple.lineHeight')">
         <u-input-number
             v-model="lineHeight"
             @change="onLineHeightChange"
-            :placeholder="$t('property.simple.tip')"
+            :placeholder="t('property.simple.tip')"
         />
       </u-form-item>
-      <u-form-item class="property-label" :label="$t('property.simple.content')">
+      <u-form-item class="property-label" :label="t('property.simple.content')">
         <textarea
           v-model="content"
           @input="onContentChange"
@@ -26,143 +26,112 @@
   </div>
 </template>
 
-<script>
-import {setDirty} from "@/utils/table";
-import { deepCopy } from '@/components/utils/index.js';
-import UInputNumber from '@/components/input-number/index.vue';
-import UForm from "@/components/form/index.vue";
-import UFormItem from "@/components/form-item/index.vue";
-import { mapGetters } from 'vuex';
-import {setCell, getCell} from "@/utils/contextActions";
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+<script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { setDirty } from '@/utils/table'
+import { deepCopy } from '@/components/utils'
+import { setCell, getCell } from '@/utils/contextActions'
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
-export default {
-  name: 'SimpleValueEditor',
-  components: {
-    UInputNumber,
-    UForm,
-    UFormItem
-  },
-  props: {
-    rowIndex: {
-      type: Number,
-      default: 0
-    },
-    colIndex: {
-      type: Number,
-      default: 0
-    },
-    row2Index: {
-      type: Number,
-      default: 0
-    },
-    col2Index: {
-      type: Number,
-      default: 0
-    }
-  },
-  data() {
-    return {
-      content: '',
-      lineHeight: ''
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  watch: {
-    rowIndex: {
-      immediate: true,
-      handler() {
-        this.loadCellData();
-      }
-    },
-    colIndex: {
-      immediate: true,
-      handler() {
-        this.loadCellData();
-      }
-    }
-  },
-  mounted() {
-    this.loadCellData();
-  },
-  methods: {
-    loadCellData() {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      if (!cellDef) {
-        this.content = '';
-        this.lineHeight = '';
-        return;
-      }
+defineOptions({ name: 'SimpleValueEditor' })
 
-      if (cellDef && cellDef.value && cellDef.value.value !== undefined) {
-        this.content = cellDef.value.value;
-      } else {
-        this.content = '';
-      }
+const { t } = useI18n()
+const store = useReportStore()
 
-      if (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) {
-        this.lineHeight = cellDef.cellStyle.lineHeight;
-      } else {
-        this.lineHeight = '';
-      }
-    },
+const props = withDefaults(defineProps<{
+  rowIndex?: number
+  colIndex?: number
+  row2Index?: number
+  col2Index?: number
+}>(), {
+  rowIndex: 0,
+  colIndex: 0,
+  row2Index: 0,
+  col2Index: 0
+})
 
-    onContentChange() {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      const newCellDef = deepCopy(cellDef);
+const content = ref('')
+const lineHeight = ref('')
 
-      if (newCellDef) {
-        if (!newCellDef.value) {
-          newCellDef.value = { type: 'simple', value: '' };
-        }
-        newCellDef.value.type = 'simple';
-        newCellDef.value.value = this.content;
-        setCell(this.rowIndex, this.colIndex, newCellDef );
-      }
+function loadCellData() {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  if (!cellDef) {
+    content.value = ''
+    lineHeight.value = ''
+    return
+  }
 
-      const hot = TableManager.get();
-      if (hot && this.rowIndex !== null && this.colIndex !== null) {
-        hot.setDataAtCell(this.rowIndex, this.colIndex, this.content);
-      }
+  if (cellDef && cellDef.value && cellDef.value.value !== undefined) {
+    content.value = cellDef.value.value
+  } else {
+    content.value = ''
+  }
 
-      setDirty();
-    },
-
-    onLineHeightChange() {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      const newCellDef = deepCopy(cellDef);
-
-      if (newCellDef) {
-        if (!newCellDef.cellStyle) {
-          newCellDef.cellStyle = {};
-        }
-
-        newCellDef.cellStyle.lineHeight = this.lineHeight;
-
-        const hot = TableManager.get();
-        if (hot) {
-          const td = hot.getCell(this.rowIndex, this.colIndex);
-          if (td) {
-            if (this.lineHeight === '') {
-              td.style.lineHeight = '';
-            } else {
-              td.style.lineHeight = this.lineHeight;
-            }
-            hot.render();
-          }
-        }
-
-        setDirty();
-        setCell( this.rowIndex, this.colIndex, newCellDef );
-      }
-    }
+  if (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) {
+    // @ts-ignore
+    lineHeight.value = cellDef.cellStyle.lineHeight
+  } else {
+    lineHeight.value = ''
   }
 }
+
+function onContentChange() {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  const newCellDef = deepCopy(cellDef)
+
+  if (newCellDef) {
+    if (!newCellDef.value) {
+      newCellDef.value = { type: 'simple', value: '' }
+    }
+    newCellDef.value.type = 'simple'
+    newCellDef.value.value = content.value
+    setCell(props.rowIndex, props.colIndex, newCellDef)
+  }
+
+  const hot = TableManager.get()
+  if (hot && props.rowIndex !== null && props.colIndex !== null) {
+    hot.setDataAtCell(props.rowIndex, props.colIndex, content.value)
+  }
+
+  setDirty()
+}
+
+function onLineHeightChange() {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  const newCellDef = deepCopy(cellDef)
+
+  if (newCellDef) {
+    if (!newCellDef.cellStyle) {
+      newCellDef.cellStyle = {}
+    }
+
+    // @ts-ignore
+    newCellDef.cellStyle.lineHeight = lineHeight.value
+
+    const hot = TableManager.get()
+    if (hot) {
+      const td = hot.getCell(props.rowIndex, props.colIndex)
+      if (td) {
+        if (lineHeight.value === '') {
+          td.style.lineHeight = ''
+        } else {
+          td.style.lineHeight = lineHeight.value
+        }
+        hot.render()
+      }
+    }
+
+    setDirty()
+    setCell(props.rowIndex, props.colIndex, newCellDef)
+  }
+}
+
+watch(() => props.rowIndex, () => { loadCellData() }, { immediate: true })
+watch(() => props.colIndex, () => { loadCellData() }, { immediate: true })
+
+onMounted(() => { loadCellData() })
 </script>
 
 <style scoped>
@@ -170,4 +139,3 @@ textarea:focus {
   outline: none;
 }
 </style>
-

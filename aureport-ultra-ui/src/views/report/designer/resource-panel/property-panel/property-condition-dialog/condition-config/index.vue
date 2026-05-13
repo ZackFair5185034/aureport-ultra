@@ -47,209 +47,192 @@
   </div>
 </template>
 
-<script>
-import ColorConfig from './color-config/index.vue';
-import FontConfig from './font-config/index.vue';
-import AlignConfig from './align-config/index.vue';
-import BorderConfig from './border-config/index.vue';
-import ValueConfig from './value-config/index.vue';
-import SizeConfig from './size-config/index.vue';
-import PagingConfig from './paging-config/index.vue';
-import LinkConfig from './link-config/index.vue';
+<script setup lang="ts">
+import { ref, watch, nextTick } from 'vue'
+import ColorConfig from './color-config/index.vue'
+import FontConfig from './font-config/index.vue'
+import AlignConfig from './align-config/index.vue'
+import BorderConfig from './border-config/index.vue'
+import ValueConfig from './value-config/index.vue'
+import SizeConfig from './size-config/index.vue'
+import PagingConfig from './paging-config/index.vue'
+import LinkConfig from './link-config/index.vue'
 
-export default {
-  name: 'ConditionConfig',
-  components: {
-    ColorConfig,
-    FontConfig,
-    AlignConfig,
-    BorderConfig,
-    ValueConfig,
-    SizeConfig,
-    PagingConfig,
-    LinkConfig
-  },
-  props: {
-    item: {
-      type: Object,
-      default: null
+defineOptions({ name: 'ConditionConfig' })
+
+const props = withDefaults(defineProps<{
+  item?: any
+}>(), {
+  item: null
+})
+
+const emit = defineEmits<{
+  (e: 'property-changed', value: any): void
+}>()
+
+const localItem = ref<any>({
+  cellStyle: null,
+  rowHeight: null,
+  colWidth: null,
+  newValue: null,
+  linkUrl: null,
+  linkTargetWindow: null,
+  linkParameters: null,
+  paging: null,
+  name: null
+})
+
+watch(() => props.item, (newVal) => {
+  updateConfig(newVal)
+}, { immediate: true, deep: true })
+
+function updateConfig(config: any) {
+  if (!config) {
+    localItem.value = {
+      cellStyle: {},
+      rowHeight: null,
+      colWidth: null,
+      newValue: null,
+      linkUrl: null,
+      linkTargetWindow: null,
+      linkParameters: null,
+      paging: null,
+      name: null
     }
-  },
-  data() {
-    return {
-      localItem: {
-        cellStyle: null,
-        rowHeight: null,
-        colWidth: null,
-        newValue: null,
-        linkUrl: null,
-        linkTargetWindow: null,
-        linkParameters: null,
-        paging: null,
-        name: null
-      }
-    };
-  },
-  watch: {
-    item: {
-      handler(newVal) {
-        this.updateConfig(newVal);
-      },
-      immediate: true,
-      deep: true
-    }
-  },
-  methods: {
-    updateConfig(config) {
-      if (!config) {
-        this.localItem = {
-          cellStyle: {},
-          rowHeight: null,
-          colWidth: null,
-          newValue: null,
-          linkUrl: null,
-          linkTargetWindow: null,
-          linkParameters: null,
-          paging: null,
-          name: null
-        };
-      } else {
-        const tempItem = JSON.parse(JSON.stringify(config));
-
-        this.localItem = {
-          cellStyle: tempItem.cellStyle || {},
-          rowHeight: tempItem.rowHeight !== undefined ? tempItem.rowHeight : null,
-          colWidth: tempItem.colWidth !== undefined ? tempItem.colWidth : null,
-          newValue: tempItem.newValue !== undefined ? tempItem.newValue : null,
-          linkUrl: tempItem.linkUrl !== undefined ? tempItem.linkUrl : null,
-          linkTargetWindow: tempItem.linkTargetWindow !== undefined ? tempItem.linkTargetWindow : null,
-          linkParameters: tempItem.linkParameters !== undefined ? tempItem.linkParameters : null,
-          paging: tempItem.paging !== undefined ? tempItem.paging : null,
-          name: tempItem.name !== undefined ? tempItem.name : null,
-        };
-      }
-    },
-
-    handleColorChange({ type, checked, value, scope }) {
-      if (!this.localItem.cellStyle) {
-        this.localItem.cellStyle = {};
-      }
-
-      if (type === 'forecolor') {
-        this.localItem.cellStyle.forecolor = value;
-        this.localItem.cellStyle.forecolorScope = scope;
-      } else if (type === 'bgcolor') {
-        this.localItem.cellStyle.bgcolor = value;
-        this.localItem.cellStyle.bgcolorScope = scope;
-      }
-
-      this.emitPropertyChange();
-    },
-
-    handleFontChange({ type, checked, value, scope }) {
-      if (!this.localItem.cellStyle) {
-        this.localItem.cellStyle = {};
-      }
-
-      if (type === 'fontFamily') {
-        this.localItem.cellStyle.fontFamily = value;
-        this.localItem.cellStyle.fontFamilyScope = scope;
-      } else if (type === 'fontSize') {
-        this.localItem.cellStyle.fontSize = value;
-        this.localItem.cellStyle.fontSizeScope = scope;
-      } else if (type === 'bold') {
-        this.localItem.cellStyle.bold = value;
-        this.localItem.cellStyle.boldScope = scope;
-      } else if (type === 'italic') {
-        this.localItem.cellStyle.italic = value;
-        this.localItem.cellStyle.italicScope = scope;
-      } else if (type === 'underline') {
-        this.localItem.cellStyle.underline = value;
-        this.localItem.cellStyle.underlineScope = scope;
-      }
-
-      this.emitPropertyChange();
-    },
-
-    handleAlignChange({ type, checked, value, scope }) {
-      if (!this.localItem.cellStyle) {
-        this.localItem.cellStyle = {};
-      }
-
-      if (type === 'align') {
-        this.localItem.cellStyle.align = value;
-        this.localItem.cellStyle.alignScope = scope;
-      } else if (type === 'valign') {
-        this.localItem.cellStyle.valign = value;
-        this.localItem.cellStyle.valignScope = scope;
-      }
-
-      this.emitPropertyChange();
-    },
-
-    handleBorderChange({ checked, borders }) {
-      if (!this.localItem.cellStyle) {
-        this.localItem.cellStyle = {};
-      }
-
-      this.localItem.cellStyle.leftBorder = borders.leftBorder;
-      this.localItem.cellStyle.rightBorder = borders.rightBorder;
-      this.localItem.cellStyle.topBorder = borders.topBorder;
-      this.localItem.cellStyle.bottomBorder = borders.bottomBorder;
-
-      this.emitPropertyChange();
-    },
-
-    handleBorderSave(borderData) {
-      if (this.localItem.cellStyle) {
-        this.localItem.cellStyle.topBorder = borderData.topBorder;
-        this.localItem.cellStyle.bottomBorder = borderData.bottomBorder;
-        this.localItem.cellStyle.leftBorder = borderData.leftBorder;
-        this.localItem.cellStyle.rightBorder = borderData.rightBorder;
-      }
-      this.emitPropertyChange();
-    },
-
-    handleValueChange({ type, checked, value }) {
-      if (type === 'newValue') {
-        this.localItem.newValue = value;
-      } else if (type === 'format') {
-        if (!this.localItem.cellStyle) {
-          this.localItem.cellStyle = {};
-        }
-        this.localItem.cellStyle.format = value;
-      }
-
-      this.emitPropertyChange();
-    },
-
-    handleSizeChange({ type, checked, value }) {
-      if (type === 'rowHeight') {
-        this.localItem.rowHeight = value;
-      } else if (type === 'colWidth') {
-        this.localItem.colWidth = value;
-      }
-
-      this.emitPropertyChange();
-    },
-
-    handlePagingChange({ checked, paging }) {
-      this.localItem.paging = paging;
-      this.emitPropertyChange();
-    },
-
-    handleLinkChange({ checked, linkUrl, linkTargetWindow, linkParameters }) {
-      this.localItem.linkUrl = linkUrl;
-      this.localItem.linkTargetWindow = linkTargetWindow;
-      this.localItem.linkParameters = linkParameters;
-      this.emitPropertyChange();
-    },
-
-    emitPropertyChange() {
-      this.$nextTick(() => {
-        this.$emit('property-changed', this.localItem);
-      });
+  } else {
+    const tempItem = JSON.parse(JSON.stringify(config))
+    localItem.value = {
+      cellStyle: tempItem.cellStyle || {},
+      rowHeight: tempItem.rowHeight !== undefined ? tempItem.rowHeight : null,
+      colWidth: tempItem.colWidth !== undefined ? tempItem.colWidth : null,
+      newValue: tempItem.newValue !== undefined ? tempItem.newValue : null,
+      linkUrl: tempItem.linkUrl !== undefined ? tempItem.linkUrl : null,
+      linkTargetWindow: tempItem.linkTargetWindow !== undefined ? tempItem.linkTargetWindow : null,
+      linkParameters: tempItem.linkParameters !== undefined ? tempItem.linkParameters : null,
+      paging: tempItem.paging !== undefined ? tempItem.paging : null,
+      name: tempItem.name !== undefined ? tempItem.name : null,
     }
   }
-};
+}
+
+function handleColorChange({ type, checked, value, scope }: any) {
+  if (!localItem.value.cellStyle) {
+    localItem.value.cellStyle = {}
+  }
+
+  if (type === 'forecolor') {
+    localItem.value.cellStyle.forecolor = value
+    localItem.value.cellStyle.forecolorScope = scope
+  } else if (type === 'bgcolor') {
+    localItem.value.cellStyle.bgcolor = value
+    localItem.value.cellStyle.bgcolorScope = scope
+  }
+
+  emitPropertyChange()
+}
+
+function handleFontChange({ type, checked, value, scope }: any) {
+  if (!localItem.value.cellStyle) {
+    localItem.value.cellStyle = {}
+  }
+
+  if (type === 'fontFamily') {
+    localItem.value.cellStyle.fontFamily = value
+    localItem.value.cellStyle.fontFamilyScope = scope
+  } else if (type === 'fontSize') {
+    localItem.value.cellStyle.fontSize = value
+    localItem.value.cellStyle.fontSizeScope = scope
+  } else if (type === 'bold') {
+    localItem.value.cellStyle.bold = value
+    localItem.value.cellStyle.boldScope = scope
+  } else if (type === 'italic') {
+    localItem.value.cellStyle.italic = value
+    localItem.value.cellStyle.italicScope = scope
+  } else if (type === 'underline') {
+    localItem.value.cellStyle.underline = value
+    localItem.value.cellStyle.underlineScope = scope
+  }
+
+  emitPropertyChange()
+}
+
+function handleAlignChange({ type, checked, value, scope }: any) {
+  if (!localItem.value.cellStyle) {
+    localItem.value.cellStyle = {}
+  }
+
+  if (type === 'align') {
+    localItem.value.cellStyle.align = value
+    localItem.value.cellStyle.alignScope = scope
+  } else if (type === 'valign') {
+    localItem.value.cellStyle.valign = value
+    localItem.value.cellStyle.valignScope = scope
+  }
+
+  emitPropertyChange()
+}
+
+function handleBorderChange({ checked, borders }: any) {
+  if (!localItem.value.cellStyle) {
+    localItem.value.cellStyle = {}
+  }
+
+  localItem.value.cellStyle.leftBorder = borders.leftBorder
+  localItem.value.cellStyle.rightBorder = borders.rightBorder
+  localItem.value.cellStyle.topBorder = borders.topBorder
+  localItem.value.cellStyle.bottomBorder = borders.bottomBorder
+
+  emitPropertyChange()
+}
+
+function handleBorderSave(borderData: any) {
+  if (localItem.value.cellStyle) {
+    localItem.value.cellStyle.topBorder = borderData.topBorder
+    localItem.value.cellStyle.bottomBorder = borderData.bottomBorder
+    localItem.value.cellStyle.leftBorder = borderData.leftBorder
+    localItem.value.cellStyle.rightBorder = borderData.rightBorder
+  }
+  emitPropertyChange()
+}
+
+function handleValueChange({ type, checked, value }: any) {
+  if (type === 'newValue') {
+    localItem.value.newValue = value
+  } else if (type === 'format') {
+    if (!localItem.value.cellStyle) {
+      localItem.value.cellStyle = {}
+    }
+    localItem.value.cellStyle.format = value
+  }
+
+  emitPropertyChange()
+}
+
+function handleSizeChange({ type, checked, value }: any) {
+  if (type === 'rowHeight') {
+    localItem.value.rowHeight = value
+  } else if (type === 'colWidth') {
+    localItem.value.colWidth = value
+  }
+
+  emitPropertyChange()
+}
+
+function handlePagingChange({ checked, paging }: any) {
+  localItem.value.paging = paging
+  emitPropertyChange()
+}
+
+function handleLinkChange({ checked, linkUrl, linkTargetWindow, linkParameters }: any) {
+  localItem.value.linkUrl = linkUrl
+  localItem.value.linkTargetWindow = linkTargetWindow
+  localItem.value.linkParameters = linkParameters
+  emitPropertyChange()
+}
+
+function emitPropertyChange() {
+  nextTick(() => {
+    emit('property-changed', localItem.value)
+  })
+}
 </script>

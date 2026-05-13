@@ -32,111 +32,91 @@
       </u-form>
     </div>
 
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleSave">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import UDialog from '@/components/dialog/index.vue';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UButton from "@/components/button/index.vue";
-import UInput from "@/components/input/index.vue";
-import UForm from '@/components/form/index.vue';
-import UFormItem from '@/components/form-item/index.vue';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
 
-export default {
-  name: 'ParameterDialog',
-  components: {
-    UButton,
-    UDialog,
-    USelect,
-    UOption,
-    UInput,
-    UForm,
-    UFormItem
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    editData: {
-      type: Object,
-      default: null
-    }
-  },
-  emits: ['update:visible', 'save'],
-  data() {
-    return {
-      name: '',
-      type: '',
-      defaultValue: ''
-    };
-  },
-  computed: {
-    typeOptions() {
-      return [
-        { value: 'String', label: 'String' },
-        { value: 'Integer', label: 'Integer' },
-        { value: 'Float', label: 'Float' },
-        { value: 'Boolean', label: 'Boolean' },
-        { value: 'Date', label: 'Date' },
-        { value: 'List', label: 'List' }
-      ];
-    }
-  },
-  watch: {
-    editData: {
-      handler(newData) {
-        if (newData) {
-          this.name = newData.name || '';
-          this.type = newData.type || '';
-          this.defaultValue = newData.defaultValue || '';
-        } else {
-          this.name = '';
-          this.type = 'String';
-          this.defaultValue = '';
-        }
-      },
-      immediate: true
-    },
-    visible(newVal) {
-      if (newVal) {
-        if (this.editData) {
-          this.name = this.editData.name || '';
-          this.type = this.editData.type || '';
-          this.defaultValue = this.editData.defaultValue || '';
-        } else {
-          this.name = '';
-          this.type = 'String';
-          this.defaultValue = '';
-        }
-      }
-    }
-  },
-  methods: {
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
-    handleSave() {
-      if (!this.name) {
-        showAlert(this.$t('dialog.sqlParam.nameTip'));
-        return;
-      }
-      if (!this.type) {
-        showAlert(this.$t('dialog.sqlParam.datatypeTip'));
-        return;
-      }
-      this.$emit('save', this.name, this.type, this.defaultValue);
-      this.$emit('update:visible', false);
+defineOptions({ name: 'ParameterDialog' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  visible: boolean
+  editData: any
+}>(), {
+  visible: false,
+  editData: null
+})
+
+const emit = defineEmits<{
+  (e: 'update:visible', val: boolean): void
+  (e: 'save', name: string, type: string, defaultValue: string): void
+}>()
+
+const name = ref('')
+const type = ref('')
+const defaultValue = ref('')
+const form = ref<any>(null)
+
+const typeOptions = computed(() => [
+  { value: 'String', label: 'String' },
+  { value: 'Integer', label: 'Integer' },
+  { value: 'Float', label: 'Float' },
+  { value: 'Boolean', label: 'Boolean' },
+  { value: 'Date', label: 'Date' },
+  { value: 'List', label: 'List' }
+])
+
+watch(() => props.editData, (newData) => {
+  if (newData) {
+    name.value = newData.name || ''
+    type.value = newData.type || ''
+    defaultValue.value = newData.defaultValue || ''
+  } else {
+    name.value = ''
+    type.value = 'String'
+    defaultValue.value = ''
+  }
+}, { immediate: true })
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    if (props.editData) {
+      name.value = props.editData.name || ''
+      type.value = props.editData.type || ''
+      defaultValue.value = props.editData.defaultValue || ''
+    } else {
+      name.value = ''
+      type.value = 'String'
+      defaultValue.value = ''
     }
   }
-};
+})
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+function handleSave() {
+  if (!name.value) {
+    showAlert(t('dialog.sqlParam.nameTip'))
+    return
+  }
+  if (!type.value) {
+    showAlert(t('dialog.sqlParam.datatypeTip'))
+    return
+  }
+  emit('save', name.value, type.value, defaultValue.value)
+  emit('update:visible', false)
+}
 </script>
 
 <style scoped>

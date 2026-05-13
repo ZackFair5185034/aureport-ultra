@@ -2,7 +2,7 @@
   <div class="chart-dataset">
 
     <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="$t('chart.dataset')">
+      <u-form-item class="property-label" :label="t('chart.dataset')">
         <u-select
             v-model="localDatasetConfig.datasetName"
             :clearable="true"
@@ -18,7 +18,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.categoryProperty')">
+      <u-form-item class="property-label" :label="t('chart.categoryProperty')">
         <u-select
             v-model="localDatasetConfig.categoryProperty"
             :clearable="true"
@@ -34,7 +34,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.valueProperty')">
+      <u-form-item class="property-label" :label="t('chart.valueProperty')">
         <u-select
             v-model="localDatasetConfig.valueProperty"
             :clearable="true"
@@ -50,12 +50,12 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.seriesProperty')">
+      <u-form-item class="property-label" :label="t('chart.seriesProperty')">
         <u-radio-group v-model="localDatasetConfig.seriesType" @change="handleSeriesTypeChange">
           <u-radio
             v-for="option in [
-              { label: $t('chart.property'), value: 'property' },
-              { label: $t('chart.static'), value: 'text' }
+              { label: t('chart.property'), value: 'property' },
+              { label: t('chart.static'), value: 'text' }
             ]"
             :key="option.value"
             :label="option.value"
@@ -65,7 +65,7 @@
         </u-radio-group>
       </u-form-item>
 
-      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'property'" :label="$t('chart.prop')">
+      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'property'" :label="t('chart.prop')">
         <u-select
             v-model="localDatasetConfig.seriesProperty"
             :clearable="true"
@@ -81,7 +81,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'text'" :label="$t('chart.staticValue')">
+      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'text'" :label="t('chart.staticValue')">
         <u-input
             style="width: 250px;"
             v-model="localDatasetConfig.seriesText"
@@ -90,7 +90,7 @@
         </u-input>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.aggregate')">
+      <u-form-item class="property-label" :label="t('chart.aggregate')">
         <u-select
             v-model="localDatasetConfig.collectType"
             :clearable="true"
@@ -109,159 +109,154 @@
   </div>
 </template>
 
-<script>
-import {setDirty} from '@/utils/table';
-import URadioGroup from '@/components/radio-group/index.vue';
-import URadio from '@/components/radio/index.vue';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UInput from '@/components/input/index.vue';
-import UForm from "@/components/form/index.vue";
-import UFormItem from "@/components/form-item/index.vue";
-import { mapGetters } from 'vuex';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { setDirty } from '@/utils/table'
 
-export default {
-  name: 'ChartDataset',
-  components: {
-    UForm,
-    UFormItem,
-    URadioGroup,
-    URadio,
-    USelect,
-    UOption,
-    UInput
-  },
-  props: {
-    datasetConfig: {
-      type: Object,
-      required: true
-    }
-  },
-  data() {
-    return {
-      availableDatasets: [],
-      availableFields: [],
-      localDatasetConfig: {
-        datasetName: '',
-        categoryProperty: '',
-        valueProperty: '',
-        seriesType: 'text',
-        seriesProperty: '',
-        seriesText: '',
-        collectType: '',
-        format: ''
-      }
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    },
-    datasetOptions() {
-      return this.availableDatasets.map(dataset => ({
-        value: dataset.name,
-        label: dataset.name
-      }));
-    },
-    fieldOptions() {
-      return this.availableFields.map(field => ({
-        value: field.name,
-        label: field.name
-      }));
-    },
-    aggregateOptions() {
-      return [
-        { value: 'select', label: this.$t('chart.select') },
-        { value: 'sum', label: this.$t('chart.sum') },
-        { value: 'count', label: this.$t('chart.count') },
-        { value: 'max', label: this.$t('chart.max') },
-        { value: 'min', label: this.$t('chart.min') },
-        { value: 'avg', label: this.$t('chart.avg') }
-      ];
-    }
-  },
-  watch: {
-    datasetConfig: {
-      handler(newVal) {
-        if (newVal) {
-          this.localDatasetConfig = { ...this.localDatasetConfig, ...newVal };
-        }
-      },
-      deep: true,
-      immediate: true
-    },
-    'localDatasetConfig.datasetName': {
-      handler(newVal) {
-        if (newVal) {
-          this.loadAvailableFields();
-        }
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    this.loadAvailableDatasets();
-  },
-  methods: {
-    loadAvailableDatasets() {
-      this.availableDatasets = [];
-      for (let ds of this.context.reportDef.datasources) {
-        let datasets = ds.datasets || [];
-        for (let dataset of datasets) {
-          this.availableDatasets.push(dataset);
-        }
-      }
-    },
-    loadAvailableFields() {
-      this.availableFields = [];
-      const datasetName = this.datasetConfig.datasetName;
+defineOptions({ name: 'ChartDataset' })
 
-      if (!datasetName) return;
+const { t } = useI18n()
+const store = useReportStore()
 
-      for (let ds of this.context.reportDef.datasources) {
-        let datasets = ds.datasets || [];
-        for (let dataset of datasets) {
-          if (dataset.name === datasetName) {
-            this.availableFields = dataset.fields || [];
-            break;
-          }
-        }
-        if (this.availableFields.length > 0) {
-          break;
-        }
-      }
-    },
-    handleDatasetChange(value) {
-      this.$emit('dataset-change', value);
-      setDirty();
-    },
-    handleCategoryPropertyChange(value) {
-      this.$emit('category-property-change', value);
-      setDirty();
-    },
-    handleValuePropertyChange(value) {
-      this.$emit('value-property-change', value);
-      setDirty();
-    },
-    handleSeriesTypeChange(value) {
-      this.$emit('series-type-change', value);
-      setDirty();
-    },
-    handleSeriesPropertyChange(value) {
-      this.$emit('series-property-change', value);
-      setDirty();
-    },
-    handleSeriesTextChange(value) {
-      this.$emit('series-text-change', value);
-      setDirty();
-    },
-    handleAggregateChange(value) {
-      this.$emit('aggregate-change', value);
-      setDirty();
+const props = withDefaults(defineProps<{
+  datasetConfig?: any
+}>(), {
+  datasetConfig: () => ({})
+})
+
+const emit = defineEmits<{
+  (e: 'dataset-change', value: string): void
+  (e: 'category-property-change', value: string): void
+  (e: 'value-property-change', value: string): void
+  (e: 'series-type-change', value: string): void
+  (e: 'series-property-change', value: string): void
+  (e: 'series-text-change', value: string): void
+  (e: 'aggregate-change', value: string): void
+}>()
+
+const availableDatasets = ref<any[]>([])
+const availableFields = ref<any[]>([])
+const localDatasetConfig = reactive({
+  datasetName: '',
+  categoryProperty: '',
+  valueProperty: '',
+  seriesType: 'text',
+  seriesProperty: '',
+  seriesText: '',
+  collectType: '',
+  format: ''
+})
+
+const context = computed(() => store.context || {})
+
+const datasetOptions = computed(() =>
+  availableDatasets.value.map((dataset: any) => ({
+    value: dataset.name,
+    label: dataset.name
+  }))
+)
+
+const fieldOptions = computed(() =>
+  availableFields.value.map((field: any) => ({
+    value: field.name,
+    label: field.name
+  }))
+)
+
+const aggregateOptions = computed(() => [
+  { value: 'select', label: t('chart.select') },
+  { value: 'sum', label: t('chart.sum') },
+  { value: 'count', label: t('chart.count') },
+  { value: 'max', label: t('chart.max') },
+  { value: 'min', label: t('chart.min') },
+  { value: 'avg', label: t('chart.avg') }
+])
+
+watch(() => props.datasetConfig, (newVal) => {
+  if (newVal) {
+    Object.assign(localDatasetConfig, { ...localDatasetConfig, ...newVal })
+  }
+}, { deep: true, immediate: true })
+
+watch(() => localDatasetConfig.datasetName, (newVal) => {
+  if (newVal) {
+    loadAvailableFields()
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  loadAvailableDatasets()
+})
+
+function loadAvailableDatasets() {
+  availableDatasets.value = []
+  const ctx = context.value
+  if (!ctx.reportDef) return
+  for (let ds of ctx.reportDef.datasources) {
+    let datasets = ds.datasets || []
+    for (let dataset of datasets) {
+      availableDatasets.value.push(dataset)
     }
   }
-};
+}
+
+function loadAvailableFields() {
+  availableFields.value = []
+  const datasetName = localDatasetConfig.datasetName
+  if (!datasetName) return
+  const ctx = context.value
+  if (!ctx.reportDef) return
+  for (let ds of ctx.reportDef.datasources) {
+    let datasets = ds.datasets || []
+    for (let dataset of datasets) {
+      if (dataset.name === datasetName) {
+        availableFields.value = dataset.fields || []
+        break
+      }
+    }
+    if (availableFields.value.length > 0) {
+      break
+    }
+  }
+}
+
+function handleDatasetChange(value: string) {
+  emit('dataset-change', value)
+  setDirty()
+}
+
+function handleCategoryPropertyChange(value: string) {
+  emit('category-property-change', value)
+  setDirty()
+}
+
+function handleValuePropertyChange(value: string) {
+  emit('value-property-change', value)
+  setDirty()
+}
+
+function handleSeriesTypeChange(value: string) {
+  emit('series-type-change', value)
+  setDirty()
+}
+
+function handleSeriesPropertyChange(value: string) {
+  emit('series-property-change', value)
+  setDirty()
+}
+
+function handleSeriesTextChange(value: string) {
+  emit('series-text-change', value)
+  setDirty()
+}
+
+function handleAggregateChange(value: string) {
+  emit('aggregate-change', value)
+  setDirty()
+}
 </script>
 
 <style scoped>

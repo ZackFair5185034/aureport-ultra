@@ -1,60 +1,63 @@
+<script setup lang="ts">
+import { reactive, inject, onMounted, onBeforeUnmount } from 'vue'
+import type { SelectContext } from '../select/index.vue'
+
+defineOptions({ name: 'UOption' })
+
+const props = withDefaults(defineProps<{
+  value?: unknown
+  label?: string
+  disabled?: boolean
+}>(), {
+  disabled: false,
+})
+
+const selectContext = inject<SelectContext>('selectContext')
+
+const instance = reactive({
+  get value() { return props.value },
+  get label() { return props.label ?? String(props.value ?? '') },
+  get disabled() { return props.disabled },
+  selected: false,
+  choose: false,
+  visible: true,
+  multi: false,
+})
+
+onMounted(() => {
+  selectContext?.onOptionAdd(instance)
+})
+
+onBeforeUnmount(() => {
+  selectContext?.onOptionRemove(instance)
+})
+
+function onClick() {
+  if (props.disabled) return
+  selectContext?.onOptionSelect(instance)
+}
+</script>
+
 <template>
   <div
-      v-show="visible"
-      class="u-option"
-      :class="{
-      'u-option-selected': selected,
-      'u-option-disabled': disabled,
-      'u-option-choose': choose,
-      'u-option-multi': multi
+    v-show="instance.visible"
+    class="u-option"
+    :class="{
+      'u-option-selected': instance.selected,
+      'u-option-disabled': instance.disabled,
+      'u-option-choose': instance.choose,
+      'u-option-multi': instance.multi,
     }"
-      @click="onClick"
+    @click="onClick"
   >
     <slot>
       {{ label }}
-      <i class="iconfont icon-checked u-option-icon" v-if="choose" />
+      <i v-if="instance.choose" class="iconfont icon-checked u-option-icon" />
     </slot>
   </div>
 </template>
 
-<script>
-import Emitter from "../mixins/emitter";
-export default {
-  name: 'UOption',
-  data() {
-    return {
-      visible: true,
-      multi: false,
-      selected: false,
-      choose: false
-    };
-  },
-  props: {
-    value: {},
-    label: {},
-    disabled: {
-      type: Boolean,
-      default: false
-    }
-  },
-  mixins: [Emitter],
-  mounted() {
-    this.dispatch("USelect", "on-option-add", this);
-  },
-  methods: {
-    onClick() {
-      if (this.disabled) return;
-      this.dispatch("USelect", "on-option-select", this);
-    }
-  },
-  beforeDestroy() {
-    this.dispatch("USelect", "on-option-remove", this);
-  }
-};
-</script>
-
 <style scoped>
-
 .u-option {
   line-height: 32px;
   padding: 0 15px 0 15px;
@@ -95,5 +98,4 @@ export default {
   transform: translateY(-50%);
   font-size: 12px
 }
-
 </style>

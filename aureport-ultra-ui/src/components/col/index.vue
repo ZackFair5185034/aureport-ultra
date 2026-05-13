@@ -1,97 +1,79 @@
-<template>
-  <div :class="classes" :style="styles">
-    <slot></slot>
-  </div>
-</template>
-
-<script>
+<script setup lang="ts">
+import { computed, inject } from 'vue'
+import type { RowContext } from '../row/index.vue'
 import './style/index.css'
-import { findComponentUpward } from '../utils'
+
+defineOptions({ name: 'UCol' })
+
+const props = defineProps<{
+  span?: number | string
+  order?: number | string
+  offset?: number | string
+  push?: number | string
+  pull?: number | string
+  className?: string
+  xs?: number | Record<string, number | string>
+  sm?: number | Record<string, number | string>
+  md?: number | Record<string, number | string>
+  lg?: number | Record<string, number | string>
+  xl?: number | Record<string, number | string>
+  xxl?: number | Record<string, number | string>
+}>()
 
 const prefixCls = 'u-col'
 
-export default {
-  name: 'UCol',
-  props: {
-    span: [Number, String],
-    order: [Number, String],
-    offset: [Number, String],
-    push: [Number, String],
-    pull: [Number, String],
-    className: String,
-    xs: [Number, Object],
-    sm: [Number, Object],
-    md: [Number, Object],
-    lg: [Number, Object],
-    xl: [Number, Object],
-    xxl: [Number, Object]
-  },
-  data() {
-    return {
-      gutter: 0
-    }
-  },
-  computed: {
-    classes() {
-      let classList = [
-        `${prefixCls}`,
-        {
-          [`${prefixCls}-span-${this.span}`]: this.span,
-          [`${prefixCls}-order-${this.order}`]: this.order,
-          [`${prefixCls}-offset-${this.offset}`]: this.offset,
-          [`${prefixCls}-push-${this.push}`]: this.push,
-          [`${prefixCls}-pull-${this.pull}`]: this.pull,
-          [`${this.className}`]: !!this.className
-        }
-      ];
+const rowContext = inject<RowContext>('rowContext')
 
-      ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'].forEach(size => {
-        if (typeof this[size] === 'number') {
-          classList.push(`${prefixCls}-span-${size}-${this[size]}`)
-        } else if (typeof this[size] === 'object') {
-          let props = this[size]
-          Object.keys(props).forEach(prop => {
-            classList.push(
-                prop !== 'span'
-                    ? `${prefixCls}-${size}-${prop}-${props[prop]}`
-                    : `${prefixCls}-span-${size}-${props[prop]}`
-            )
-          })
-        }
-      })
-
-      return classList
+const classes = computed(() => {
+  const classList: (string | Record<string, boolean>)[] = [
+    `${prefixCls}`,
+    {
+      [`${prefixCls}-span-${props.span}`]: props.span !== undefined,
+      [`${prefixCls}-order-${props.order}`]: props.order !== undefined,
+      [`${prefixCls}-offset-${props.offset}`]: props.offset !== undefined,
+      [`${prefixCls}-push-${props.push}`]: props.push !== undefined,
+      [`${prefixCls}-pull-${props.pull}`]: props.pull !== undefined,
+      [`${props.className}`]: !!props.className,
     },
-    styles() {
-      let style = {}
-      if (this.gutter !== 0) {
-        style = {
-          paddingLeft: this.gutter / 2 + 'px',
-          paddingRight: this.gutter / 2 + 'px'
-        }
-      }
+  ]
 
-      return style
+  ;(['xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const).forEach(size => {
+    const val = props[size]
+    if (typeof val === 'number') {
+      classList.push(`${prefixCls}-span-${size}-${val}`)
+    } else if (typeof val === 'object' && val !== null) {
+      const sizeProps = val as Record<string, number | string>
+      Object.keys(sizeProps).forEach(prop => {
+        classList.push(
+          prop !== 'span'
+            ? `${prefixCls}-${size}-${prop}-${sizeProps[prop]}`
+            : `${prefixCls}-span-${size}-${sizeProps[prop]}`
+        )
+      })
     }
-  },
-  methods: {
-    updateGutter() {
-      const row = findComponentUpward(this, 'BRow')
-      if (row) {
-        row.updateGutter(row.gutter)
-      }
+  })
+
+  return classList
+})
+
+const styles = computed(() => {
+  if (rowContext && rowContext.gutter !== 0) {
+    return {
+      paddingLeft: `${rowContext.gutter / 2}px`,
+      paddingRight: `${rowContext.gutter / 2}px`,
     }
-  },
-  mounted() {
-    this.updateGutter()
-  },
-  beforeDestroy() {
-    this.updateGutter()
   }
-}
+  return {}
+})
 </script>
-<style scoped>
 
+<template>
+  <div :class="classes" :style="styles">
+    <slot />
+  </div>
+</template>
+
+<style scoped>
 .u-row {
   position: relative;
   display: block

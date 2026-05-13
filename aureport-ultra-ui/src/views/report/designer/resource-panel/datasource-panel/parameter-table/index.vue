@@ -58,71 +58,73 @@
   </div>
 </template>
 
-<script>
-import ParameterDialog from '../parameter-dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import {showAlert} from "@/utils/comnon";
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import ParameterDialog from '../parameter-dialog/index.vue'
+import { showAlert } from '@/utils/comnon'
 
-export default {
-  name: 'ParameterTable',
-  components: {UButton, ParameterDialog},
-  props: {
-    data: {
-      type: Array,
-      default: () => []
-    }
-  },
-  data() {
-    return {
-      currentEditData: null,
-      currentIndex: -1,
-      parameterDialogVisible: false
-    };
-  },
-  watch: {
-    data: {
-      handler(newData) {
-        // 数据变化时自动响应
-      },
-      deep: true
-    }
-  },
-  methods: {
-      refreshData() {
-        // 触发数据更新事件
-        this.$emit('update');
-      },
-      handleDialogSave(name, type, defaultValue) {
-        if ((this.currentIndex === -1 || this.data[this.currentIndex].name !== name) &&
-            this.data.some(param => param.name === name)) {
-          showAlert(`参数[${name}]已存在`);
-          return;
-        }
+defineOptions({ name: 'ParameterTable' })
 
-        if (this.currentIndex === -1) {
-          const newParam = { name, type, defaultValue };
-          this.$emit('add-parameter', newParam);
-        } else {
-          this.$emit('edit-parameter', this.currentIndex, { name, type, defaultValue });
-        }
-        this.$emit('update');
-      },
-      addParameter() {
-        this.currentIndex = -1;
-        this.currentEditData = null;
-        this.parameterDialogVisible = true;
-      },
-      editParameter(param, index) {
-          this.currentIndex = index;
-          this.currentEditData = param;
-          this.parameterDialogVisible = true;
-      },
-      removeParameter(param, index) {
-        this.$emit('remove-parameter', index);
-        this.$emit('update');
-      }
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  data: any[]
+}>(), {
+  data: () => []
+})
+
+const emit = defineEmits<{
+  (e: 'add-parameter', param: any): void
+  (e: 'edit-parameter', index: number, param: any): void
+  (e: 'remove-parameter', index: number): void
+  (e: 'update'): void
+}>()
+
+const currentEditData = ref<any>(null)
+const currentIndex = ref(-1)
+const parameterDialogVisible = ref(false)
+
+watch(() => props.data, () => {
+  // data changes auto-react
+}, { deep: true })
+
+function refreshData() {
+  emit('update')
+}
+
+function handleDialogSave(name: string, type: string, defaultValue: string) {
+  if ((currentIndex.value === -1 || props.data[currentIndex.value].name !== name) &&
+      props.data.some((param: any) => param.name === name)) {
+    showAlert(`参数[${name}]已存在`)
+    return
   }
-};
+
+  if (currentIndex.value === -1) {
+    const newParam = { name, type, defaultValue }
+    emit('add-parameter', newParam)
+  } else {
+    emit('edit-parameter', currentIndex.value, { name, type, defaultValue })
+  }
+  emit('update')
+}
+
+function addParameter() {
+  currentIndex.value = -1
+  currentEditData.value = null
+  parameterDialogVisible.value = true
+}
+
+function editParameter(param: any, index: number) {
+  currentIndex.value = index
+  currentEditData.value = param
+  parameterDialogVisible.value = true
+}
+
+function removeParameter(param: any, index: number) {
+  emit('remove-parameter', index)
+  emit('update')
+}
 </script>
 
 <style scoped>

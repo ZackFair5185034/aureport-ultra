@@ -3,8 +3,12 @@
  */
 import UndoManager from 'undo-manager';
 import MessageBox from '@/components/messagebox/instance.js';
-import store from '@/store';
+import {useReportStore} from '@/stores/report';
 import {getCell, getCellName} from "@/utils/contextActions";
+
+function getStore() {
+    return useReportStore();
+}
 import TableManager from '@/views/report/designer/edit-table/manager.js';
 
 export function resetTableData(hot){
@@ -739,12 +743,12 @@ export const undoManager=new UndoManager();
 
 // 设置脏数据状态，启用保存按钮
 export function setDirty() {
-    store.dispatch('report/setSaveBtnDisable', false).then(r => {});
+    getStore().setSaveBtnDisable(false);
 }
 
 // 重置脏数据状态，禁用保存按钮
 export function resetDirty() {
-    store.dispatch('report/setSaveBtnDisable', true).then(r => {{}});
+    getStore().setSaveBtnDisable(true);
 }
 
 

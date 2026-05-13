@@ -13,57 +13,51 @@
   </u-button>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import { resetDirty, tableToXml } from '@/utils/table.js';
-import { saveReportFile } from '@/api/designer/index.js';
-import UButton from "@/components/button/index.vue";
-import SaveDialog from "@/views/report/designer/tool-bar/save-as-tool/save-dialog/index.vue";
-import { mapGetters } from 'vuex';
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { showAlert } from '@/utils/comnon.js'
+import { resetDirty, tableToXml } from '@/utils/table.js'
+import { saveReportFile } from '@/api/designer/index.js'
 
-export default {
-  name: 'SaveTool',
-  components: {SaveDialog, UButton},
-  data() {
-    return {
-      visible: false
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getSaveStatus', 'getFileName', 'getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  methods: {
-    handleClick() {
-      if (!this.getSaveStatus) {
-        this.visible = true;
-        return;
-      }
+defineOptions({ name: 'SaveTool' })
 
-      const content = tableToXml(this.context);
+const { t } = useI18n()
+const store = useReportStore()
+const visible = ref(false)
 
-      const fullFileName = this.getFileName + ".ureport.xml";
-      saveReportFile(fullFileName, content)
-          .then(() => {
-            showAlert(this.$t('tools.save.successSave'));
-            resetDirty();
-          })
-          .catch(error => {
-            console.error('保存失败:', error);
-            if (error.msg) {
-              showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-            } else {
-              showAlert(this.$t('tools.save.failSave'));
-            }
-          });
-    },
-    handleSaveAfter(fullFile){
-      window.location.replace("?reportPath=" + fullFile);
-    }
+const getSaveStatus = computed(() => store.saveStatus)
+const getFileName = computed(() => store.fileName)
+const context = computed(() => store.context)
+
+function handleClick() {
+  if (!getSaveStatus.value) {
+    visible.value = true
+    return
   }
-};
+
+  const content = tableToXml(context.value)
+  const fullFileName = getFileName.value + ".ureport.xml"
+
+  saveReportFile(fullFileName, content)
+    .then(() => {
+      showAlert(t('tools.save.successSave'))
+      resetDirty()
+    })
+    .catch((error: any) => {
+      console.error('保存失败:', error)
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      } else {
+        showAlert(t('tools.save.failSave'))
+      }
+    })
+}
+
+function handleSaveAfter(fullFile: string) {
+  window.location.replace("?reportPath=" + fullFile)
+}
 </script>
 
 <style scoped>

@@ -1,106 +1,109 @@
+<script setup lang="ts">
+import { ref, nextTick } from 'vue'
+
+defineOptions({ name: 'UMessage' })
+
+export interface MessageItem {
+  message: string
+  showClose?: boolean
+  useHTMLString?: boolean
+  type: 'info' | 'success' | 'warning' | 'error'
+  top: number
+  key: string
+}
+
+const messageList = ref<MessageItem[]>([])
+const offsetTop = ref(20)
+
+function add(params: {
+  message: string
+  duration?: number
+  showClose?: boolean
+  type?: string
+  useHTMLString?: boolean
+}) {
+  const key = `i-need-key-by-random-${Math.random()}`
+  const { duration, message, showClose, useHTMLString, type } = params
+
+  messageList.value.push({
+    message: message,
+    showClose: showClose || false,
+    useHTMLString: useHTMLString || false,
+    type: (type as MessageItem['type']) || 'info',
+    top: offsetTop.value,
+    key,
+  })
+
+  nextTick(() => {
+    const el = document.querySelector(`[data-key="${key}"]`) as HTMLElement | null
+    if (el) {
+      offsetTop.value += el.clientHeight + 20
+    }
+  })
+
+  if (duration !== 0) {
+    setTimeout(() => {
+      remove(key)
+    }, duration || 3000)
+  }
+}
+
+function remove(key: string) {
+  const index = messageList.value.findIndex((cell) => cell.key === key)
+  if (index === -1) return
+
+  const el = document.querySelector(`[data-key="${key}"]`) as HTMLElement | null
+  const height = el ? el.clientHeight + 20 : 0
+  offsetTop.value -= height
+
+  messageList.value.splice(index, 1)
+  messageList.value.forEach((cell) => {
+    if (messageList.value.indexOf(cell) >= index) {
+      cell.top -= height
+    }
+  })
+}
+
+defineExpose({ add, remove })
+</script>
+
 <template>
   <div class="u-message">
     <transition-group name="slide">
       <div
-          class="u-message-cell"
-          :class="{ [`u-message-cell-${item.type}`]: true }"
-          v-for="item in messageList"
-          :key="item.key"
-          :style="{ top: `${item.top}px` }"
-          :ref="item.key"
+        v-for="item in messageList"
+        :key="item.key"
+        :data-key="item.key"
+        class="u-message-cell"
+        :class="[`u-message-cell-${item.type}`]"
+        :style="{ top: `${item.top}px` }"
       >
-        <i
-            class="u-message-cell-icon iconfont"
-            :class="{ [`icon-${item.type}`]: true }"
-        />
+        <i class="u-message-cell-icon iconfont" :class="[`icon-${item.type}`]" />
 
         <div
-            class="u-message-cell-text"
-            v-if="item.useHTMLString"
-            v-html="item.message"
-        ></div>
-        <div class="u-message-cell-text" v-else>
+          v-if="item.useHTMLString"
+          class="u-message-cell-text"
+          v-html="item.message"
+        />
+        <div v-else class="u-message-cell-text">
           {{ item.message }}
         </div>
         <i
-            v-if="item.showClose"
-            class="u-message-cell-close iconfont icon-close"
-            @click="remove(item.key)"
+          v-if="item.showClose"
+          class="u-message-cell-close iconfont icon-close"
+          @click="remove(item.key)"
         />
       </div>
     </transition-group>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'UMessage',
-  data() {
-    return {
-      // 消息列表
-      messageList: [],
-      offsetTop: 20, // 当前消息的基础偏移量
-    }
-  },
-  methods: {
-    /**
-     * @description 添加新消息
-     * @param {object} 消息提示的参数
-     */
-    add(params) {
-      /*
-        用随机数来生成一个不重复的key
-        一方面是transition-group需要key
-        另一个是作为删除时的遍历依据
-      */
-      const key = `i-need-key-by-random-${Math.random()}`
-      const { duration, message, showClose, type, useHTMLString } = params
-
-      this.messageList.push({
-        message: message,
-        showClose,
-        useHTMLString,
-        type: type || 'info',
-        top: this.offsetTop,
-        key,
-      })
-
-      this.$nextTick(() => {
-        this.offsetTop += this.$refs[key][0].clientHeight + 20
-      })
-
-      // 持续时间，传0则不关闭
-      if (duration !== 0) {
-        setTimeout(() => {
-          this.remove(key)
-        }, duration || 3000)
-      }
-    },
-    /**
-     * @description 移除消息
-     */
-    remove(key) {
-      const index = this.messageList.findIndex((cell) => cell.key === key)
-      const height = this.$refs[key][0].clientHeight + 20
-      this.offsetTop -= height
-
-      this.messageList.splice(index, 1)
-      this.messageList.forEach((cell, i) => {
-        if (i >= index) {
-          cell.top -= height
-        }
-      })
-    },
-  },
-}
-</script>
 <style scoped>
-
 .u-message {
   z-index: 1000;
   position: absolute;
   left: 0;
-  top: 0
+  top: 0;
 }
 
 .u-message-cell {
@@ -113,7 +116,7 @@ export default {
   background-color: #ddd;
   border-radius: 8px;
   display: flex;
-  align-items: center
+  align-items: center;
 }
 
 .u-message-cell-icon {
@@ -121,12 +124,12 @@ export default {
   height: 20px;
   line-height: 20px;
   text-align: center;
-  margin-right: 10px
+  margin-right: 10px;
 }
 
 .u-message-cell-text {
   font-size: 14px;
-  margin-right: 10px
+  margin-right: 10px;
 }
 
 .u-message-cell-close {
@@ -135,28 +138,12 @@ export default {
   line-height: 20px;
   margin-left: auto;
   cursor: pointer;
-  color: #888
+  color: #888;
 }
 
-.u-message-cell-close:hover {
-  color: #000
-}
+.u-message-cell-close:hover { color: #000; }
 
-.u-message-cell-success {
-  background-color: #eef8e9;
-  border-color: #67c23a;
-  color: #67c23a
-}
-
-.u-message-cell-warning {
-  background-color: #faedda;
-  border-color: #e6a23c;
-  color: #e6a23c
-}
-
-.u-message-cell-error {
-  background-color: #fde3e3;
-  border-color: #f56c6c;
-  color: #f56c6c
-}
+.u-message-cell-success { background-color: #eef8e9; border-color: #67c23a; color: #67c23a; }
+.u-message-cell-warning { background-color: #faedda; border-color: #e6a23c; color: #e6a23c; }
+.u-message-cell-error { background-color: #fde3e3; border-color: #f56c6c; color: #f56c6c; }
 </style>

@@ -30,82 +30,77 @@
                 </tr>
             </tbody>
         </table>
-        <div slot="footer" style="text-align: right">
+        <template #footer><div style="text-align: right">
             <u-button @click="closeDialog" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-        </div>
+        </div></template>
     </UDialog>
 </template>
 
-<script>
-import {showAlert} from '@/utils/comnon.js';
-import {setDirty} from '@/utils/table.js';
-import {loadBuildinDatasources} from '@/api/designer/index.js';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from '@/components/button/index.vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { setDirty } from '@/utils/table.js'
+import { loadBuildinDatasources } from '@/api/designer/index.js'
 
-export default {
-  name: 'BuildinDatasourceSelectDialog',
-  components: {
-    UDialog,
-    UButton
-  },
-  props: {
-    datasources: {
-      type: Array,
-      default: () => []
-    },
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      loading: false,
-      buildinDatasources: []
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.buildinDatasources = [];
-        this.loading = true;
-        this.loadBuildinDatasources();
-      }
-    }
-  },
-  methods: {
-    async loadBuildinDatasources() {
-      try {
-        this.buildinDatasources = await loadBuildinDatasources();
-        this.loading = false;
-      } catch (error) {
-        this.loading = false;
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('dialog.buildin.loadFail'));
-        }
-      }
-    },
-    selectDatasource(name) {
-      for (let ds of this.datasources) {
-        if (ds.name === name) {
-          showAlert(`${this.$t('dialog.buildin.datasource')}[${name}]${this.$t('dialog.buildin.datasourceExist')}`);
-          return;
-        }
-      }
+defineOptions({ name: 'BuildinDatasourceSelectDialog' })
 
-      this.$emit('select', { name, type: 'buildin' });
+const { t } = useI18n()
 
-      setDirty();
-      this.closeDialog();
-    },
-    closeDialog() {
-      this.$emit('close');
+const props = withDefaults(defineProps<{
+  datasources: any[]
+  visible: boolean
+}>(), {
+  datasources: () => [],
+  visible: false
+})
+
+const emit = defineEmits<{
+  (e: 'select', data: { name: string; type: string }): void
+  (e: 'close'): void
+}>()
+
+const loading = ref(false)
+const buildinDatasources = ref<string[]>([])
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    buildinDatasources.value = []
+    loading.value = true
+    loadBuildinDatasourcesData()
+  }
+})
+
+async function loadBuildinDatasourcesData() {
+  try {
+    buildinDatasources.value = await loadBuildinDatasources() as any
+    loading.value = false
+  } catch (error: any) {
+    loading.value = false
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('dialog.buildin.loadFail'))
     }
   }
-};
+}
+
+function selectDatasource(name: string) {
+  for (let ds of props.datasources) {
+    if (ds.name === name) {
+      showAlert(`${t('dialog.buildin.datasource')}[${name}]${t('dialog.buildin.datasourceExist')}`)
+      return
+    }
+  }
+
+  emit('select', { name, type: 'buildin' })
+  setDirty()
+  closeDialog()
+}
+
+function closeDialog() {
+  emit('close')
+}
 </script>
 
 <style scoped>

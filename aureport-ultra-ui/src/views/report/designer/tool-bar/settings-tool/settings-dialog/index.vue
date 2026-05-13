@@ -6,7 +6,6 @@
     @close="handleClose"
   >
     <div class="settings-dialog">
-      <!-- 选项卡导航 -->
       <u-tabs v-model="activeTab">
         <u-tab-pane :label="$t('dialog.setting.pageSetting')" index="page"></u-tab-pane>
         <u-tab-pane :label="$t('dialog.setting.headerFooterSetting')" index="headerFooter"></u-tab-pane>
@@ -14,9 +13,7 @@
         <u-tab-pane :label="$t('dialog.setting.columnSetting')" index="column"></u-tab-pane>
       </u-tabs>
 
-      <!-- 选项卡内容 -->
       <div class="tab-content">
-        <!-- 页面设置 -->
         <div v-show="activeTab === 'page'">
           <page-settings
             :paper="paper"
@@ -31,7 +28,6 @@
           />
         </div>
 
-        <!-- 页眉页脚设置 -->
         <div v-show="activeTab === 'headerFooter'">
           <header-footer-settings
             :header="header"
@@ -46,7 +42,6 @@
           />
         </div>
 
-        <!-- 分页设置 -->
         <div v-show="activeTab === 'paging'">
           <paging-settings
             :paper="paper"
@@ -56,7 +51,6 @@
           />
         </div>
 
-        <!-- 列设置 -->
         <div v-show="activeTab === 'column'">
           <column-settings
             :paper="paper"
@@ -85,328 +79,265 @@
       @ok="handleFooterFontDialogOk"
     />
 
-    <div slot="footer" class="div-footer-align">
+    <template #footer><div class="div-footer-align">
       <u-button @click="handleClose" type="info" class="btn-cancel">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import {buildPageSizeList, mmToPoint, setDirty} from '@/utils/table.js';
-import { deepCopy } from '@/components/utils/index.js';
-import FontSettingDialog from '@/views/report/designer/tool-bar/settings-tool/font-setting-dialog/index.vue';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import UTabs from "@/components/tabs/index.vue";
-import UTabPane from "@/components/tabs/pane.vue";
-import PageSettings from './page/index.vue';
-import HeaderFooterSettings from './headerFooter/index.vue';
-import PagingSettings from './paging/index.vue';
-import ColumnSettings from './column/index.vue';
-import { mapGetters } from 'vuex';
-import { updateReportDef } from '@/utils/contextActions.js';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { showAlert } from '@/utils/comnon.js'
+import { buildPageSizeList, mmToPoint, setDirty } from '@/utils/table.js'
+import { deepCopy } from '@/components/utils/index.js'
+import { updateReportDef } from '@/utils/contextActions.js'
 
-export default {
-  name: 'SettingsDialog',
-  components: {
-    UButton,
-    UDialog,
-    FontSettingDialog,
-    UTabs,
-    UTabPane,
-    PageSettings,
-    HeaderFooterSettings,
-    PagingSettings,
-    ColumnSettings
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      dialogVisible: false,
-      activeTab: 'page',
-      paperSizeList: buildPageSizeList(),
-      initializing: false, // 添加初始化标志
-      paper: {
-        paperType: 'A4',
-        width: mmToPoint(210),
-        height: mmToPoint(297),
-        leftMargin: mmToPoint(20),
-        rightMargin: mmToPoint(20),
-        topMargin: mmToPoint(20),
-        bottomMargin: mmToPoint(20),
-        orientation: 'portrait',
-        htmlReportAlign: 'left',
-        htmlIntervalRefreshValue: 3,
-        bgImage: '',
-        pagingMode: 'fitpage',
-        fixRows: 30,
-        columnEnabled: false,
-        columnCount: 2,
-        columnMargin: mmToPoint(10)
-      },
-      header: {
-        left: '',
-        center: '',
-        right: '',
-        margin: 30,
-        fontFamily: '宋体',
-        fontSize: 10,
-        forecolor: '0,0,0',
-        bold: false,
-        italic: false,
-        underline: false
-      },
-      footer: {
-        left: '',
-        center: '',
-        right: '',
-        margin: 30,
-        fontFamily: '宋体',
-        fontSize: 10,
-        forecolor: '0,0,0',
-        bold: false,
-        italic: false,
-        underline: false
-      },
-      headerFontDialogVisible: false,
-      footerFontDialogVisible: false
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  created() {
-    // 初始化dialogVisible
-    this.dialogVisible = this.visible;
+defineOptions({ name: 'SettingsDialog' })
 
-    if (this.visible && this.context) {
-      this.initializeData();
-    }
-  },
-  watch: {
-    visible(newVal) {
-      this.dialogVisible = newVal;
-      if (newVal && this.context) {
-        this.initializeData();
-      }
-    },
-    context(newVal) {
-      if (newVal) {
-        this.initializeData();
-      }
-    }
-  },
-  methods: {
-    initializeData() {
-      if (!this.context) {
-        console.error('context 未定义，无法初始化数据');
-        return;
-      }
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'ok'): void
+}>()
 
-      if (!this.context.reportDef) {
-        console.error('context.reportDef 未定义，无法初始化数据');
-        return;
-      }
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false
+})
 
-      // 设置初始化标志
-      this.initializing = true;
+const { t } = useI18n()
+const store = useReportStore()
 
-      const reportDefCopy = deepCopy(this.context.reportDef);
+const dialogVisible = ref(false)
+const activeTab = ref('page')
+const initializing = ref(false)
+const paperSizeList = buildPageSizeList()
 
-      // 初始化数据
-      this.paper = { ...reportDefCopy.paper };
+const paper = ref({
+  paperType: 'A4',
+  width: mmToPoint(210),
+  height: mmToPoint(297),
+  leftMargin: mmToPoint(20),
+  rightMargin: mmToPoint(20),
+  topMargin: mmToPoint(20),
+  bottomMargin: mmToPoint(20),
+  orientation: 'portrait',
+  htmlReportAlign: 'left',
+  htmlIntervalRefreshValue: 3,
+  bgImage: '',
+  pagingMode: 'fitpage',
+  fixRows: 30,
+  columnEnabled: false,
+  columnCount: 2,
+  columnMargin: mmToPoint(10)
+})
 
-      // 确保 fixRows 有一个有效的默认值
-      if (!this.paper.fixRows || this.paper.fixRows < 1) {
-        this.paper.fixRows = 30;
-      }
+const header = ref({
+  left: '', center: '', right: '', margin: 30,
+  fontFamily: '宋体', fontSize: 10, forecolor: '0,0,0',
+  bold: false, italic: false, underline: false
+})
 
-      if (!reportDefCopy.header) {
-        reportDefCopy.header = { margin: 30 };
-      }
-      if (!reportDefCopy.footer) {
-        reportDefCopy.footer = { margin: 30 };
-      }
+const footer = ref({
+  left: '', center: '', right: '', margin: 30,
+  fontFamily: '宋体', fontSize: 10, forecolor: '0,0,0',
+  bold: false, italic: false, underline: false
+})
 
-      this.header = { ...reportDefCopy.header };
-      this.footer = { ...reportDefCopy.footer };
+const headerFontDialogVisible = ref(false)
+const footerFontDialogVisible = ref(false)
 
-      // 初始化完成后，清除初始化标志
-      this.initializing = false;
-    },
-    handleClose() {
-      this.dialogVisible = false;
-      this.$emit('close');
-    },
-    handleOk() {
-      // 检查 reportDef 是否存在
-      if (!this.context || !this.context.reportDef) {
-        this.dialogVisible = false;
-        this.$emit('ok');
-        return;
-      }
+const context = computed(() => store.context)
 
-      // 使用 deepCopy 复制数据
-      const newPaper = deepCopy(this.paper);
-      const newHeader = deepCopy(this.header);
-      const newFooter = deepCopy(this.footer);
+dialogVisible.value = props.visible
+if (props.visible && context.value) {
+  initializeData()
+}
 
-      updateReportDef({
-        ...this.context.reportDef,
-        paper: newPaper,
-        header: newHeader,
-        footer: newFooter
-      });
+watch(() => props.visible, (newVal) => {
+  dialogVisible.value = newVal
+  if (newVal && context.value) {
+    initializeData()
+  }
+})
 
-      this.dialogVisible = false;
-      this.$emit('ok');
-    },
-    updatePaperSize() {
-      if (this.paper.paperType !== 'CUSTOM') {
-        return;
-      }
+watch(context, (newVal) => {
+  if (newVal) {
+    initializeData()
+  }
+})
 
-      if (this.context && this.context.printLine) {
-        this.context.printLine.refresh();
-      }
-      setDirty();
-    },
-    updateMargins() {
-      if (this.context && this.context.printLine) {
-        this.context.printLine.refresh();
-      }
-      setDirty();
-    },
-    updateBackgroundImage() {
-      if (this.paper.bgImage === '') {
-        const elements = document.querySelectorAll('.ht_master');
-        elements.forEach(el => {
-          el.style.background = 'transparent';
-        });
-      } else {
-        const elements = document.querySelectorAll('.ht_master');
-        elements.forEach(el => {
-          el.style.background = `url(${this.paper.bgImage}) 50px 26px no-repeat`;
-        });
-      }
-      setDirty();
-    },
-    updateHeaderMargin() {
-      setDirty();
-    },
-    updateFooterMargin() {
-      setDirty();
-    },
-    updateColumnMargin() {
-      setDirty();
-    },
-    updatePaper(value) {
-      this.paper = value;
-    },
-    updateHeader(value) {
-      this.header = value;
-    },
-    updateFooter(value) {
-      this.footer = value;
-    },
-    handleFixRowsChange(value) {
-      if (this.initializing) {
-        return;
-      }
+function initializeData() {
+  if (!context.value) {
+    console.error('context 未定义，无法初始化数据')
+    return
+  }
+  if (!context.value.reportDef) {
+    console.error('context.reportDef 未定义，无法初始化数据')
+    return
+  }
 
-      if (this.paper.pagingMode === 'fixrows' && value < 1) {
-        showAlert(this.$t('dialog.setting.fixRowsTip'));
-        return;
-      }
-      setDirty();
-    },
-    handleHtmlIntervalRefreshValueChange(value) {
-      if (isNaN(value) || value < 0) {
-        showAlert(this.$t('dialog.setting.secondTip'));
-        return;
-      }
-      setDirty();
-    },
-    openHeaderFontDialog() {
-      this.headerFontDialogVisible = true;
-    },
-    openFooterFontDialog() {
-      this.footerFontDialogVisible = true;
-    },
-    handleHeaderFontDialogClose() {
-      this.headerFontDialogVisible = false;
-    },
-    handleHeaderFontDialogOk(style) {
-      if (style) {
-        this.header.fontFamily = style.fontFamily;
-        this.header.fontSize = style.fontSize;
-        this.header.forecolor = style.forecolor;
-        this.header.bold = style.bold;
-        this.header.italic = style.italic;
-        this.header.underline = style.underline;
-        setDirty();
-      }
-      this.headerFontDialogVisible = false;
-    },
-    handleFooterFontDialogClose() {
-      this.footerFontDialogVisible = false;
-    },
-    handleFooterFontDialogOk(style) {
-      if (style) {
-        this.footer.fontFamily = style.fontFamily;
-        this.footer.fontSize = style.fontSize;
-        this.footer.forecolor = style.forecolor;
-        this.footer.bold = style.bold;
-        this.footer.italic = style.italic;
-        this.footer.underline = style.underline;
-        setDirty();
-      }
-      this.footerFontDialogVisible = false;
-    },
-    validateHeaderFooter() {
-      setDirty();
-    },
-    handlePaperTypeChange(value) {
-      if (value !== 'CUSTOM') {
-        const pageSize = this.paperSizeList[value];
-        this.paper.width = mmToPoint(pageSize.width);
-        this.paper.height = mmToPoint(pageSize.height);
-        if (this.context && this.context.printLine) {
-          this.context.printLine.refresh();
-        }
-      }
-      setDirty();
-    },
-    handleOrientationChange() {
-      if (this.context && this.context.printLine) {
-        this.context.printLine.refresh();
-      }
-      setDirty();
-    },
-    handleHtmlAlignChange() {
-      setDirty();
-    },
-    handleColumnCountChange() {
-      setDirty();
-    },
-    handlePagingModeChange() {
-      setDirty();
-    },
-    handleColumnEnabledChange() {
-      setDirty();
+  initializing.value = true
+  const reportDefCopy = deepCopy(context.value.reportDef)
+
+  paper.value = { ...(reportDefCopy.paper as any) }
+  if (!paper.value.fixRows || paper.value.fixRows < 1) {
+    paper.value.fixRows = 30
+  }
+
+  if (!reportDefCopy.header) {
+    reportDefCopy.header = { margin: 30 }
+  }
+  if (!reportDefCopy.footer) {
+    reportDefCopy.footer = { margin: 30 }
+  }
+
+  header.value = { ...(reportDefCopy.header as any) }
+  footer.value = { ...(reportDefCopy.footer as any) }
+  initializing.value = false
+}
+
+function handleClose() {
+  dialogVisible.value = false
+  emit('close')
+}
+
+function handleOk() {
+  if (!context.value || !context.value.reportDef) {
+    dialogVisible.value = false
+    emit('ok')
+    return
+  }
+
+  const newPaper = deepCopy(paper.value)
+  const newHeader = deepCopy(header.value)
+  const newFooter = deepCopy(footer.value)
+
+  updateReportDef({
+    ...context.value.reportDef,
+    paper: newPaper,
+    header: newHeader,
+    footer: newFooter
+  })
+
+  dialogVisible.value = false
+  emit('ok')
+}
+
+function updatePaperSize() {
+  if (paper.value.paperType !== 'CUSTOM') return
+  if (context.value && (context.value as any).printLine) {
+    (context.value as any).printLine.refresh()
+  }
+  setDirty()
+}
+
+function updateMargins() {
+  if (context.value && (context.value as any).printLine) {
+    (context.value as any).printLine.refresh()
+  }
+  setDirty()
+}
+
+function updateBackgroundImage() {
+  if (paper.value.bgImage === '') {
+    const elements = document.querySelectorAll('.ht_master')
+    elements.forEach(el => {
+      (el as HTMLElement).style.background = 'transparent'
+    })
+  } else {
+    const elements = document.querySelectorAll('.ht_master')
+    elements.forEach(el => {
+      (el as HTMLElement).style.background = `url(${paper.value.bgImage}) 50px 26px no-repeat`
+    })
+  }
+  setDirty()
+}
+
+function updateHeaderMargin() { setDirty() }
+function updateFooterMargin() { setDirty() }
+function updateColumnMargin() { setDirty() }
+
+function updatePaper(value: any) { paper.value = value }
+function updateHeader(value: any) { header.value = value }
+function updateFooter(value: any) { footer.value = value }
+
+function handleFixRowsChange(value: number) {
+  if (initializing.value) return
+  if (paper.value.pagingMode === 'fixrows' && value < 1) {
+    showAlert(t('dialog.setting.fixRowsTip'))
+    return
+  }
+  setDirty()
+}
+
+function handleHtmlIntervalRefreshValueChange(value: number) {
+  if (isNaN(value) || value < 0) {
+    showAlert(t('dialog.setting.secondTip'))
+    return
+  }
+  setDirty()
+}
+
+function openHeaderFontDialog() { headerFontDialogVisible.value = true }
+function openFooterFontDialog() { footerFontDialogVisible.value = true }
+function handleHeaderFontDialogClose() { headerFontDialogVisible.value = false }
+function handleFooterFontDialogClose() { footerFontDialogVisible.value = false }
+
+function handleHeaderFontDialogOk(style: any) {
+  if (style) {
+    header.value.fontFamily = style.fontFamily
+    header.value.fontSize = style.fontSize
+    header.value.forecolor = style.forecolor
+    header.value.bold = style.bold
+    header.value.italic = style.italic
+    header.value.underline = style.underline
+    setDirty()
+  }
+  headerFontDialogVisible.value = false
+}
+
+function handleFooterFontDialogOk(style: any) {
+  if (style) {
+    footer.value.fontFamily = style.fontFamily
+    footer.value.fontSize = style.fontSize
+    footer.value.forecolor = style.forecolor
+    footer.value.bold = style.bold
+    footer.value.italic = style.italic
+    footer.value.underline = style.underline
+    setDirty()
+  }
+  footerFontDialogVisible.value = false
+}
+
+function validateHeaderFooter() { setDirty() }
+
+function handlePaperTypeChange(value: string) {
+  if (value !== 'CUSTOM') {
+    const pageSize: any = (paperSizeList as any)[value]
+    paper.value.width = mmToPoint(pageSize.width)
+    paper.value.height = mmToPoint(pageSize.height)
+    if (context.value && (context.value as any).printLine) {
+      (context.value as any).printLine.refresh()
     }
   }
-};
+  setDirty()
+}
+
+function handleOrientationChange() {
+  if (context.value && (context.value as any).printLine) {
+    (context.value as any).printLine.refresh()
+  }
+  setDirty()
+}
+
+function handleHtmlAlignChange() { setDirty() }
+function handleColumnCountChange() { setDirty() }
+function handlePagingModeChange() { setDirty() }
+function handleColumnEnabledChange() { setDirty() }
 </script>
 
 <style scoped>

@@ -33,56 +33,46 @@
   </div>
 </template>
 
-<script>
-import URadioGroup from '@/components/radio-group/index.vue';
-import URadio from '@/components/radio/index.vue';
-import UInputNumber from "@/components/input-number/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'PagingSettings',
-  components: {
-    URadioGroup,
-    URadio,
-    UInputNumber
-  },
-  props: {
-    paper: {
-      type: Object,
-      required: true
-    }
-  },
-  data() {
-    return {
-      localPaper: { ...this.paper }
-    };
-  },
-  computed: {
-    pagingModeOptions() {
-      return [
-        { value: 'fitpage', label: this.$t('dialog.setting.auto') },
-        { value: 'fixrows', label: this.$t('dialog.setting.fixRows') }
-      ];
-    }
-  },
-  watch: {
-    paper: {
-      handler(newVal) {
-        this.localPaper = { ...newVal };
-      },
-      deep: true
-    }
-  },
-  methods: {
-    handlePagingModeChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, pagingMode: value });
-      this.$emit('paging-mode-change');
-    },
-    handleFixRowsChange(value) {
-      this.$emit('update:paper', { ...this.localPaper, fixRows: value });
-      this.$emit('fix-rows-change', value);
-    }
-  }
-};
+defineOptions({ name: 'PagingSettings' })
+
+const emit = defineEmits<{
+  (e: 'update:paper', value: any): void
+  (e: 'paging-mode-change'): void
+  (e: 'fix-rows-change', value: number): void
+}>()
+
+const props = withDefaults(defineProps<{
+  paper?: any
+}>(), {
+  paper: () => ({})
+})
+
+const { t } = useI18n()
+
+const localPaper = ref({ ...props.paper })
+
+const pagingModeOptions = computed(() => [
+  { value: 'fitpage', label: t('dialog.setting.auto') },
+  { value: 'fixrows', label: t('dialog.setting.fixRows') }
+])
+
+watch(() => props.paper, (newVal) => {
+  localPaper.value = { ...newVal }
+}, { deep: true })
+
+function handlePagingModeChange(value: string) {
+  emit('update:paper', { ...localPaper.value, pagingMode: value })
+  emit('paging-mode-change')
+}
+
+function handleFixRowsChange(value: number) {
+  emit('update:paper', { ...localPaper.value, fixRows: value })
+  emit('fix-rows-change', value)
+}
 </script>
 
 <style scoped>

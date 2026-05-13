@@ -3,7 +3,7 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="forceChecked" @change="onForceChange">
-          {{ $t('dialog.propCondition.forecolor') }}
+          {{ t('dialog.propCondition.forecolor') }}
         </u-checkbox>
       </div>
 
@@ -15,7 +15,7 @@
           />
         </div>
 
-        <span>{{ $t('dialog.propCondition.scope') }}</span>
+        <span>{{ t('dialog.propCondition.scope') }}</span>
         <div class="u-inline" style="margin-left: 10px">
           <u-select
               v-model="forceScope"
@@ -36,7 +36,7 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="bgcolorChecked" @change="onBgcolorChange">
-          {{ $t('dialog.propCondition.bgcolor') }}
+          {{ t('dialog.propCondition.bgcolor') }}
         </u-checkbox>
       </div>
       <span v-show="bgcolorChecked">
@@ -46,7 +46,7 @@
               @input="onBgColorChange"
           />
         </div>
-        <span>{{ $t('dialog.propCondition.scope') }}</span>
+        <span>{{ t('dialog.propCondition.scope') }}</span>
         <div class="u-inline" style="margin-left: 10px">
           <u-select
               v-model="bgcolorScope"
@@ -66,170 +66,157 @@
   </div>
 </template>
 
-<script>
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import UCheckbox from '@/components/checkbox/index.vue';
-import UColorPicker from '@/components/color-picker/index.vue';
-import configOptions from '../constants/config-options.js';
+<script setup lang="ts">
+import { ref, watch, onBeforeMount } from 'vue'
+import { useI18n } from 'vue-i18n'
+// @ts-ignore
+import configOptions from '../constants/config-options.js'
 
-export default {
-  name: 'ColorConfig',
-  components: {
-    USelect,
-    UOption,
-    UCheckbox,
-    UColorPicker
-  },
-  props: {
-    cellStyle: {
-      type: Object,
-      default: () => ({})
+defineOptions({ name: 'ColorConfig' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  cellStyle?: any
+}>(), {
+  cellStyle: () => ({})
+})
+
+const emit = defineEmits<{
+  (e: 'color-change', value: any): void
+}>()
+
+const forceChecked = ref(false)
+const forceColor = ref('#000000')
+const forceScope = ref('cell')
+const bgcolorChecked = ref(false)
+const bgColor = ref('#FFFFFF')
+const bgcolorScope = ref('cell')
+const scopeOptions = ref<any[]>([])
+
+onBeforeMount(() => {
+  scopeOptions.value = configOptions.getScopeOptions(t)
+})
+
+watch(() => props.cellStyle, (newVal) => {
+  loadColorProperties(newVal)
+}, { immediate: true, deep: true })
+
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null
+}
+
+function rgbToHex(r: number, g: number, b: number) {
+  return '#' + [r, g, b].map(x => {
+    const hex = x.toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }).join('').toUpperCase()
+}
+
+function convertColorToRgb(color: string) {
+  if (!color) return null
+
+  if (color.startsWith('#')) {
+    const rgb = hexToRgb(color)
+    if (rgb) {
+      return `${rgb.r},${rgb.g},${rgb.b}`
     }
-  },
-  data() {
-    return {
-      forceChecked: false,
-      forceColor: '#000000',
-      forceScope: 'cell',
-
-      bgcolorChecked: false,
-      bgColor: '#FFFFFF',
-      bgcolorScope: 'cell',
-
-      scopeOptions: []
-    };
-  },
-  created() {
-    this.scopeOptions = configOptions.getScopeOptions(this.$t);
-  },
-  watch: {
-    cellStyle: {
-      handler(newVal) {
-        this.loadColorProperties(newVal);
-      },
-      immediate: true,
-      deep: true
-    }
-  },
-  methods: {
-    hexToRgb(hex) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : null;
-    },
-
-    rgbToHex(r, g, b) {
-      return '#' + [r, g, b].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-      }).join('').toUpperCase();
-    },
-
-    convertColorToRgb(color) {
-      if (!color) return null;
-      
-      if (color.startsWith('#')) {
-        const rgb = this.hexToRgb(color);
-        if (rgb) {
-          return `${rgb.r},${rgb.g},${rgb.b}`;
-        }
-      } else if (color.length > 5 && color.startsWith('rgb')) {
-        return color.substring(4, color.length - 1);
-      }
-      return color;
-    },
-
-    convertRgbToHex(rgbString) {
-      if (!rgbString) return null;
-      
-      const rgbParts = rgbString.split(',');
-      if (rgbParts.length === 3) {
-        return this.rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2]));
-      }
-      return null;
-    },
-
-    loadColorProperties(cellStyle) {
-      if (!cellStyle) return;
-
-      this.forceChecked = !!(cellStyle.forecolor && cellStyle.forecolor !== '');
-      if (this.forceChecked) {
-        const hexColor = this.convertRgbToHex(cellStyle.forecolor);
-        this.forceColor = hexColor || '#000000';
-      } else {
-        this.forceColor = '';
-      }
-      this.forceScope = cellStyle.forecolorScope || 'cell';
-
-      this.bgcolorChecked = !!(cellStyle.bgcolor && cellStyle.bgcolor !== '');
-      if (this.bgcolorChecked) {
-        const hexColor = this.convertRgbToHex(cellStyle.bgcolor);
-        this.bgColor = hexColor || '#FFFFFF';
-      } else {
-        this.bgColor = '';
-      }
-      this.bgcolorScope = cellStyle.bgcolorScope || 'cell';
-    },
-
-    onForceChange() {
-      this.$emit('color-change', {
-        type: 'forecolor',
-        checked: this.forceChecked,
-        value: this.forceChecked ? '0,0,0' : null,
-        scope: this.forceChecked ? 'cell' : null
-      });
-    },
-
-    onForceColorChange() {
-      const rgbColor = this.convertColorToRgb(this.forceColor);
-      this.$emit('color-change', {
-        type: 'forecolor',
-        checked: this.forceChecked,
-        value: rgbColor,
-        scope: this.forceScope
-      });
-    },
-
-    onForceScopeChange() {
-      this.$emit('color-change', {
-        type: 'forecolor',
-        checked: this.forceChecked,
-        value: this.convertColorToRgb(this.forceColor),
-        scope: this.forceScope
-      });
-    },
-
-    onBgcolorChange() {
-      this.$emit('color-change', {
-        type: 'bgcolor',
-        checked: this.bgcolorChecked,
-        value: this.bgcolorChecked ? '0,0,0' : null,
-        scope: this.bgcolorChecked ? 'cell' : null
-      });
-    },
-
-    onBgColorChange() {
-      const rgbColor = this.convertColorToRgb(this.bgColor);
-      this.$emit('color-change', {
-        type: 'bgcolor',
-        checked: this.bgcolorChecked,
-        value: rgbColor,
-        scope: this.bgcolorScope
-      });
-    },
-
-    onBgcolorScopeChange() {
-      this.$emit('color-change', {
-        type: 'bgcolor',
-        checked: this.bgcolorChecked,
-        value: this.convertColorToRgb(this.bgColor),
-        scope: this.bgcolorScope
-      });
-    }
+  } else if (color.length > 5 && color.startsWith('rgb')) {
+    return color.substring(4, color.length - 1)
   }
-};
+  return color
+}
+
+function convertRgbToHex(rgbString: string) {
+  if (!rgbString) return null
+
+  const rgbParts = rgbString.split(',')
+  if (rgbParts.length === 3) {
+    return rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2]))
+  }
+  return null
+}
+
+function loadColorProperties(cellStyle: any) {
+  if (!cellStyle) return
+
+  forceChecked.value = !!(cellStyle.forecolor && cellStyle.forecolor !== '')
+  if (forceChecked.value) {
+    const hexColor = convertRgbToHex(cellStyle.forecolor)
+    forceColor.value = hexColor || '#000000'
+  } else {
+    forceColor.value = ''
+  }
+  forceScope.value = cellStyle.forecolorScope || 'cell'
+
+  bgcolorChecked.value = !!(cellStyle.bgcolor && cellStyle.bgcolor !== '')
+  if (bgcolorChecked.value) {
+    const hexColor = convertRgbToHex(cellStyle.bgcolor)
+    bgColor.value = hexColor || '#FFFFFF'
+  } else {
+    bgColor.value = ''
+  }
+  bgcolorScope.value = cellStyle.bgcolorScope || 'cell'
+}
+
+function onForceChange() {
+  emit('color-change', {
+    type: 'forecolor',
+    checked: forceChecked.value,
+    value: forceChecked.value ? '0,0,0' : null,
+    scope: forceChecked.value ? 'cell' : null
+  })
+}
+
+function onForceColorChange() {
+  const rgbColor = convertColorToRgb(forceColor.value)
+  emit('color-change', {
+    type: 'forecolor',
+    checked: forceChecked.value,
+    value: rgbColor,
+    scope: forceScope.value
+  })
+}
+
+function onForceScopeChange() {
+  emit('color-change', {
+    type: 'forecolor',
+    checked: forceChecked.value,
+    value: convertColorToRgb(forceColor.value),
+    scope: forceScope.value
+  })
+}
+
+function onBgcolorChange() {
+  emit('color-change', {
+    type: 'bgcolor',
+    checked: bgcolorChecked.value,
+    value: bgcolorChecked.value ? '0,0,0' : null,
+    scope: bgcolorChecked.value ? 'cell' : null
+  })
+}
+
+function onBgColorChange() {
+  const rgbColor = convertColorToRgb(bgColor.value)
+  emit('color-change', {
+    type: 'bgcolor',
+    checked: bgcolorChecked.value,
+    value: rgbColor,
+    scope: bgcolorScope.value
+  })
+}
+
+function onBgcolorScopeChange() {
+  emit('color-change', {
+    type: 'bgcolor',
+    checked: bgcolorChecked.value,
+    value: convertColorToRgb(bgColor.value),
+    scope: bgcolorScope.value
+  })
+}
 </script>

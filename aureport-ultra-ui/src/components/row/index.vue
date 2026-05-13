@@ -1,82 +1,56 @@
-<template>
-  <div :class="classes" :style="styles">
-    <slot></slot>
-  </div>
-</template>
-<script>
+<script setup lang="ts">
+import { computed, reactive, provide } from 'vue'
 import './style/index.css'
-import { oneOf, findComponentDownward, findBrothersComponents } from '../utils'
+
+defineOptions({ name: 'URow' })
+
+export interface RowContext {
+  gutter: number
+}
+
+const props = withDefaults(defineProps<{
+  type?: string
+  align?: string
+  justify?: string
+  gutter?: number
+  className?: string
+}>(), {
+  gutter: 0,
+})
 
 const prefixCls = 'u-row'
 
-export default {
-  name: 'URow',
-  props: {
-    type: {
-      validator(value) {
-        return oneOf(value, ['flex'])
-      }
-    },
-    align: {
-      validator(value) {
-        return oneOf(value, ['top', 'middle', 'bottom'])
-      }
-    },
-    justify: {
-      validator(value) {
-        return oneOf(value, ['start', 'end', 'center', 'space-around', 'space-between'])
-      }
-    },
-    gutter: {
-      type: Number,
-      default: 0
-    },
-    className: String
+const classes = computed(() => [
+  {
+    [`${prefixCls}`]: !props.type,
+    [`${prefixCls}-${props.type}`]: !!props.type,
+    [`${prefixCls}-${props.type}-${props.align}`]: !!props.align,
+    [`${prefixCls}-${props.type}-${props.justify}`]: !!props.justify,
+    [`${props.className}`]: !!props.className,
   },
-  computed: {
-    classes() {
-      return [
-        {
-          [`${prefixCls}`]: !this.type,
-          [`${prefixCls}-${this.type}`]: !!this.type,
-          [`${prefixCls}-${this.type}-${this.align}`]: !!this.align,
-          [`${prefixCls}-${this.type}-${this.justify}`]: !!this.justify,
-          [`${this.className}`]: !!this.className
-        }
-      ]
-    },
-    styles() {
-      let style = {}
-      if (this.gutter !== 0) {
-        style = {
-          marginLeft: this.gutter / -2 + 'px',
-          marginRight: this.gutter / -2 + 'px'
-        }
-      }
-      return style
-    }
-  },
-  methods: {
-    updateGutter(val) {
-      // 这里会嵌套寻找，把 Col 里的 Row 里的 Col 也找到，所以用 兄弟找
-      const Col = findComponentDownward(this, 'UCol')
-      const Cols = findBrothersComponents(Col, 'UCol', false)
-      if (Cols.length) {
-        Cols.forEach((child) => {
-          if (val !== 0) {
-            child.gutter = val
-          }
-        })
-      }
-    }
-  },
-  watch: {
-    gutter(val) {
-      this.updateGutter(val)
+])
+
+const styles = computed(() => {
+  if (props.gutter !== 0) {
+    return {
+      marginLeft: `${props.gutter / -2}px`,
+      marginRight: `${props.gutter / -2}px`,
     }
   }
-}
+  return {}
+})
+
+const rowContext = reactive<RowContext>({
+  get gutter() { return props.gutter },
+})
+provide('rowContext', rowContext)
 </script>
+
+<template>
+  <div :class="classes" :style="styles">
+    <slot />
+  </div>
+</template>
 
 <style scoped>
 </style>

@@ -9,75 +9,64 @@
     <div class="search-form-dialog-content">
       <search-form :searchFormConfig="searchFormConfig" ref="searchFormDesigner"></search-form>
     </div>
-    <div slot="footer" style="text-align: right">
+    <template #footer><div style="text-align: right">
       <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
       <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    </div></template>
   </UDialog>
 </template>
 
-<script>
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import SearchForm from "@/views/report/designer/search-form/index.vue";
-import {deepClone} from "@/views/report/designer/search-form/utils";
-import { mapGetters } from 'vuex';
-import { updateReportDef } from '@/utils/contextActions.js';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import SearchForm from "@/views/report/designer/search-form/index.vue"
+import { deepClone } from "@/views/report/designer/search-form/utils"
+import { updateReportDef } from '@/utils/contextActions.js'
 
-export default {
-  name: 'SearchFormDialog',
-  components: {
-    UButton,
-    UDialog,
-    SearchForm
-  },
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      iframeSrc: '',
-      index: 0,
-      searchFormConfig: null
-    };
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal && this.context.reportDef.searchForm) {
-        this.searchFormConfig = deepClone(this.context.reportDef.searchForm);
-      }
-    }
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  methods: {
+defineOptions({ name: 'SearchFormDialog' })
 
-    buildData() {
-      const searchFormDesigner = this.$refs.searchFormDesigner;
-      searchFormDesigner.AssembleFormData();
-      const formData = searchFormDesigner.formData;
-      const newReportDef = deepClone(this.context.reportDef);
-      newReportDef.searchForm = deepClone(formData);
-      updateReportDef(newReportDef);
-    },
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+}>()
 
-    handleClose() {
-      this.$emit('update:visible', false);
-    },
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false
+})
 
-    handleOk() {
-      this.buildData();
-      this.$emit('update:visible', false);
-    }
+const { t } = useI18n()
+const store = useReportStore()
+
+const searchFormDesigner = ref<any>(null)
+const searchFormConfig = ref<any>(null)
+
+const context = computed(() => store.context)
+
+watch(() => props.visible, (newVal) => {
+  if (newVal && context.value && context.value.reportDef && context.value.reportDef.searchForm) {
+    searchFormConfig.value = deepClone(context.value.reportDef.searchForm)
   }
-};
+})
+
+function buildData() {
+  if (!searchFormDesigner.value) return
+  searchFormDesigner.value.AssembleFormData()
+  const formData = searchFormDesigner.value.formData
+  const newReportDef = deepClone(context.value!.reportDef)
+  newReportDef.searchForm = deepClone(formData)
+  updateReportDef(newReportDef)
+}
+
+function handleClose() {
+  emit('update:visible', false)
+}
+
+function handleOk() {
+  buildData()
+  emit('update:visible', false)
+}
 </script>
 
 <style scoped>

@@ -49,92 +49,83 @@
   </div>
 </template>
 
-<script>
-import { showAlert } from '@/utils/comnon.js';
-import { buildDatabaseTables } from '@/api/designer';
-import UInput from '@/components/input/index.vue';
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon.js'
+import { buildDatabaseTables } from '@/api/designer'
 
-export default {
-  name: 'SearchTable',
-  components: {
-    UButton,
-    UInput
-  },
-  props: {
-    db: {
-      type: Object
-    },
-    triggerLoad: {
-      type: Boolean,
-      default: false
-    }
-  },
-  emits: ['add', 'load-complete'],
-  data() {
-    return {
-      tables: [],
-      searchKeyword: ''
-    }
-  },
-  watch: {
-    triggerLoad(newVal) {
-      if (newVal) {
-        this.loadDatabaseTables();
-        this.$emit('load-complete');
-      }
-    }
-  },
-  computed: {
-    filteredTables() {
-      if (!this.searchKeyword) {
-        return this.tables
-      }
-      const keyword = this.searchKeyword.toLowerCase()
-      return this.tables.filter(table =>
-        table.name.toLowerCase().includes(keyword)
-      )
-    }
-  },
-  methods: {
-    setTables(tables) {
-      this.tables = tables
-    },
-    addSql(tableName) {
-      const sql = `select * from ${tableName}`
-      this.$emit('add', sql)
-    },
-    /**
-     * 加载数据库表格列表
-     */
-    async loadDatabaseTables() {
-      if (!this.db) return;
+defineOptions({ name: 'SearchTable' })
 
-      this.searchKeyword = '';
-      const type = this.db.type;
-      const parameters = { type };
+const { t } = useI18n()
 
-      if (type === 'jdbc') {
-        parameters.username = this.db.username;
-        parameters.password = this.db.password;
-        parameters.driver = this.db.driver;
-        parameters.url = this.db.url;
-      } else if (type === 'buildin') {
-        parameters.name = this.db.name;
-        // 确保 type 参数被正确设置
-        parameters.type = 'buildin';
-      }
+const props = withDefaults(defineProps<{
+  db: any
+  triggerLoad: boolean
+}>(), {
+  db: null,
+  triggerLoad: false
+})
 
-      try {
-        const tables = await buildDatabaseTables(parameters);
-        this.setTables(tables);
-      } catch (error) {
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('dialog.sql.loadFail'));
-        }
-      }
+const emit = defineEmits<{
+  (e: 'add', sql: string): void
+  (e: 'load-complete'): void
+}>()
+
+const tables = ref<any[]>([])
+const searchKeyword = ref('')
+
+const filteredTables = computed(() => {
+  if (!searchKeyword.value) {
+    return tables.value
+  }
+  const keyword = searchKeyword.value.toLowerCase()
+  return tables.value.filter((table: any) =>
+    table.name.toLowerCase().includes(keyword)
+  )
+})
+
+watch(() => props.triggerLoad, (newVal) => {
+  if (newVal) {
+    loadDatabaseTables()
+    emit('load-complete')
+  }
+})
+
+function setTables(newTables: any[]) {
+  tables.value = newTables
+}
+
+function addSql(tableName: string) {
+  const sql = `select * from ${tableName}`
+  emit('add', sql)
+}
+
+async function loadDatabaseTables() {
+  if (!props.db) return
+
+  searchKeyword.value = ''
+  const type = props.db.type
+  const parameters: any = { type }
+
+  if (type === 'jdbc') {
+    parameters.username = props.db.username
+    parameters.password = props.db.password
+    parameters.driver = props.db.driver
+    parameters.url = props.db.url
+  } else if (type === 'buildin') {
+    parameters.name = props.db.name
+    parameters.type = 'buildin'
+  }
+
+  try {
+    const result = await buildDatabaseTables(parameters)
+    setTables(result as any[])
+  } catch (error: any) {
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('dialog.sql.loadFail'))
     }
   }
 }
@@ -147,7 +138,7 @@ export default {
 }
 
 .table-container {
-    height: 380px; /* 减去搜索框和表头的高度 */
+    height: 380px;
     overflow-y: auto;
     overflow-x: auto;
     border: 1px solid #ddd;

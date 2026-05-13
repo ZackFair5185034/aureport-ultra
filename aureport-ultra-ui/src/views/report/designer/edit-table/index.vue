@@ -1,333 +1,327 @@
 <template>
   <div class="ud-page">
-<!--    <div class="ud-slider"></div>-->
-    <div class="ud-table" ref="contentTable"></div>
+    <div class="ud-table" ref="contentTableEl"></div>
   </div>
 </template>
 
-<script>
-import { mapActions } from 'vuex';
-import Handsontable from 'handsontable';
-import Context from '@/components/Context.js';
-import * as utils from '@/utils/table.js';
-import buildMenuConfigure from './utils/ContextMenu.js';
-import { afterRenderer } from './utils/CellRenderer.js';
-import { renderRowHeader } from './utils/HeaderUtils.js';
-import { loadReport } from '@/api/designer';
-import { showAlert } from '@/utils/comnon.js';
-import { addRowHeader } from "@/utils/contextActions";
-import TableManager from './manager.js';
-import { getLibMode } from '@/lib/navigator';
+<script setup lang="ts">
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import Handsontable from 'handsontable'
+import Context from '@/components/Context.js'
+import * as utils from '@/utils/table.js'
+import buildMenuConfigure from './utils/ContextMenu.js'
+import { afterRenderer } from './utils/CellRenderer.js'
+import { renderRowHeader } from './utils/HeaderUtils.js'
+import { loadReport } from '@/api/designer'
+import { showAlert } from '@/utils/comnon.js'
+import { addRowHeader } from '@/utils/contextActions'
+import TableManager from './manager.js'
+import { getLibMode } from '@/lib/navigator'
 
-export default {
-  name: 'ContentTable',
-  props: {
-    reportPath: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      hot: null,
-      reportDef: null,
-      cellsMap: new Map(),
-      context: null,
-      internalReportPath: this.reportPath
-    };
-  },
-  computed: {
-    isLibMode() {
-      return getLibMode();
-    }
-  },
-  watch: {
-    reportPath(val) {
-      this.internalReportPath = val;
-      if (val) {
-        this.loadFile(val, this.handleReportLoaded.bind(this));
-      }
-    }
-  },
-  mounted() {
-    this.initTable();
-  },
-  beforeUnmount() {
-    if (this.hot) {
-      this.hot.destroy();
-    }
-  },
-  methods: {
-    ...mapActions('report', [
-      'setContext'
-    ]),
-    initTable() {
-      utils.undoManager.setLimit(100);
+defineOptions({ name: 'ContentTable' })
 
-      this.initHandsontable();
+const { t } = useI18n()
+const store = useReportStore()
 
-      let filePath = '';
-      if (this.isLibMode) {
-        filePath = this.internalReportPath || 'classpath:template/template.ureport.xml';
-      } else {
-        filePath = utils.getParameter("reportPath");
-        if (!filePath || filePath === '') {
-          filePath = 'classpath:template/template.ureport.xml';
-        }
-      }
+const props = withDefaults(defineProps<{
+  reportPath?: string
+}>(), {
+  reportPath: ''
+})
 
-      if (filePath && filePath !== 'classpath:template/template.ureport.xml') {
-        this.$store.dispatch('report/setSaveStatus', true);
-      }
+const emit = defineEmits<{
+  (e: 'cell-selected', data: { rowIndex: number; colIndex: number; row2Index: number; col2Index: number }): void
+  (e: 'context-created', context: unknown): void
+  (e: 'navigate', data: unknown): void
+  (e: 'save', data: unknown): void
+  (e: 'error', err: unknown): void
+}>()
 
-      this.loadFile(filePath, this.handleReportLoaded.bind(this));
-    },
+const contentTableEl = ref<HTMLDivElement | null>(null)
 
-    initHandsontable() {
-      this.hot = new Handsontable(this.$refs.contentTable, {
-        startCols: 1,
-        startRows: 1,
-        fillHandle: {
-          autoInsertRow: false
-        },
-        colHeaders: true,
-        rowHeaders: true,
-        autoColumnSize: false,
-        autoRowSize: false,
-        manualColumnResize: true,
-        manualRowResize: true,
-        maxColsNumber: 700,
-        outsideClickDeselects: false,
-        width: '100%',
-        height: '100%',
-      });
+const hot = ref<any>(null)
+const reportDef = ref<any>(null)
+const cellsMap = ref<Map<string, unknown>>(new Map())
+const context = ref<any>(null)
+const internalReportPath = ref(props.reportPath)
 
-      TableManager.set(this.hot);
+const isLibMode = getLibMode()
 
-      this.hot.addHook("afterRenderer", afterRenderer);
-      this.bindRowResizeEvent();
-      this.bindColumnResizeEvent();
-      this.bindSelectionEvent();
-    },
+watch(() => props.reportPath, (val) => {
+  internalReportPath.value = val
+  if (val) {
+    loadFile(val, handleReportLoaded)
+  }
+})
 
-    bindRowResizeEvent() {
-      this.hot.addHook('afterRowResize', function(currentRow, newSize) {
-        let rowHeights = this.getSettings().rowHeights;
-        let oldRowHeights = rowHeights.concat([]);
-        let newRowHeights = rowHeights.concat([]);
-        newRowHeights.splice(currentRow, 1, newSize);
-        this.updateSettings({
-          rowHeights: newRowHeights,
-          manualRowResize: newRowHeights
-        });
-        const _this = this;
-        utils.undoManager.add({
-          redo: function() {
-            rowHeights = _this.getSettings().rowHeights;
-            oldRowHeights = rowHeights.concat([]);
-            newRowHeights.splice(currentRow, 1, newSize);
-            _this.updateSettings({
-              rowHeights: newRowHeights,
-              manualRowResize: newRowHeights
-            });
-            utils.setDirty();
-          },
-          undo: function() {
-            _this.updateSettings({
-              rowHeights: oldRowHeights,
-              manualRowResize: oldRowHeights
-            });
-            utils.setDirty();
-          }
-        });
-        utils.setDirty();
-      });
-    },
+onMounted(() => {
+  initTable()
+})
 
-    bindColumnResizeEvent() {
-      this.hot.addHook('afterColumnResize', function(currentColumn, newSize) {
-        let colWidths = this.getSettings().colWidths;
-        let newColWidths = colWidths.concat([]);
-        let oldColWidths = colWidths.concat([]);
-        newColWidths.splice(currentColumn, 1, newSize);
-        this.updateSettings({
-          colWidths: newColWidths,
-          manualColumnResize: newColWidths
-        });
-        const _this = this;
-        utils.undoManager.add({
-          redo: function() {
-            colWidths = _this.getSettings().colWidths;
-            newColWidths = colWidths.concat([]);
-            oldColWidths = colWidths.concat([]);
-            newColWidths.splice(currentColumn, 1, newSize);
-            _this.updateSettings({
-              colWidths: newColWidths,
-              manualColumnResize: newColWidths
-            });
-            utils.setDirty();
-          },
-          undo: function() {
-            _this.updateSettings({
-              colWidths: oldColWidths,
-              manualColumnResize: oldColWidths
-            });
-            utils.setDirty();
-          }
-        });
-        utils.setDirty();
-      });
-    },
+onBeforeUnmount(() => {
+  if (hot.value) {
+    hot.value.destroy()
+  }
+})
 
-    bindSelectionEvent() {
-      const _this = this;
-      Handsontable.hooks.add("afterSelectionEnd", function(rowIndex, colIndex, row2Index, col2Index) {
-        _this.handleCellSelected(rowIndex, colIndex, row2Index, col2Index);
-      }, this.hot);
-    },
+function initTable() {
+  utils.undoManager.setLimit(100)
+  initHandsontable()
 
-    handleCellSelected(rowIndex, colIndex, row2Index, col2Index) {
-      this.$emit('cell-selected', {
-        rowIndex,
-        colIndex,
-        row2Index,
-        col2Index
-      });
-    },
-
-    handleReportLoaded() {
-      this.context = new Context(this);
-
-      this.setContext(this.context);
-
-      this.$emit('context-created', this.context);
-
-      this.processRowHeaders();
-    },
-
-    processRowHeaders() {
-      if (this.reportDef && this.reportDef.rows) {
-        const rows = this.reportDef.rows;
-        for (let row of rows) {
-          const band = row.band;
-          if (!band) {
-            continue;
-          }
-          addRowHeader(row.rowNumber - 1, band);
-        }
-        renderRowHeader(this.hot);
-      }
-    },
-
-    async loadFile(filePath, callback) {
-      try {
-        let formData = new FormData();
-        formData.append('filePath', filePath);
-        const reportDef = await loadReport(formData);
-
-        this.reportDef = reportDef;
-        this._buildReportData(reportDef);
-        this.hot.render();
-
-        this.buildMenu();
-
-        if (callback) {
-          callback.call(this, reportDef);
-        }
-
-        if (filePath !== 'classpath:template/template.ureport.xml') {
-          this.$store.dispatch('report/setFileName', filePath);
-        } else {
-          this.$store.dispatch('report/setFileName', `${this.$t('table.report.tip')}`);
-        }
-        const masterElement = document.querySelector('.ht_master');
-        if (masterElement) {
-          if (reportDef.paper.bgImage) {
-            masterElement.style.background = `url(${reportDef.paper.bgImage}) 50px 26px no-repeat`;
-          } else {
-            masterElement.style.background = 'transparent';
-          }
-        }
-
-      } catch (error) {
-        this.$emit('error', error);
-        if (error.msg) {
-          showAlert(this.$t('dialog.save.serverError') + this.$t('colon') + error.msg, { useHTMLString: true });
-        } else {
-          showAlert(this.$t('table.report.load') + `${filePath}` + this.$t('table.report.fail'));
-        }
-      }
-    },
-
-    _buildReportData(data) {
-      this.cellsMap.clear();
-      const rows = data.rows;
-      const rowHeights = [];
-      for (let row of rows) {
-        const height = row.height;
-        rowHeights.push(utils.pointToPixel(height));
-      }
-      const columns = data.columns;
-      const colWidths = [];
-      for (let col of columns) {
-        const width = col.width;
-        colWidths.push(utils.pointToPixel(width));
-      }
-      const cellsMap = data.cellsMap;
-      const dataArray = [], mergeCells = [];
-      for (let row of rows) {
-        const rowData = [];
-        for (let col of columns) {
-          let key = row.rowNumber + "," + col.columnNumber;
-          let cell = cellsMap[key];
-          if (cell) {
-            this.cellsMap.set(key, cell);
-            rowData.push(cell.value.value || "");
-            let rowspan = cell.rowSpan, colspan = cell.colSpan;
-            if (rowspan > 0 || colspan > 0) {
-              if (rowspan === 0) rowspan = 1;
-              if (colspan === 0) colspan = 1;
-              mergeCells.push({
-                rowspan,
-                colspan,
-                row: row.rowNumber - 1,
-                col: col.columnNumber - 1
-              });
-            }
-          } else {
-            rowData.push("");
-          }
-        }
-        dataArray.push(rowData);
-      }
-      this.hot.loadData(dataArray);
-      this.hot.updateSettings({
-        colWidths,
-        rowHeights,
-        mergeCells,
-        readOnly: true
-      });
-    },
-
-    buildMenu() {
-      this.hot.updateSettings({
-        contextMenu: buildMenuConfigure()
-      });
-    },
-
-    getReportData() {
-      return utils.tableToXml(this.context);
-    },
-
-    saveReport() {
-      this.$emit('save', { data: this.getReportData() });
+  let filePath = ''
+  if (isLibMode) {
+    filePath = internalReportPath.value || 'classpath:template/template.ureport.xml'
+  } else {
+    filePath = utils.getParameter('reportPath') || ''
+    if (!filePath || filePath === '') {
+      filePath = 'classpath:template/template.ureport.xml'
     }
   }
-};
+
+  if (filePath && filePath !== 'classpath:template/template.ureport.xml') {
+    store.setSaveStatus(true)
+  }
+
+  loadFile(filePath, handleReportLoaded)
+}
+
+function initHandsontable() {
+  const el = contentTableEl.value
+  if (!el) return
+
+  hot.value = new Handsontable(el, {
+    startCols: 1,
+    startRows: 1,
+    fillHandle: {
+      autoInsertRow: false
+    },
+    colHeaders: true,
+    rowHeaders: true,
+    autoColumnSize: false,
+    autoRowSize: false,
+    manualColumnResize: true,
+    manualRowResize: true,
+    maxColsNumber: 700,
+    outsideClickDeselects: false,
+    width: '100%',
+    height: '100%',
+  })
+
+  TableManager.set(hot.value)
+
+  hot.value.addHook('afterRenderer', afterRenderer)
+  bindRowResizeEvent()
+  bindColumnResizeEvent()
+  bindSelectionEvent()
+}
+
+function bindRowResizeEvent() {
+  hot.value.addHook('afterRowResize', function(this: any, currentRow: number, newSize: number) {
+    let rowHeights = this.getSettings().rowHeights
+    let oldRowHeights = rowHeights.concat([])
+    let newRowHeights = rowHeights.concat([])
+    newRowHeights.splice(currentRow, 1, newSize)
+    this.updateSettings({
+      rowHeights: newRowHeights,
+      manualRowResize: newRowHeights
+    })
+    const _this = this
+    utils.undoManager.add({
+      redo: function() {
+        rowHeights = _this.getSettings().rowHeights
+        oldRowHeights = rowHeights.concat([])
+        newRowHeights.splice(currentRow, 1, newSize)
+        _this.updateSettings({
+          rowHeights: newRowHeights,
+          manualRowResize: newRowHeights
+        })
+        utils.setDirty()
+      },
+      undo: function() {
+        _this.updateSettings({
+          rowHeights: oldRowHeights,
+          manualRowResize: oldRowHeights
+        })
+        utils.setDirty()
+      }
+    })
+    utils.setDirty()
+  })
+}
+
+function bindColumnResizeEvent() {
+  hot.value.addHook('afterColumnResize', function(this: any, currentColumn: number, newSize: number) {
+    let colWidths = this.getSettings().colWidths
+    let newColWidths = colWidths.concat([])
+    let oldColWidths = colWidths.concat([])
+    newColWidths.splice(currentColumn, 1, newSize)
+    this.updateSettings({
+      colWidths: newColWidths,
+      manualColumnResize: newColWidths
+    })
+    const _this = this
+    utils.undoManager.add({
+      redo: function() {
+        colWidths = _this.getSettings().colWidths
+        newColWidths = colWidths.concat([])
+        oldColWidths = colWidths.concat([])
+        newColWidths.splice(currentColumn, 1, newSize)
+        _this.updateSettings({
+          colWidths: newColWidths,
+          manualColumnResize: newColWidths
+        })
+        utils.setDirty()
+      },
+      undo: function() {
+        _this.updateSettings({
+          colWidths: oldColWidths,
+          manualColumnResize: oldColWidths
+        })
+        utils.setDirty()
+      }
+    })
+    utils.setDirty()
+  })
+}
+
+function bindSelectionEvent() {
+  Handsontable.hooks.add('afterSelectionEnd', function(rowIndex: number, colIndex: number, row2Index: number, col2Index: number) {
+    emit('cell-selected', { rowIndex, colIndex, row2Index, col2Index })
+  }, hot.value)
+}
+
+function handleReportLoaded() {
+  context.value = new Context({
+    reportDef: reportDef.value,
+    cellsMap: cellsMap.value
+  })
+
+  store.setContext(context.value)
+  emit('context-created', context.value)
+  processRowHeaders()
+}
+
+function processRowHeaders() {
+  if (reportDef.value && reportDef.value.rows) {
+    const rows = reportDef.value.rows
+    for (const row of rows) {
+      const band = row.band
+      if (!band) continue
+      addRowHeader(row.rowNumber - 1, band)
+    }
+    renderRowHeader(hot.value)
+  }
+}
+
+async function loadFile(filePath: string, callback: (...args: unknown[]) => void) {
+  try {
+    const formData = new FormData()
+    formData.append('filePath', filePath)
+    const rDef: any = await loadReport(formData)
+
+    reportDef.value = rDef
+    _buildReportData(rDef)
+    hot.value.render()
+
+    buildMenu()
+
+    if (callback) {
+      callback(rDef)
+    }
+
+    if (filePath !== 'classpath:template/template.ureport.xml') {
+      store.setFileName(filePath)
+    } else {
+      store.setFileName(`${t('table.report.tip')}`)
+    }
+    const masterElement = document.querySelector('.ht_master') as HTMLElement | null
+    if (masterElement) {
+      if (rDef.paper?.bgImage) {
+        masterElement.style.background = `url(${rDef.paper.bgImage}) 50px 26px no-repeat`
+      } else {
+        masterElement.style.background = 'transparent'
+      }
+    }
+  } catch (error: any) {
+    emit('error', error)
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    } else {
+      showAlert(t('table.report.load') + `${filePath}` + t('table.report.fail'))
+    }
+  }
+}
+
+function _buildReportData(data: any) {
+  cellsMap.value.clear()
+  const rows = data.rows
+  const rowHeights: number[] = []
+  for (const row of rows) {
+    const height = row.height
+    rowHeights.push(utils.pointToPixel(height))
+  }
+  const columns = data.columns
+  const colWidths: number[] = []
+  for (const col of columns) {
+    const width = col.width
+    colWidths.push(utils.pointToPixel(width))
+  }
+  const dataCellsMap = data.cellsMap
+  const dataArray: string[][] = []
+  const mergeCells: Array<{ rowspan: number; colspan: number; row: number; col: number }> = []
+  for (const row of rows) {
+    const rowData: string[] = []
+    for (const col of columns) {
+      const key = row.rowNumber + ',' + col.columnNumber
+      const cell = dataCellsMap[key]
+      if (cell) {
+        cellsMap.value.set(key, cell)
+        rowData.push(cell.value?.value || '')
+        let rowspan = cell.rowSpan
+        let colspan = cell.colSpan
+        if (rowspan > 0 || colspan > 0) {
+          if (rowspan === 0) rowspan = 1
+          if (colspan === 0) colspan = 1
+          mergeCells.push({
+            rowspan,
+            colspan,
+            row: row.rowNumber - 1,
+            col: col.columnNumber - 1
+          })
+        }
+      } else {
+        rowData.push('')
+      }
+    }
+    dataArray.push(rowData)
+  }
+  hot.value.loadData(dataArray)
+  hot.value.updateSettings({
+    colWidths,
+    rowHeights,
+    mergeCells,
+    readOnly: true
+  })
+}
+
+function buildMenu() {
+  hot.value.updateSettings({
+    contextMenu: buildMenuConfigure()
+  })
+}
+
+function getReportData() {
+  return utils.tableToXml(context.value)
+}
+
+function saveReport() {
+  emit('save', { data: getReportData() })
+}
 </script>
 
 <style scoped>
-
 .ud-page{
   position: relative;
   display: flex;

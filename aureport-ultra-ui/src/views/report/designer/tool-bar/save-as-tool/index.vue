@@ -5,42 +5,28 @@
       icon="icon-save-as"
       @click="visible = true"
   >
-    <SaveDialog 
-      :visible="visible" 
+    <SaveDialog
+      :visible="visible"
       @update:visible="visible = $event"
       @saveAfter="handleSaveAfter"
     />
   </u-button>
 </template>
 
-<script>
-import SaveDialog from '@/views/report/designer/tool-bar/save-as-tool/save-dialog/index.vue';
-import UButton from "@/components/button/index.vue";
-import { mapGetters } from 'vuex';
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useReportStore } from '@/stores/report'
 
-export default {
-  name: 'SaveAsTool',
-  components: {
-    SaveDialog,
-    UButton
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    }
-  },
-  data() {
-    return {
-      visible: false
-    };
-  },
-  methods: {
-    handleSaveAfter(fullFile) {
-      window.location.replace("?reportPath=" + fullFile);
-    }
-  }
-};
+defineOptions({ name: 'SaveAsTool' })
+
+const store = useReportStore()
+const visible = ref(false)
+
+const context = computed(() => store.context)
+
+function handleSaveAfter(fullFile: string) {
+  window.location.replace("?reportPath=" + fullFile)
+}
 </script>
 
 <style scoped>

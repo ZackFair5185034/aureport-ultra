@@ -3,7 +3,7 @@
     <div class="tools-content">
       <i class="iconfont icon-search"></i>
       <span class="title">
-        {{ $t('preview.searchBox.title') }}
+        {{ t('preview.searchBox.title') }}
       </span>
     </div>
     <div class="main">
@@ -12,69 +12,61 @@
   </div>
 </template>
 
-<script>
-import {renderTemplateToComponent} from "@/views/report/preview/utils/render";
-import {beautifierConf, deepClone} from "@/views/report/designer/search-form/utils";
-import {cssStyle, makeUpHtml, vueScript, vueTemplate} from "@/views/report/designer/search-form/utils/html";
-import {makeUpJs} from "@/views/report/designer/search-form/utils/js";
-import {makeUpCss} from "@/views/report/designer/search-form/utils/css";
-import beautifier from "js-beautify";
+<script setup lang="ts">
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { renderTemplateToComponent } from "@/views/report/preview/utils/render"
+import { beautifierConf, deepClone } from "@/views/report/designer/search-form/utils"
+import { cssStyle, makeUpHtml, vueScript, vueTemplate } from "@/views/report/designer/search-form/utils/html"
+import { makeUpJs } from "@/views/report/designer/search-form/utils/js"
+import { makeUpCss } from "@/views/report/designer/search-form/utils/css"
+import beautifier from "js-beautify"
 
-export default {
-  name: 'SearchBox',
-  props: {
-    searchFormConfig: {
-      type: Object,
-      default: () => null
-    }
-  },
-  data() {
-    return {
-      formInstance: null
-    }
-  },
-  watch: {
-    searchFormConfig: {
-      handler(newVal) {
-        if (newVal) {
-          this.$nextTick(() => {
-            this.init(newVal);
-          });
-        }
-      },
-      immediate: true,
-      deep: true
-    }
-  },
-  methods: {
-    init(searchFormConfig) {
+defineOptions({ name: 'SearchBox' })
 
-      if (this.formInstance) {
-        this.formInstance.$destroy();
-        this.formInstance = null;
-      }
+const props = defineProps<{ searchFormConfig: any }>()
 
-      const generateType = 'file';
-      const script = vueScript(makeUpJs(searchFormConfig, generateType));
-      const html = vueTemplate(makeUpHtml(searchFormConfig, generateType));
-      const css = cssStyle(makeUpCss(searchFormConfig));
-      const formJs = beautifier.html(html + script + css, beautifierConf.html);
+const emit = defineEmits<{ (e: 'submit', data: unknown): void }>()
 
-      this.formInstance = renderTemplateToComponent(formJs, this.$refs.searchForm);
+const { t } = useI18n()
 
-      this.formInstance.$on('on-submit', (formData) => {
-        const clonedData = deepClone(formData);
-        this.$emit('submit', clonedData);
-      });
-    }
-  },
-  beforeDestroy() {
-    if (this.formInstance) {
-      this.formInstance.$destroy();
-      this.formInstance = null;
-    }
+const searchForm = ref<HTMLDivElement | null>(null)
+const formInstance = ref<any>(null)
+
+watch(() => props.searchFormConfig, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      init(newVal)
+    })
   }
+}, { immediate: true, deep: true })
+
+function init(searchFormConfig: any) {
+  if (formInstance.value) {
+    formInstance.value.$destroy()
+    formInstance.value = null
+  }
+
+  const generateType = 'file'
+  const script = vueScript(makeUpJs(searchFormConfig, generateType))
+  const html = vueTemplate(makeUpHtml(searchFormConfig, generateType))
+  const css = cssStyle(makeUpCss(searchFormConfig))
+  const formJs = beautifier.html(html + script + css, beautifierConf.html)
+
+  formInstance.value = renderTemplateToComponent(formJs, searchForm.value!)
+
+  formInstance.value.$on('on-submit', (formData: any) => {
+    const clonedData = deepClone(formData)
+    emit('submit', clonedData)
+  })
 }
+
+onBeforeUnmount(() => {
+  if (formInstance.value) {
+    formInstance.value.$destroy()
+    formInstance.value = null
+  }
+})
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
   <div class="chart-dataset-bob">
 
     <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="$t('chart.dataset')">
+      <u-form-item class="property-label" :label="t('chart.dataset')">
         <u-select
           v-model="localDataset"
           :clearable="true"
@@ -17,7 +17,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.categoryProperty')">
+      <u-form-item class="property-label" :label="t('chart.categoryProperty')">
         <u-select
           v-model="localCategoryProperty"
           :clearable="true"
@@ -32,7 +32,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.xProperty')">
+      <u-form-item class="property-label" :label="t('chart.xProperty')">
         <u-select
           v-model="localXProperty"
           :clearable="true"
@@ -47,7 +47,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="$t('chart.yProperty')">
+      <u-form-item class="property-label" :label="t('chart.yProperty')">
         <u-select
           v-model="localYProperty"
           :clearable="true"
@@ -62,7 +62,7 @@
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" v-if="showRProperty" :label="$t('chart.rProperty')">
+      <u-form-item class="property-label" v-if="showRProperty" :label="t('chart.rProperty')">
         <u-select
           v-model="localRProperty"
           :clearable="true"
@@ -80,207 +80,157 @@
   </div>
 </template>
 
-<script>
-import {setDirty} from '@/utils/table.js';
-import USelect from '@/components/select/index.vue';
-import UOption from '@/components/option/index.vue';
-import { mapGetters } from 'vuex';
-import UFormItem from "@/components/form-item/index.vue";
-import UForm from "@/components/form/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useReportStore } from '@/stores/report'
+import { setDirty } from '@/utils/table'
 
-export default {
-  name: 'ChartDataConfig',
-  components: {
-    UForm,
-    UFormItem,
-    USelect,
-    UOption
-  },
-  props: {
-    selectedDataset: {
-      type: String,
-      default: ''
-    },
-    selectedCategoryProperty: {
-      type: String,
-      default: ''
-    },
-    selectedXProperty: {
-      type: String,
-      default: ''
-    },
-    selectedYProperty: {
-      type: String,
-      default: ''
-    },
-    selectedRProperty: {
-      type: String,
-      default: ''
-    },
-    showRProperty: {
-      type: Boolean,
-      default: true
-    }
-  },
-  data() {
-    return {
-      availableFields: [],
-      // 本地数据，从props复制而来
-      localDataset: '',
-      localCategoryProperty: '',
-      localXProperty: '',
-      localYProperty: '',
-      localRProperty: ''
-    };
-  },
-  computed: {
-    ...mapGetters('report', ['getContext']),
-    context() {
-      return this.getContext;
-    },
-    datasources() {
-      return this.context?.reportDef?.datasources || [];
-    },
-    availableDatasets() {
-      if (!this.datasources) return [];
+defineOptions({ name: 'ChartDataConfig' })
 
-      const datasets = [];
-      for (const ds of this.datasources) {
-        const dsDatasets = ds.datasets || [];
-        for (const dataset of dsDatasets) {
-          datasets.push(dataset);
-        }
-      }
-      return datasets;
-    },
-    // 为USelect组件准备的数据集选项
-    datasetOptions() {
-      return this.availableDatasets.map(dataset => ({
-        value: dataset.name,
-        label: dataset.name
-      }));
-    },
-    // 为USelect组件准备的字段选项
-    fieldOptions() {
-      return this.availableFields.map(field => ({
-        value: field.name,
-        label: field.name
-      }));
-    }
-  },
-  watch: {
-    selectedDataset(newVal) {
-      this.localDataset = newVal;
-    },
-    selectedCategoryProperty(newVal) {
-      this.localCategoryProperty = newVal;
-    },
-    selectedXProperty(newVal) {
-      this.localXProperty = newVal;
-    },
-    selectedYProperty(newVal) {
-      this.localYProperty = newVal;
-    },
-    selectedRProperty(newVal) {
-      this.localRProperty = newVal;
-    },
-    localDataset() {
-      this.updateAvailableFields();
-    },
-    datasources: {
-      handler() {
-        this.updateAvailableFields();
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    // 确保组件挂载后更新可用字段
-    this.updateAvailableFields();
-    // 初始化本地数据
-    this.initLocalData();
-  },
-  methods: {
-    // 初始化本地数据
-    initLocalData() {
-      this.localDataset = this.selectedDataset || '';
-      this.localCategoryProperty = this.selectedCategoryProperty || '';
-      this.localXProperty = this.selectedXProperty || '';
-      this.localYProperty = this.selectedYProperty || '';
-      this.localRProperty = this.selectedRProperty || '';
-    },
+const { t } = useI18n()
+const store = useReportStore()
 
-    // 更新可用字段
-    updateAvailableFields() {
-      if (!this.localDataset || !this.datasources) {
-        this.availableFields = [];
-        return;
-      }
+const props = withDefaults(defineProps<{
+  selectedDataset?: string
+  selectedCategoryProperty?: string
+  selectedXProperty?: string
+  selectedYProperty?: string
+  selectedRProperty?: string
+  showRProperty?: boolean
+}>(), {
+  selectedDataset: '',
+  selectedCategoryProperty: '',
+  selectedXProperty: '',
+  selectedYProperty: '',
+  selectedRProperty: '',
+  showRProperty: true
+})
 
-      let fields = [];
-      for (const ds of this.datasources) {
-        const datasets = ds.datasets || [];
-        for (const dataset of datasets) {
-          if (dataset.name === this.localDataset) {
-            fields = dataset.fields || [];
-            break;
-          }
-        }
-        if (fields.length > 0) break;
-      }
+const emit = defineEmits<{
+  (e: 'update-dataset', value: any): void
+}>()
 
-      // 使用$nextTick确保DOM更新
-      this.$nextTick(() => {
-        this.availableFields = fields;
-      });
-    },
+const availableFields = ref<any[]>([])
+const localDataset = ref('')
+const localCategoryProperty = ref('')
+const localXProperty = ref('')
+const localYProperty = ref('')
+const localRProperty = ref('')
 
-    // 处理数据集变化
-    handleDatasetChange() {
+const context = computed(() => store.context || {})
 
-      // 清空属性选择
-      this.localCategoryProperty = '';
-      this.localXProperty = '';
-      this.localYProperty = '';
-      this.localRProperty = '';
+// @ts-ignore
+const datasources = computed(() => context.value?.reportDef?.datasources || [])
 
-      // 通知父组件更新配置
-      this.$emit('update-dataset', {
-        datasetName: this.localDataset,
-        categoryProperty: '',
-        xProperty: '',
-        yProperty: '',
-        rProperty: ''
-      });
-
-      setDirty();
-    },
-
-    // 处理类别属性变化
-    handleCategoryPropertyChange() {
-      this.$emit('update-dataset', { categoryProperty: this.localCategoryProperty });
-      setDirty();
-    },
-
-    // 处理X属性变化
-    handleXPropertyChange() {
-      this.$emit('update-dataset', { xProperty: this.localXProperty });
-      setDirty();
-    },
-
-    // 处理Y属性变化
-    handleYPropertyChange() {
-      this.$emit('update-dataset', { yProperty: this.localYProperty });
-      setDirty();
-    },
-
-    // 处理R属性变化
-    handleRPropertyChange() {
-      this.$emit('update-dataset', { rProperty: this.localRProperty });
-      setDirty();
+const availableDatasets = computed(() => {
+  if (!datasources.value) return []
+  const datasets: any[] = []
+  for (const ds of datasources.value) {
+    const dsDatasets = ds.datasets || []
+    for (const dataset of dsDatasets) {
+      datasets.push(dataset)
     }
   }
-};
+  return datasets
+})
+
+const datasetOptions = computed(() =>
+  availableDatasets.value.map((dataset: any) => ({
+    value: dataset.name,
+    label: dataset.name
+  }))
+)
+
+const fieldOptions = computed(() =>
+  availableFields.value.map((field: any) => ({
+    value: field.name,
+    label: field.name
+  }))
+)
+
+watch(() => props.selectedDataset, (newVal) => { localDataset.value = newVal })
+watch(() => props.selectedCategoryProperty, (newVal) => { localCategoryProperty.value = newVal })
+watch(() => props.selectedXProperty, (newVal) => { localXProperty.value = newVal })
+watch(() => props.selectedYProperty, (newVal) => { localYProperty.value = newVal })
+watch(() => props.selectedRProperty, (newVal) => { localRProperty.value = newVal })
+
+watch(() => localDataset.value, () => { updateAvailableFields() })
+
+watch(datasources, () => { updateAvailableFields() }, { immediate: true })
+
+onMounted(() => {
+  updateAvailableFields()
+  initLocalData()
+})
+
+function initLocalData() {
+  localDataset.value = props.selectedDataset || ''
+  localCategoryProperty.value = props.selectedCategoryProperty || ''
+  localXProperty.value = props.selectedXProperty || ''
+  localYProperty.value = props.selectedYProperty || ''
+  localRProperty.value = props.selectedRProperty || ''
+}
+
+function updateAvailableFields() {
+  if (!localDataset.value || !datasources.value) {
+    availableFields.value = []
+    return
+  }
+
+  let fields: any[] = []
+  for (const ds of datasources.value) {
+    const datasets = ds.datasets || []
+    for (const dataset of datasets) {
+      if (dataset.name === localDataset.value) {
+        fields = dataset.fields || []
+        break
+      }
+    }
+    if (fields.length > 0) break
+  }
+
+  nextTick(() => {
+    availableFields.value = fields
+  })
+}
+
+function handleDatasetChange() {
+  localCategoryProperty.value = ''
+  localXProperty.value = ''
+  localYProperty.value = ''
+  localRProperty.value = ''
+
+  emit('update-dataset', {
+    datasetName: localDataset.value,
+    categoryProperty: '',
+    xProperty: '',
+    yProperty: '',
+    rProperty: ''
+  })
+
+  setDirty()
+}
+
+function handleCategoryPropertyChange() {
+  emit('update-dataset', { categoryProperty: localCategoryProperty.value })
+  setDirty()
+}
+
+function handleXPropertyChange() {
+  emit('update-dataset', { xProperty: localXProperty.value })
+  setDirty()
+}
+
+function handleYPropertyChange() {
+  emit('update-dataset', { yProperty: localYProperty.value })
+  setDirty()
+}
+
+function handleRPropertyChange() {
+  emit('update-dataset', { rProperty: localRProperty.value })
+  setDirty()
+}
 </script>
 
 <style scoped>

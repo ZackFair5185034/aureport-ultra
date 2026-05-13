@@ -1,6 +1,6 @@
 <template>
   <UDialog
-    :title="$t('dialog.customGroup.title')"
+    :title="t('dialog.customGroup.title')"
     width="800px"
     :visible="visible"
     @close="handleClose"
@@ -13,21 +13,21 @@
             <u-button
                 type="info"
                 icon="icon-plus-circle"
-                :title="$t('dialog.customGroup.addGroup')"
+                :title="t('dialog.customGroup.addGroup')"
                 @click="addItem"
             >
             </u-button>
             <u-button
                 type="info"
                 icon="icon-delete"
-                :title="$t('dialog.customGroup.deleteGroup')"
+                :title="t('dialog.customGroup.deleteGroup')"
                 @click="deleteItem"
             >
             </u-button>
             <u-button
                 type="info"
                 icon="icon-edit"
-                :title="$t('dialog.customGroup.editGroup')"
+                :title="t('dialog.customGroup.editGroup')"
                 @click="editItem"
             >
             </u-button>
@@ -50,26 +50,26 @@
         <!-- 条件管理 -->
         <div class="conditions-section" v-show="selectedItemIndex !== null && selectedItemIndex !== -1">
           <div class="condition-header">
-            <label>{{ $t('dialog.customGroup.groupCondition') }}：</label>
+            <label>{{ t('dialog.customGroup.groupCondition') }}：</label>
             <div class="button-group">
               <u-button
                   type="info"
                   icon="icon-plus-circle"
-                  :title="$t('dialog.customGroup.addCondition')"
+                  :title="t('dialog.customGroup.addCondition')"
                   @click="addCondition"
               >
               </u-button>
               <u-button
                   type="info"
                   icon="icon-delete"
-                  :title="$t('dialog.customGroup.delTitle')"
+                  :title="t('dialog.customGroup.delTitle')"
                   @click="deleteCondition"
               >
               </u-button>
               <u-button
                   type="info"
                   icon="icon-edit"
-                  :title="$t('dialog.customGroup.editTip')"
+                  :title="t('dialog.customGroup.editTip')"
                   @click="editCondition"
               >
               </u-button>
@@ -90,7 +90,7 @@
 
     <!-- GroupItemDialog 组件 -->
     <GroupItemDialog
-      :visible.sync="groupItemDialogVisible"
+      v-model:visible="groupItemDialogVisible"
       :group-item="groupItemDialogItem"
       :operation="groupItemDialogOperation"
       @saveAfter="handleGroupItemSave"
@@ -98,7 +98,7 @@
 
     <!-- ConditionDialog 组件 -->
     <ConditionDialog
-      :visible.sync="conditionDialogVisible"
+      v-model:visible="conditionDialogVisible"
       :fields="conditionDialogFields"
       :condition="conditionDialogCondition"
       :conditions="conditionDialogConditions"
@@ -106,269 +106,250 @@
     />
 
     <!-- 底部按钮 -->
-    <div slot="footer" style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
   </UDialog>
 </template>
 
-<script>
-import { showAlert, showConfirm } from '@/utils/comnon.js';
-import { deepCopy } from '@/components/utils/index.js';
-import GroupItemDialogVue from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-item-dialog/index.vue';
-import ConditionDialogVue from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue';
-import UDialog from '@/components/dialog/index.vue';
-import UButton from "@/components/button/index.vue";
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils/index.js'
+import GroupItemDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-item-dialog/index.vue'
+import ConditionDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue'
 
-export default {
-  name: 'CustomGroupDialog',
-  components: {
-    UButton,
-    UDialog,
-    GroupItemDialog: GroupItemDialogVue,
-    ConditionDialog: ConditionDialogVue
-  },
-  props: {
-    groupItems: {
-      type: Array,
-      default: () => []
-    },
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    fields: {
-      type: Array,
-      default: null
+defineOptions({ name: 'CustomGroupDialog' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  groupItems?: any[]
+  visible?: boolean
+  fields?: any[] | null
+}>(), {
+  groupItems: () => [],
+  visible: false,
+  fields: null
+})
+
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+  (e: 'close'): void
+  (e: 'save', value: any[]): void
+}>()
+
+const localGroupItems = ref<any[]>([])
+const selectedItemIndex = ref<number | null>(null)
+const selectedConditionIndex = ref<number | null>(null)
+const currentConditionIndex = ref<number | null>(null)
+const currentItemIndex = ref<number | null>(null)
+const conditionDialogVisible = ref(false)
+const conditionDialogFields = ref<any[]>([])
+const conditionDialogCondition = ref<any>(null)
+const conditionDialogConditions = ref<any[]>([])
+const groupItemDialogVisible = ref(false)
+const groupItemDialogItem = ref<any>(null)
+const groupItemDialogOperation = ref('add')
+
+const currentConditions = computed(() => {
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    return []
+  }
+  return localGroupItems.value[selectedItemIndex.value].conditions || []
+})
+
+watch(() => props.groupItems, (newVal) => {
+  localGroupItems.value = deepCopy(newVal)
+}, { immediate: true, deep: true })
+
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    localGroupItems.value = deepCopy(props.groupItems)
+    selectedItemIndex.value = null
+    selectedConditionIndex.value = null
+  }
+})
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
+
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+function handleOk() {
+  emit('save', localGroupItems.value)
+  handleClose()
+}
+
+function handleClose() {
+  emit('update:visible', false)
+  emit('close')
+}
+
+function addItem() {
+  const newItem = { name: '', conditions: [] }
+  groupItemDialogItem.value = newItem
+  groupItemDialogOperation.value = 'add'
+  groupItemDialogVisible.value = true
+}
+
+function deleteItem() {
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    showAlert(t('dialog.customGroup.deleteTip'))
+    return
+  }
+
+  const item = localGroupItems.value[selectedItemIndex.value]
+  showConfirm(`${t('dialog.customGroup.deleteConfirm')}[${item.name}]?`).then(() => {
+    localGroupItems.value.splice(selectedItemIndex.value!, 1)
+    selectedItemIndex.value = null
+    selectedConditionIndex.value = null
+  })
+}
+
+function editItem() {
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    showAlert(t('dialog.customGroup.modTip'))
+    return
+  }
+
+  const item = localGroupItems.value[selectedItemIndex.value]
+  groupItemDialogItem.value = item
+  groupItemDialogOperation.value = 'edit'
+  groupItemDialogVisible.value = true
+}
+
+function onSelectedItemChange() {
+  selectedConditionIndex.value = null
+}
+
+function addCondition() {
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    showAlert(t('dialog.customGroup.selectTip'))
+    return
+  }
+
+  const currentItem = localGroupItems.value[selectedItemIndex.value]
+  const conditions = currentItem.conditions || []
+
+  conditionDialogConditions.value = conditions
+  currentConditionIndex.value = -1
+  currentItemIndex.value = selectedItemIndex.value
+  conditionDialogFields.value = props.fields || []
+  conditionDialogCondition.value = null
+  conditionDialogVisible.value = true
+}
+
+function editCondition() {
+  if (selectedConditionIndex.value === null || selectedConditionIndex.value === -1) {
+    showAlert(t('dialog.customGroup.editConditionTip'))
+    return
+  }
+
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    showAlert(t('dialog.customGroup.selectTip'))
+    return
+  }
+
+  const currentItem = localGroupItems.value[selectedItemIndex.value]
+  const conditions = currentItem.conditions || []
+  const condition = conditions[selectedConditionIndex.value]
+
+  conditionDialogConditions.value = conditions
+  currentConditionIndex.value = selectedConditionIndex.value
+  currentItemIndex.value = selectedItemIndex.value
+  conditionDialogFields.value = props.fields || []
+  conditionDialogCondition.value = condition
+  conditionDialogVisible.value = true
+}
+
+function handleGroupItemSave(data: any) {
+  if (data.operation === 'add') {
+    localGroupItems.value.push(data.groupItem)
+  }
+}
+
+function handleConditionSave(conditionData: any) {
+  if (currentItemIndex.value === null || currentItemIndex.value === -1) {
+    return
+  }
+
+  const currentItem = localGroupItems.value[currentItemIndex.value]
+  const conditions = currentItem.conditions || []
+
+  if (conditionData.isEdit && currentConditionIndex.value !== null && currentConditionIndex.value >= 0) {
+    const condition = conditions[currentConditionIndex.value]
+    if (condition) {
+      condition.left = conditionData.left
+      condition.operation = conditionData.operation
+      condition.op = conditionData.operation
+      condition.right = conditionData.right
+      condition.join = conditionData.join
     }
-  },
-  data() {
-    return {
-      localGroupItems: [],
-      selectedItemIndex: null,
-      selectedConditionIndex: null,
-      currentConditionIndex: null,
-      currentItemIndex: null,
-      conditionDialogVisible: false,
-      conditionDialogFields: [],
-      conditionDialogCondition: null,
-      conditionDialogConditions: [],
-      groupItemDialogVisible: false,
-      groupItemDialogItem: null,
-      groupItemDialogOperation: 'add'
-    };
-  },
-  computed: {
-    currentConditions() {
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        return [];
-      }
-      return this.localGroupItems[this.selectedItemIndex].conditions || [];
+  } else {
+    const condition = {
+      left: conditionData.left,
+      operation: conditionData.operation,
+      op: conditionData.operation,
+      right: conditionData.right,
+      join: conditionData.join,
+      id: generateId()
     }
-  },
-  watch: {
-    groupItems: {
-      handler(newVal) {
-        this.localGroupItems = deepCopy(newVal);
-      },
-      immediate: true,
-      deep: true
-    },
-    visible: {
-      handler(newVal) {
-        if (newVal) {
-          this.localGroupItems = deepCopy(this.groupItems);
-          this.selectedItemIndex = null;
-          this.selectedConditionIndex = null;
-        }
-      }
-    }
-  },
-  mounted() {
-    // 添加键盘事件监听
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeDestroy() {
-    // 移除事件监听
-    document.removeEventListener('keydown', this.handleKeydown);
-  },
-  methods: {
-    handleOk() {
-      this.$emit('save', this.localGroupItems);
-      this.handleClose();
-    },
+    conditions.push(condition)
+  }
+}
 
-    handleClose() {
-      this.$emit('update:visible', false);
-      this.$emit('close');
-    },
+function deleteCondition() {
+  if (selectedConditionIndex.value === null || selectedConditionIndex.value === -1) {
+    showAlert(t('dialog.customGroup.delConditionTip'))
+    return
+  }
 
-    // 分组项管理方法
-    addItem() {
-      const newItem = { name: '', conditions: [] };
-      this.groupItemDialogItem = newItem;
-      this.groupItemDialogOperation = 'add';
-      this.groupItemDialogVisible = true;
-    },
+  if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
+    showAlert(t('dialog.customGroup.selectTip'))
+    return
+  }
 
-    deleteItem() {
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.deleteTip'));
-        return;
-      }
+  const currentItem = localGroupItems.value[selectedItemIndex.value]
+  const conditions = currentItem.conditions || []
 
-      const item = this.localGroupItems[this.selectedItemIndex];
-      showConfirm(`${this.$t('dialog.customGroup.deleteConfirm')}[${item.name}]?`).then(() => {
-        this.localGroupItems.splice(this.selectedItemIndex, 1);
-        this.selectedItemIndex = null;
-        this.selectedConditionIndex = null;
-      });
-    },
+  conditions.splice(selectedConditionIndex.value, 1)
+  selectedConditionIndex.value = null
+}
 
-    editItem() {
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.modTip'));
-        return;
-      }
+function formatConditionText(condition: any, index: number) {
+  const op = condition.operation || condition.op
+  let text = `${condition.left} ${op} ${condition.right}`
 
-      const item = this.localGroupItems[this.selectedItemIndex];
-      this.groupItemDialogItem = item;
-      this.groupItemDialogOperation = 'edit';
-      this.groupItemDialogVisible = true;
-    },
+  if (index > 0 && condition.join) {
+    text = `${condition.join} ${text}`
+  }
 
-    onSelectedItemChange() {
-      this.selectedConditionIndex = null;
-    },
+  return text
+}
 
-    // 条件管理方法
-    addCondition() {
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.selectTip'));
-        return;
-      }
-
-      const currentItem = this.localGroupItems[this.selectedItemIndex];
-      const conditions = currentItem.conditions || [];
-
-      this.conditionDialogConditions = conditions;
-      this.currentConditionIndex = -1;
-      this.currentItemIndex = this.selectedItemIndex;
-      this.conditionDialogFields = this.fields;
-      this.conditionDialogCondition = null;
-      this.conditionDialogVisible = true;
-    },
-
-    editCondition() {
-      if (this.selectedConditionIndex === null || this.selectedConditionIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.editConditionTip'));
-        return;
-      }
-
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.selectTip'));
-        return;
-      }
-
-      const currentItem = this.localGroupItems[this.selectedItemIndex];
-      const conditions = currentItem.conditions || [];
-      const condition = conditions[this.selectedConditionIndex];
-
-      this.conditionDialogConditions = conditions;
-      this.currentConditionIndex = this.selectedConditionIndex;
-      this.currentItemIndex = this.selectedItemIndex;
-      this.conditionDialogFields = this.fields;
-      this.conditionDialogCondition = condition;
-      this.conditionDialogVisible = true;
-    },
-
-    handleGroupItemSave(data) {
-      if (data.operation === 'add') {
-        this.localGroupItems.push(data.groupItem);
-      }
-    },
-
-    /**
-     * 处理条件保存事件
-     */
-    handleConditionSave(conditionData) {
-      if (this.currentItemIndex === null || this.currentItemIndex === -1) {
-        return;
-      }
-
-      const currentItem = this.localGroupItems[this.currentItemIndex];
-      const conditions = currentItem.conditions || [];
-
-      if (conditionData.isEdit && this.currentConditionIndex >= 0) {
-        const condition = conditions[this.currentConditionIndex];
-        if (condition) {
-          condition.left = conditionData.left;
-          condition.operation = conditionData.operation;
-          condition.op = conditionData.operation;
-          condition.right = conditionData.right;
-          condition.join = conditionData.join;
-        }
-      } else {
-        const condition = {
-          left: conditionData.left,
-          operation: conditionData.operation,
-          op: conditionData.operation,
-          right: conditionData.right,
-          join: conditionData.join,
-          id: this.generateId()
-        };
-        conditions.push(condition);
-      }
-    },
-
-    deleteCondition() {
-      if (this.selectedConditionIndex === null || this.selectedConditionIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.delConditionTip'));
-        return;
-      }
-
-      if (this.selectedItemIndex === null || this.selectedItemIndex === -1) {
-        showAlert(this.$t('dialog.customGroup.selectTip'));
-        return;
-      }
-
-      const currentItem = this.localGroupItems[this.selectedItemIndex];
-      const conditions = currentItem.conditions || [];
-
-      conditions.splice(this.selectedConditionIndex, 1);
-      this.selectedConditionIndex = null;
-    },
-
-    formatConditionText(condition, index) {
-      const op = condition.operation || condition.op;
-      let text = `${condition.left} ${op} ${condition.right}`;
-
-      if (index > 0 && condition.join) {
-        text = `${condition.join} ${text}`;
-      }
-
-      return text;
-    },
-
-    generateId() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    },
-
-    // 键盘事件处理
-    handleKeydown(e) {
-      if (this.visible) {
-        if (e.key === 'Escape') {
-          this.handleClose();
-        }
-      }
+function handleKeydown(e: KeyboardEvent) {
+  if (props.visible) {
+    if (e.key === 'Escape') {
+      handleClose()
     }
   }
-};
+}
 </script>
 
 <style scoped>

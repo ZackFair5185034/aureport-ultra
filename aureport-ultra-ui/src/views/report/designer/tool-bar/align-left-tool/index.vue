@@ -6,218 +6,157 @@
   />
 </template>
 
-<script>
-import { undoManager, setDirty } from '@/utils/table.js';
-import { showAlert } from '@/utils/comnon.js';
-import { deepCopy } from '@/components/utils/index.js';
-import ButtonGroup from '@/components/button-group/index.vue';
-import {getCell, setCell} from "@/utils/contextActions";
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { undoManager, setDirty } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils/index.js'
+import ButtonGroup from '@/components/button-group/index.vue'
+import { getCell, setCell } from '@/utils/contextActions'
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
-export default {
-  name: 'AlignLeftTool',
-  components: {
-    ButtonGroup
+defineOptions({ name: 'AlignLeftTool' })
+
+const { t } = useI18n()
+
+const props = withDefaults(defineProps<{
+  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+}>(), {
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+})
+
+const currentAlign = ref('left')
+
+const menuItems = computed(() => [
+  {
+    text: t('tools.alignLeft.leftAlign'),
+    icon: 'iconfont icon-left-align',
+    action: () => handleAlignLeft()
   },
-  props: {
-    selectedCells: {
-      type: Object,
-      default: () => ({
-        rowIndex: null,
-        colIndex: null,
-        row2Index: null,
-        col2Index: null
-      })
-    }
+  {
+    text: t('tools.alignLeft.centerAlign'),
+    icon: 'iconfont icon-center-align',
+    action: () => handleAlignCenter()
   },
-  data() {
-    return {
-      currentAlign: 'left',
-      menuItems: [
-        {
-          text: this.$t('tools.alignLeft.leftAlign'),
-          icon: 'iconfont icon-left-align',
-          action: () => this.handleAlignLeft()
-        },
-        {
-          text: this.$t('tools.alignLeft.centerAlign'),
-          icon: 'iconfont icon-center-align',
-          action: () => this.handleAlignCenter()
-        },
-        {
-          text: this.$t('tools.alignLeft.rightAlign'),
-          icon: 'iconfont icon-right-align',
-          action: () => this.handleAlignRight()
-        }
-      ]
-    };
-  },
-  computed: {
-      currentIcon() {
-          const iconMap = {
-              'left': ' icon-left-align',
-              'center': ' icon-center-align',
-              'right': ' icon-right-align'
-          };
-          return iconMap[this.currentAlign] || iconMap['left'];
-      }
-  },
-  watch: {
-    selectedCells: {
-      deep: true,
-      handler(newVal) {
-        if (newVal.rowIndex !== null && newVal.colIndex !== null) {
-          this.refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index);
-        }
-      }
-    }
-  },
-  methods: {
+  {
+    text: t('tools.alignLeft.rightAlign'),
+    icon: 'iconfont icon-right-align',
+    action: () => handleAlignRight()
+  }
+])
 
-    // 处理左对齐
-    handleAlignLeft() {
-      if (!this.checkSelection()) {
-        return;
-      }
+const currentIcon = computed(() => {
+  const iconMap: Record<string, string> = {
+    'left': ' icon-left-align',
+    'center': ' icon-center-align',
+    'right': ' icon-right-align'
+  }
+  return iconMap[currentAlign.value] || iconMap['left']
+})
 
-      const oldAligns = this.buildCellAlign('left');
+watch(() => props.selectedCells, (newVal) => {
+  if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+  }
+}, { deep: true })
 
-      undoManager.add({
-        undo: () => {
-          this.buildCellAlign(null, oldAligns);
-          setDirty();
-        },
-        redo: () => {
-          this.buildCellAlign('left');
-          setDirty();
-        }
-      });
+function handleAlignLeft() {
+  if (!checkSelection()) return
+  const oldAligns = buildCellAlign('left')
+  undoManager.add({
+    undo: () => { buildCellAlign(null, oldAligns); setDirty() },
+    redo: () => { buildCellAlign('left'); setDirty() }
+  })
+  setDirty()
+  currentAlign.value = 'left'
+}
 
-      setDirty();
-      this.currentAlign = 'left';
-    },
-    // 处理居中对齐
-    handleAlignCenter() {
-      if (!this.checkSelection()) {
-        return;
-      }
+function handleAlignCenter() {
+  if (!checkSelection()) return
+  const oldAligns = buildCellAlign('center')
+  undoManager.add({
+    undo: () => { buildCellAlign(null, oldAligns); setDirty() },
+    redo: () => { buildCellAlign('center'); setDirty() }
+  })
+  setDirty()
+  currentAlign.value = 'center'
+}
 
-      const oldAligns = this.buildCellAlign('center');
+function handleAlignRight() {
+  if (!checkSelection()) return
+  const oldAligns = buildCellAlign('right')
+  undoManager.add({
+    undo: () => { buildCellAlign(null, oldAligns); setDirty() },
+    redo: () => { buildCellAlign('right'); setDirty() }
+  })
+  setDirty()
+  currentAlign.value = 'right'
+}
 
-      undoManager.add({
-        undo: () => {
-          this.buildCellAlign(null, oldAligns);
-          setDirty();
-        },
-        redo: () => {
-          this.buildCellAlign('center');
-          setDirty();
-        }
-      });
+function checkSelection() {
+  const hot = TableManager.get()
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    showAlert(t('selectTargetCellFirst'))
+    return false
+  }
+  return true
+}
 
-      setDirty();
-      this.currentAlign = 'center';
-    },
-    // 处理右对齐
-    handleAlignRight() {
-      if (!this.checkSelection()) {
-        return;
+function buildCellAlign(align: string | null, prevAligns?: Record<string, string>) {
+  const oldAligns: Record<string, string> = {}
+  const table = TableManager.get()
+  const selected = table.getSelected()
+  let [startRow, startCol, endRow, endCol] = selected[0]
+
+  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cellDef = getCell(i, j)
+      const td = table.getCell(i, j)
+
+      if (!cellDef) continue
+
+      const newCellDef = deepCopy(cellDef)
+      const cellStyle = newCellDef.cellStyle
+      oldAligns[`${i},${j}`] = cellStyle.align || ""
+
+      if (prevAligns) {
+        align = prevAligns[`${i},${j}`]
       }
 
-      const oldAligns = this.buildCellAlign('right');
-
-      undoManager.add({
-        undo: () => {
-          this.buildCellAlign(null, oldAligns);
-          setDirty();
-        },
-        redo: () => {
-          this.buildCellAlign('right');
-          setDirty();
-        }
-      });
-
-      setDirty();
-      this.currentAlign = 'right';
-    },
-    // 检查是否有选中的单元格
-    checkSelection() {
-      const hot = TableManager.get();
-      const selected = hot.getSelected();
-      if (!selected || selected.length === 0) {
-        showAlert(this.$t('selectTargetCellFirst'));
-        return false;
-      }
-      return true;
-    },
-    // 构建单元格对齐方式
-    buildCellAlign(align, prevAligns) {
-      const oldAligns = {};
-      const table = TableManager.get();
-      const selected = table.getSelected();
-      let [startRow, startCol, endRow, endCol] = selected[0];
-
-      if (startRow > endRow) {
-        [startRow, endRow] = [endRow, startRow];
-      }
-      if (startCol > endCol) {
-        [startCol, endCol] = [endCol, startCol];
+      if (td) {
+        td.style.textAlign = align
       }
 
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellDef = getCell(i, j);
-          const td = table.getCell(i, j);
-
-          if (!cellDef) {
-            continue;
-          }
-
-          const newCellDef = deepCopy(cellDef);
-          const cellStyle = newCellDef.cellStyle;
-          oldAligns[`${i},${j}`] = cellStyle.align || "";
-
-          if (prevAligns) {
-            align = prevAligns[`${i},${j}`];
-          }
-
-          if (td) {
-            td.style.textAlign = align;
-          }
-
-          cellStyle.align = align;
-          setCell( i, j, newCellDef );
-        }
-      }
-
-      return oldAligns;
-    },
-    // 兼容原有工具接口
-    refresh(startRow, startCol, endRow, endCol) {
-      if (startRow > endRow) {
-        [startRow, endRow] = [endRow, startRow];
-      }
-      if (startCol > endCol) {
-        [startCol, endCol] = [endCol, startCol];
-      }
-
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellDef = getCell(i, j);
-          if (!cellDef) {
-            continue;
-          }
-
-          const cellStyle = cellDef.cellStyle;
-          const align = cellStyle.align || "left";
-          this.currentAlign = align;
-          break;
-        }
-        break;
-      }
+      cellStyle.align = align
+      setCell(i, j, newCellDef)
     }
   }
-};
+
+  return oldAligns
+}
+
+function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
+  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef) continue
+
+      const cellStyle = cellDef.cellStyle
+      const align = cellStyle.align || "left"
+      currentAlign.value = align
+      return
+    }
+  }
+}
 </script>
 
 <style scoped>

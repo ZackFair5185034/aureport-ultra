@@ -20,425 +20,330 @@
   </div>
 </template>
 
-<script>
-import { undoManager, setDirty } from '@/utils/table.js';
-import { showAlert } from '@/utils/comnon.js';
-import { deepCopy } from '@/components/utils/index.js';
-import CustomBorderDialog from '@/views/report/designer/resource-panel/property-panel/custom-border-dialog/index.vue';
-import ButtonGroup from '@/components/button-group/index.vue';
-import {getCell, setCell} from "@/utils/contextActions";
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { undoManager, setDirty } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon.js'
+import { deepCopy } from '@/components/utils/index.js'
+import CustomBorderDialog from '@/views/report/designer/resource-panel/property-panel/custom-border-dialog/index.vue'
+import ButtonGroup from '@/components/button-group/index.vue'
+import { getCell, setCell } from '@/utils/contextActions'
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
-export default {
-  name: 'BorderTool',
-  components: {
-    CustomBorderDialog,
-    ButtonGroup
+defineOptions({ name: 'BorderTool' })
+
+const { t } = useI18n()
+
+const customBorderVisible = ref(false)
+const customBorderData = ref({
+  topBorder: { style: 'solid', width: 1, color: '#000000' },
+  bottomBorder: { style: 'solid', width: 1, color: '#000000' },
+  leftBorder: { style: 'solid', width: 1, color: '#000000' },
+  rightBorder: { style: 'solid', width: 1, color: '#000000' }
+})
+
+const menuItems = computed(() => [
+  {
+    text: t('tools.border.allLine'),
+    icon: 'iconfont icon-full-border',
+    action: () => handleFullBorder()
   },
-  data() {
-    return {
-      customBorderVisible: false,
-      customBorderData: {
-        topBorder: { style: 'solid', width: 1, color: '#000000' },
-        bottomBorder: { style: 'solid', width: 1, color: '#000000' },
-        leftBorder: { style: 'solid', width: 1, color: '#000000' },
-        rightBorder: { style: 'solid', width: 1, color: '#000000' }
-      },
-      menuItems: [
-        {
-          text: this.$t('tools.border.allLine'),
-          icon: 'iconfont icon-full-border',
-          action: () => this.handleFullBorder()
-        },
-        {
-          text: this.$t('tools.border.noBorder'),
-          icon: 'iconfont icon-no-border',
-          action: () => this.handleNoBorder()
-        },
-        {
-          text: this.$t('tools.border.leftBorder'),
-          icon: 'iconfont icon-left-border',
-          action: () => this.handleLeftBorder()
-        },
-        {
-          text: this.$t('tools.border.rightBorder'),
-          icon: 'iconfont icon-right-border',
-          action: () => this.handleRightBorder()
-        },
-        {
-          text: this.$t('tools.border.topBorder'),
-          icon: 'iconfont icon-top-border',
-          action: () => this.handleTopBorder()
-        },
-        {
-          text: this.$t('tools.border.bottomBorder'),
-          icon: 'iconfont icon-bottom-border',
-          action: () => this.handleBottomBorder()
-        },
-        {
-          text: this.$t('tools.border.customBorder'),
-          icon: 'iconfont icon-full-border',
-          action: () => this.handleCustomBorder()
-        }
-      ]
-    };
+  {
+    text: t('tools.border.noBorder'),
+    icon: 'iconfont icon-no-border',
+    action: () => handleNoBorder()
   },
-  computed: {
+  {
+    text: t('tools.border.leftBorder'),
+    icon: 'iconfont icon-left-border',
+    action: () => handleLeftBorder()
   },
-  methods: {
+  {
+    text: t('tools.border.rightBorder'),
+    icon: 'iconfont icon-right-border',
+    action: () => handleRightBorder()
+  },
+  {
+    text: t('tools.border.topBorder'),
+    icon: 'iconfont icon-top-border',
+    action: () => handleTopBorder()
+  },
+  {
+    text: t('tools.border.bottomBorder'),
+    icon: 'iconfont icon-bottom-border',
+    action: () => handleBottomBorder()
+  },
+  {
+    text: t('tools.border.customBorder'),
+    icon: 'iconfont icon-full-border',
+    action: () => handleCustomBorder()
+  }
+])
 
-    // 检查是否有选中的单元格
-    checkSelection() {
-      const hot = TableManager.get();
-      const selected = hot.getSelected();
-      if (!selected || selected.length === 0) {
-        showAlert(this.$t('selectTargetCellFirst'));
-        return false;
-      }
-      return true;
+function checkSelection() {
+  const hot = TableManager.get()
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    showAlert(t('selectTargetCellFirst'))
+    return false
+  }
+  return true
+}
+
+function handleFullBorder() {
+  if (!checkSelection()) return
+
+  const table = TableManager.get()
+  const selected = table.getSelected()
+  let [startRow, startCol, endRow, endCol] = selected[0]
+
+  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+
+  const newBorder = { width: 1, color: '0,0,0', style: 'solid' }
+  const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
+  table.render()
+
+  undoManager.add({
+    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder); table.render(); setDirty() },
+    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() }
+  })
+
+  setDirty()
+}
+
+function handleNoBorder() {
+  if (!checkSelection()) return
+
+  const table = TableManager.get()
+  const selected = table.getSelected()
+  let [startRow, startCol, endRow, endCol] = selected[0]
+
+  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+
+  const newBorder = ''
+  const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
+  table.render()
+
+  undoManager.add({
+    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder); table.render(); setDirty() },
+    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() }
+  })
+
+  setDirty()
+}
+
+function handleLeftBorder() { applyBorder('left') }
+function handleRightBorder() { applyBorder('right') }
+function handleTopBorder() { applyBorder('top') }
+function handleBottomBorder() { applyBorder('bottom') }
+
+function applyBorder(target: string) {
+  if (!checkSelection()) return
+
+  const table = TableManager.get()
+  const selected = table.getSelected()
+  let [startRow, startCol, endRow, endCol] = selected[0]
+
+  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+
+  const newBorder = { width: 1, color: '0,0,0', style: 'solid' }
+  const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target)
+  table.render()
+
+  undoManager.add({
+    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target); table.render(); setDirty() },
+    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() }
+  })
+
+  setDirty()
+}
+
+function handleCustomBorder() {
+  if (!checkSelection()) return
+
+  const selected = TableManager.get().getSelected()
+  const [startRow, startCol] = selected[0]
+  const cellDef = getCell(startRow, startCol)
+
+  const defaultBorderStyle = { style: 'solid', width: 1, color: '#000000' }
+
+  const convertColorToHex = (borderStyle: any) => {
+    if (!borderStyle) return { ...defaultBorderStyle }
+    const result = { ...borderStyle }
+    if (typeof result.color === 'string' && result.color.includes(',')) {
+      const rgb = result.color.split(',')
+      result.color = rgbToHex(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]))
+    }
+    return result
+  }
+
+  if (cellDef && cellDef.cellStyle) {
+    customBorderData.value.topBorder = convertColorToHex(cellDef.cellStyle.topBorder)
+    customBorderData.value.bottomBorder = convertColorToHex(cellDef.cellStyle.bottomBorder)
+    customBorderData.value.leftBorder = convertColorToHex(cellDef.cellStyle.leftBorder)
+    customBorderData.value.rightBorder = convertColorToHex(cellDef.cellStyle.rightBorder)
+  } else {
+    customBorderData.value.topBorder = { ...defaultBorderStyle }
+    customBorderData.value.bottomBorder = { ...defaultBorderStyle }
+    customBorderData.value.leftBorder = { ...defaultBorderStyle }
+    customBorderData.value.rightBorder = { ...defaultBorderStyle }
+  }
+
+  customBorderVisible.value = true
+}
+
+function handleSave(topBorder: any, bottomBorder: any, leftBorder: any, rightBorder: any) {
+  const selected = TableManager.get().getSelected()
+  const [startRow, startCol, endRow, endCol] = selected[0]
+
+  let oldBorderStyle = updateCustomBorderStyle(startRow, startCol, endRow, endCol, leftBorder, rightBorder, topBorder, bottomBorder)
+
+  undoManager.add({
+    redo: () => {
+      oldBorderStyle = updateCustomBorderStyle(startRow, startCol, endRow, endCol, leftBorder, rightBorder, topBorder, bottomBorder)
+      setDirty()
     },
-    // 处理全边框
-    handleFullBorder() {
-      if (!this.checkSelection()) {
-        return;
+    undo: () => {
+      updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle)
+      setDirty()
+    }
+  })
+
+  setDirty()
+}
+
+function rgbToHex(r: number, g: number, b: number) {
+  return "#" + [r, g, b].map(x => {
+    const hex = x.toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }).join('')
+}
+
+function updateCustomBorderStyle(startRow: number, startCol: number, endRow: number, endCol: number, leftBorderStyle: any, rightBorderStyle: any, topBorderStyle: any, bottomBorderStyle: any) {
+  const hot = TableManager.get()
+  let left = leftBorderStyle, right = rightBorderStyle, top = topBorderStyle, bottom = bottomBorderStyle
+
+  if (leftBorderStyle.style === 'none') left = ""
+  if (rightBorderStyle.style === 'none') right = ""
+  if (topBorderStyle.style === 'none') top = ""
+  if (bottomBorderStyle.style === 'none') bottom = ""
+
+  const oldBorderStyle: Record<string, any> = {}
+
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef) continue
+
+      const newCellDef = deepCopy(cellDef)
+      const cellStyle = newCellDef.cellStyle
+      oldBorderStyle[i + "," + j] = {
+        leftBorder: cellStyle.leftBorder,
+        rightBorder: cellStyle.rightBorder,
+        topBorder: cellStyle.topBorder,
+        bottomBorder: cellStyle.bottomBorder
       }
 
-      const table = TableManager.get();
-      const selected = table.getSelected();
-      let [startRow, startCol, endRow, endCol] = selected[0];
+      cellStyle.leftBorder = cloneBorder(left)
+      cellStyle.rightBorder = cloneBorder(right)
+      cellStyle.topBorder = cloneBorder(top)
+      cellStyle.bottomBorder = cloneBorder(bottom)
 
-      if (startRow > endRow) {
-        [startRow, endRow] = [endRow, startRow];
-      }
-      if (startCol > endCol) {
-        [startCol, endCol] = [endCol, startCol];
-      }
-
-      const newBorder = {
-        width: 1,
-        color: '0,0,0',
-        style: 'solid'
-      };
-
-      const oldBorderStyle = this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder);
-      table.render();
-
-      undoManager.add({
-        redo: () => {
-          this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder);
-          table.render();
-          setDirty();
-        },
-        undo: () => {
-          this.updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle);
-          setDirty();
-        }
-      });
-
-      setDirty();
-    },
-    // 处理无边框
-    handleNoBorder() {
-      if (!this.checkSelection()) {
-        return;
-      }
-
-      const table = TableManager.get();
-      const selected = table.getSelected();
-      let [startRow, startCol, endRow, endCol] = selected[0];
-
-      if (startRow > endRow) {
-        [startRow, endRow] = [endRow, startRow];
-      }
-      if (startCol > endCol) {
-        [startCol, endCol] = [endCol, startCol];
-      }
-
-      const newBorder = '';
-      const oldBorderStyle = this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder);
-      table.render();
-
-      undoManager.add({
-        redo: () => {
-          this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder);
-          table.render();
-          setDirty();
-        },
-        undo: () => {
-          this.updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle);
-          setDirty();
-        }
-      });
-
-      setDirty();
-    },
-    // 处理左边框
-    handleLeftBorder() {
-      this.applyBorder('left');
-    },
-    // 处理右边框
-    handleRightBorder() {
-      this.applyBorder('right');
-    },
-    // 处理上边框
-    handleTopBorder() {
-      this.applyBorder('top');
-    },
-    // 处理下边框
-    handleBottomBorder() {
-      this.applyBorder('bottom');
-    },
-    // 应用边框
-    applyBorder(target) {
-      if (!this.checkSelection()) {
-        return;
-      }
-
-      const table = TableManager.get();
-      const selected = table.getSelected();
-      let [startRow, startCol, endRow, endCol] = selected[0];
-
-      if (startRow > endRow) {
-        [startRow, endRow] = [endRow, startRow];
-      }
-      if (startCol > endCol) {
-        [startCol, endCol] = [endCol, startCol];
-      }
-
-      const newBorder = {
-        width: 1,
-        color: '0,0,0',
-        style: 'solid'
-      };
-
-      const oldBorderStyle = this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target);
-      table.render();
-
-      undoManager.add({
-        redo: () => {
-          this.updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target);
-          table.render();
-          setDirty();
-        },
-        undo: () => {
-          this.updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle);
-          setDirty();
-        }
-      });
-
-      setDirty();
-    },
-    // 处理自定义边框
-    handleCustomBorder() {
-      if (!this.checkSelection()) {
-        return;
-      }
-
-      const selected = TableManager.get().getSelected();
-      const [startRow, startCol] = selected[0];
-      const cellDef = getCell(startRow, startCol);
-
-      const defaultBorderStyle = { style: 'solid', width: 1, color: '#000000' };
-
-      const convertColorToHex = (borderStyle) => {
-        if (!borderStyle) {
-          return { ...defaultBorderStyle };
-        }
-        const result = { ...borderStyle };
-        if (typeof result.color === 'string' && result.color.includes(',')) {
-          const rgb = result.color.split(',');
-          result.color = this.rgbToHex(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]));
-        }
-        return result;
-      };
-
-      if (cellDef && cellDef.cellStyle) {
-        this.customBorderData.topBorder = convertColorToHex(cellDef.cellStyle.topBorder);
-        this.customBorderData.bottomBorder = convertColorToHex(cellDef.cellStyle.bottomBorder);
-        this.customBorderData.leftBorder = convertColorToHex(cellDef.cellStyle.leftBorder);
-        this.customBorderData.rightBorder = convertColorToHex(cellDef.cellStyle.rightBorder);
-      } else {
-        this.customBorderData.topBorder = { ...defaultBorderStyle };
-        this.customBorderData.bottomBorder = { ...defaultBorderStyle };
-        this.customBorderData.leftBorder = { ...defaultBorderStyle };
-        this.customBorderData.rightBorder = { ...defaultBorderStyle };
-      }
-
-      this.customBorderVisible = true;
-    },
-    handleSave(topBorder, bottomBorder, leftBorder, rightBorder) {
-      const selected = TableManager.get().getSelected();
-      const [startRow, startCol, endRow, endCol] = selected[0];
-
-      let oldBorderStyle = this.updateCustomBorderStyle(
-        startRow, startCol, endRow, endCol,
-        leftBorder, rightBorder, topBorder, bottomBorder
-      );
-
-      undoManager.add({
-        redo: () => {
-          oldBorderStyle = this.updateCustomBorderStyle(
-            startRow, startCol, endRow, endCol,
-            leftBorder, rightBorder, topBorder, bottomBorder
-          );
-          setDirty();
-        },
-        undo: () => {
-          this.updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle);
-          setDirty();
-        }
-      });
-
-      setDirty();
-    },
-    rgbToHex(r, g, b) {
-      return "#" + [r, g, b].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-      }).join('');
-    },
-    // 更新自定义边框样式
-    updateCustomBorderStyle(startRow, startCol, endRow, endCol, leftBorderStyle, rightBorderStyle, topBorderStyle, bottomBorderStyle) {
-      const hot = TableManager.get();
-      let left = leftBorderStyle, right = rightBorderStyle, top = topBorderStyle, bottom = bottomBorderStyle;
-
-      if (leftBorderStyle.style === 'none') {
-        left = "";
-      }
-      if (rightBorderStyle.style === 'none') {
-        right = "";
-      }
-      if (topBorderStyle.style === 'none') {
-        top = "";
-      }
-      if (bottomBorderStyle.style === 'none') {
-        bottom = "";
-      }
-
-      const oldBorderStyle = {};
-
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellDef = getCell(i, j);
-
-          if (!cellDef) {
-            continue;
-          }
-
-          const newCellDef = deepCopy(cellDef);
-          const cellStyle = newCellDef.cellStyle;
-          oldBorderStyle[i + "," + j] = {
-            leftBorder: cellStyle.leftBorder,
-            rightBorder: cellStyle.rightBorder,
-            topBorder: cellStyle.topBorder,
-            bottomBorder: cellStyle.bottomBorder
-          };
-
-          cellStyle.leftBorder = this.cloneBorder(left);
-          cellStyle.rightBorder = this.cloneBorder(right);
-          cellStyle.topBorder = this.cloneBorder(top);
-          cellStyle.bottomBorder = this.cloneBorder(bottom);
-
-          setCell( i, j, newCellDef );
-        }
-      }
-
-      hot.render();
-      return oldBorderStyle;
-    },
-    // 克隆边框对象
-    cloneBorder(border) {
-      if (border && border !== "") {
-        const text = JSON.stringify(border);
-        return JSON.parse(text);
-      } else {
-        return border;
-      }
-    },
-    // 更新旧边框样式
-    updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle) {
-      const hot = TableManager.get();
-
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellDef = getCell(i, j);
-
-          if (!cellDef) {
-            continue;
-          }
-
-          const oldBorder = oldBorderStyle[i + "," + j];
-          const newCellDef = deepCopy(cellDef);
-          const cellStyle = newCellDef.cellStyle;
-
-          cellStyle.leftBorder = oldBorder.leftBorder || "";
-          cellStyle.rightBorder = oldBorder.rightBorder || "";
-          cellStyle.topBorder = oldBorder.topBorder || "";
-          cellStyle.bottomBorder = oldBorder.bottomBorder || "";
-
-          setCell( i, j, newCellDef );
-        }
-      }
-
-      hot.render();
-    },
-    // 更新边框样式
-    updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target) {
-      const oldStyle = {};
-      const hot = TableManager.get();
-
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellDef = getCell(i, j);
-
-          if (!cellDef) {
-            continue;
-          }
-
-          const newCellDef = deepCopy(cellDef);
-          const cellStyle = newCellDef.cellStyle;
-          oldStyle[i + "," + j] = {
-            leftBorder: cellStyle.leftBorder,
-            rightBorder: cellStyle.rightBorder,
-            topBorder: cellStyle.topBorder,
-            bottomBorder: cellStyle.bottomBorder
-          };
-
-          if (!target) {
-            cellStyle.leftBorder = newBorder;
-            cellStyle.rightBorder = newBorder;
-            cellStyle.topBorder = newBorder;
-            cellStyle.bottomBorder = newBorder;
-          } else if (target === 'left') {
-            cellStyle.leftBorder = newBorder;
-            cellStyle.rightBorder = '';
-            cellStyle.topBorder = '';
-            cellStyle.bottomBorder = '';
-          } else if (target === 'right') {
-            cellStyle.rightBorder = newBorder;
-            cellStyle.leftBorder = '';
-            cellStyle.topBorder = '';
-            cellStyle.bottomBorder = '';
-          } else if (target === 'top') {
-            cellStyle.topBorder = newBorder;
-            cellStyle.leftBorder = '';
-            cellStyle.rightBorder = '';
-            cellStyle.bottomBorder = '';
-          } else if (target === 'bottom') {
-            cellStyle.bottomBorder = newBorder;
-            cellStyle.leftBorder = '';
-            cellStyle.rightBorder = '';
-            cellStyle.topBorder = '';
-          }
-
-          setCell( i, j, newCellDef );
-        }
-      }
-
-      return oldStyle;
+      setCell(i, j, newCellDef)
     }
   }
-};
+
+  hot.render()
+  return oldBorderStyle
+}
+
+function cloneBorder(border: any) {
+  if (border && border !== "") {
+    return JSON.parse(JSON.stringify(border))
+  } else {
+    return border
+  }
+}
+
+function updateOldBorderStyles(startRow: number, startCol: number, endRow: number, endCol: number, oldBorderStyle: Record<string, any>) {
+  const hot = TableManager.get()
+
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef) continue
+
+      const oldBorder = oldBorderStyle[i + "," + j]
+      const newCellDef = deepCopy(cellDef)
+      const cellStyle = newCellDef.cellStyle
+
+      cellStyle.leftBorder = oldBorder.leftBorder || ""
+      cellStyle.rightBorder = oldBorder.rightBorder || ""
+      cellStyle.topBorder = oldBorder.topBorder || ""
+      cellStyle.bottomBorder = oldBorder.bottomBorder || ""
+
+      setCell(i, j, newCellDef)
+    }
+  }
+
+  hot.render()
+}
+
+function updateBorderStyles(startRow: number, startCol: number, endRow: number, endCol: number, newBorder: any, target?: string) {
+  const oldStyle: Record<string, any> = {}
+  const hot = TableManager.get()
+
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef) continue
+
+      const newCellDef = deepCopy(cellDef)
+      const cellStyle = newCellDef.cellStyle
+      oldStyle[i + "," + j] = {
+        leftBorder: cellStyle.leftBorder,
+        rightBorder: cellStyle.rightBorder,
+        topBorder: cellStyle.topBorder,
+        bottomBorder: cellStyle.bottomBorder
+      }
+
+      if (!target) {
+        cellStyle.leftBorder = newBorder
+        cellStyle.rightBorder = newBorder
+        cellStyle.topBorder = newBorder
+        cellStyle.bottomBorder = newBorder
+      } else if (target === 'left') {
+        cellStyle.leftBorder = newBorder
+        cellStyle.rightBorder = ''
+        cellStyle.topBorder = ''
+        cellStyle.bottomBorder = ''
+      } else if (target === 'right') {
+        cellStyle.rightBorder = newBorder
+        cellStyle.leftBorder = ''
+        cellStyle.topBorder = ''
+        cellStyle.bottomBorder = ''
+      } else if (target === 'top') {
+        cellStyle.topBorder = newBorder
+        cellStyle.leftBorder = ''
+        cellStyle.rightBorder = ''
+        cellStyle.bottomBorder = ''
+      } else if (target === 'bottom') {
+        cellStyle.bottomBorder = newBorder
+        cellStyle.leftBorder = ''
+        cellStyle.rightBorder = ''
+        cellStyle.topBorder = ''
+      }
+
+      setCell(i, j, newCellDef)
+    }
+  }
+
+  return oldStyle
+}
 </script>
 
 <style scoped>

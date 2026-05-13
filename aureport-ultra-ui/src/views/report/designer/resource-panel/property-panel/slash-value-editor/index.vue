@@ -2,7 +2,7 @@
   <div class="slash-value-editor">
 
     <div class="property-quote">
-      <span>{{ $t('property.slash.config') }}</span>
+      <span>{{ t('property.slash.config') }}</span>
     </div>
 
     <u-form :label-width="100" labelPosition="left">
@@ -13,13 +13,13 @@
             icon="icon-refresh"
             style="float: right"
         >
-          {{ $t('property.slash.refresh') }}
+          {{ t('property.slash.refresh') }}
         </u-button>
       </u-form-item>
 
       <div v-for="(slash, index) in slashes" :key="index" class="slash-item">
 
-        <u-form-item class="property-label" :label="$t('property.slash.name')" style="margin-bottom: 10px">
+        <u-form-item class="property-label" :label="t('property.slash.name')" style="margin-bottom: 10px">
           <u-input
               v-model="slash.text"
               style="width: 250px"
@@ -41,7 +41,7 @@
           />
         </u-form-item>
 
-        <u-form-item class="property-label" :label="$t('property.slash.angle')" style="margin-bottom: 10px">
+        <u-form-item class="property-label" :label="t('property.slash.angle')" style="margin-bottom: 10px">
           <u-input-number
               v-model="slash.degree"
               @change="handleSlashChange(index)"
@@ -53,108 +53,77 @@
   </div>
 </template>
 
-<script>
-import { setDirty } from '@/utils/table.js';
-import { deepCopy } from '@/components/utils/index.js';
-import { setCell, getCell, getContext } from '@/utils/contextActions.js';
-import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js';
-import UInputNumber from '@/components/input-number/index.vue';
-import UInput from '@/components/input/index.vue';
-import UButton from "@/components/button/index.vue";
-import UForm from "@/components/form/index.vue";
-import UFormItem from "@/components/form-item/index.vue";
+<script setup lang="ts">
+// @ts-nocheck
+import { ref, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { setDirty } from '@/utils/table'
+import { deepCopy } from '@/components/utils'
+import { setCell, getCell, getContext } from '@/utils/contextActions'
+import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js'
 
-export default {
-  name: 'SlashValueEditor',
-  components: {
-    UForm,
-    UFormItem,
-    UButton,
-    UInputNumber,
-    UInput
-  },
-  props: {
-    rowIndex: {
-      type: Number,
-      default: 0
-    },
-    colIndex: {
-      type: Number,
-      default: 0
-    },
-    row2Index: {
-      type: Number,
-      default: 0
-    },
-    col2Index: {
-      type: Number,
-      default: 0
-    }
-  },
-  data() {
-    return {
-      slashes: []
-    };
-  },
-  watch: {
-    rowIndex: {
-      immediate: true,
-      handler() {
-        this.loadSlashes();
-      }
-    },
-    colIndex: {
-      immediate: true,
-      handler() {
-        this.loadSlashes();
-      }
-    }
-  },
-  mounted() {
-    this.loadSlashes();
-  },
-  methods: {
-    loadSlashes() {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      if (cellDef && cellDef.value && cellDef.value.slashes) {
-        this.slashes = deepCopy(cellDef.value.slashes);
-      } else {
-        this.slashes = [];
-      }
-    },
+defineOptions({ name: 'SlashValueEditor' })
 
-    handleSlashChange(index) {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      if (!cellDef || !cellDef.value || !cellDef.value.slashes) return;
+const { t } = useI18n()
 
-      const newCellDef = deepCopy(cellDef);
-      newCellDef.value.slashes[index] = deepCopy(this.slashes[index]);
+const props = withDefaults(defineProps<{
+  rowIndex?: number
+  colIndex?: number
+  row2Index?: number
+  col2Index?: number
+}>(), {
+  rowIndex: 0,
+  colIndex: 0,
+  row2Index: 0,
+  col2Index: 0
+})
 
-      setCell(this.rowIndex, this.colIndex, newCellDef);
+const slashes = ref<any[]>([])
 
-      const context = getContext();
-      if (context) {
-        const crossTabWidget = new CrossTabWidget(context, this.rowIndex, this.colIndex, '');
-      }
-
-      setDirty();
-    },
-
-    handleRefresh() {
-      const cellDef = getCell(this.rowIndex, this.colIndex);
-      if (!cellDef) return;
-
-      const context = getContext();
-      if (context) {
-        const crossTabWidget = new CrossTabWidget(context, this.rowIndex, this.colIndex, '');
-        crossTabWidget.refreshCell();
-        crossTabWidget.doDraw();
-
-        this.loadSlashes();
-      }
-    }
+function loadSlashes() {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  if (cellDef && cellDef.value && cellDef.value.slashes) {
+    slashes.value = deepCopy(cellDef.value.slashes)
+  } else {
+    slashes.value = []
   }
-};
+}
+
+function handleSlashChange(index: number) {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  if (!cellDef || !cellDef.value || !cellDef.value.slashes) return
+
+  const newCellDef = deepCopy(cellDef)
+  newCellDef.value.slashes[index] = deepCopy(slashes.value[index])
+
+  setCell(props.rowIndex, props.colIndex, newCellDef)
+
+  const context = getContext()
+  if (context) {
+    const crossTabWidget = new CrossTabWidget(context, props.rowIndex, props.colIndex, '')
+  }
+
+  setDirty()
+}
+
+function handleRefresh() {
+  const cellDef = getCell(props.rowIndex, props.colIndex)
+  if (!cellDef) return
+
+  const context = getContext()
+  if (context) {
+    const crossTabWidget = new CrossTabWidget(context, props.rowIndex, props.colIndex, '')
+    crossTabWidget.refreshCell()
+    crossTabWidget.doDraw()
+
+    loadSlashes()
+  }
+}
+
+watch(() => props.rowIndex, () => { loadSlashes() }, { immediate: true })
+watch(() => props.colIndex, () => { loadSlashes() }, { immediate: true })
+
+onMounted(() => { loadSlashes() })
 </script>
 
 <style scoped>

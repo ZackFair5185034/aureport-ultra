@@ -3,7 +3,7 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="rowHeightChecked" @change="onRowHeightChange">
-          {{ $t('dialog.propCondition.rowHeight') }}
+          {{ t('dialog.propCondition.rowHeight') }}
         </u-checkbox>
       </div>
       <span v-show="rowHeightChecked" style="margin-left: 10px;">
@@ -17,7 +17,7 @@
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="colWidthChecked" @change="onColWidthChange">
-          {{ $t('dialog.propCondition.colWidth') }}
+          {{ t('dialog.propCondition.colWidth') }}
         </u-checkbox>
       </div>
       <span v-show="colWidthChecked" style="margin-left: 10px;">
@@ -30,95 +30,66 @@
   </div>
 </template>
 
-<script>
-import UInputNumber from '@/components/input-number/index.vue';
-import UCheckbox from '@/components/checkbox/index.vue';
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'SizeConfig',
-  components: {
-    UInputNumber,
-    UCheckbox
-  },
-  props: {
-    rowHeight: {
-      type: Number,
-      default: null
-    },
-    colWidth: {
-      type: Number,
-      default: null
-    }
-  },
-  data() {
-    return {
-      rowHeightChecked: false,
-      localRowHeight: 0,
+defineOptions({ name: 'SizeConfig' })
 
-      colWidthChecked: false,
-      localColWidth: 0
-    };
-  },
-  watch: {
-    rowHeight: {
-      handler(newVal) {
-        this.loadRowHeight(newVal);
-      },
-      immediate: true
-    },
-    colWidth: {
-      handler(newVal) {
-        this.loadColWidth(newVal);
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    loadRowHeight(rowHeight) {
-      this.rowHeightChecked = rowHeight !== null && rowHeight !== undefined && rowHeight !== -1;
-      this.localRowHeight = this.rowHeightChecked ? rowHeight : 0;
-    },
+const { t } = useI18n()
 
-    loadColWidth(colWidth) {
-      this.colWidthChecked = colWidth !== null && colWidth !== undefined && colWidth !== -1;
-      this.localColWidth = this.colWidthChecked ? colWidth : 0;
-    },
+const props = withDefaults(defineProps<{
+  rowHeight?: number | null
+  colWidth?: number | null
+}>(), {
+  rowHeight: null,
+  colWidth: null
+})
 
-    onRowHeightChange() {
-      this.$emit('size-change', {
-        type: 'rowHeight',
-        checked: this.rowHeightChecked,
-        value: this.rowHeightChecked ? this.localRowHeight : null
-      });
-    },
+const emit = defineEmits<{
+  (e: 'size-change', value: any): void
+}>()
 
-    onRowHeightValueChange() {
-      if (this.rowHeightChecked) {
-        this.$emit('size-change', {
-          type: 'rowHeight',
-          checked: true,
-          value: this.localRowHeight
-        });
-      }
-    },
+const rowHeightChecked = ref(false)
+const localRowHeight = ref(0)
+const colWidthChecked = ref(false)
+const localColWidth = ref(0)
 
-    onColWidthChange() {
-      this.$emit('size-change', {
-        type: 'colWidth',
-        checked: this.colWidthChecked,
-        value: this.colWidthChecked ? this.localColWidth : null
-      });
-    },
+watch(() => props.rowHeight, (newVal) => {
+  loadRowHeight(newVal)
+}, { immediate: true })
 
-    onColWidthValueChange() {
-      if (this.colWidthChecked) {
-        this.$emit('size-change', {
-          type: 'colWidth',
-          checked: true,
-          value: this.localColWidth
-        });
-      }
-    }
+watch(() => props.colWidth, (newVal) => {
+  loadColWidth(newVal)
+}, { immediate: true })
+
+function loadRowHeight(rowHeight: any) {
+  rowHeightChecked.value = rowHeight !== null && rowHeight !== undefined && rowHeight !== -1
+  localRowHeight.value = rowHeightChecked.value ? rowHeight : 0
+}
+
+function loadColWidth(colWidth: any) {
+  colWidthChecked.value = colWidth !== null && colWidth !== undefined && colWidth !== -1
+  localColWidth.value = colWidthChecked.value ? colWidth : 0
+}
+
+function onRowHeightChange() {
+  emit('size-change', { type: 'rowHeight', checked: rowHeightChecked.value, value: rowHeightChecked.value ? localRowHeight.value : null })
+}
+
+function onRowHeightValueChange() {
+  if (rowHeightChecked.value) {
+    emit('size-change', { type: 'rowHeight', checked: true, value: localRowHeight.value })
   }
-};
+}
+
+function onColWidthChange() {
+  emit('size-change', { type: 'colWidth', checked: colWidthChecked.value, value: colWidthChecked.value ? localColWidth.value : null })
+}
+
+function onColWidthValueChange() {
+  if (colWidthChecked.value) {
+    emit('size-change', { type: 'colWidth', checked: true, value: localColWidth.value })
+  }
+}
 </script>
