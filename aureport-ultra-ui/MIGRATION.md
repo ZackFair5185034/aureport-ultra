@@ -230,6 +230,10 @@ pnpm dev       # vite
 - [ ] **`vue-i18n@10` 升级到 `v11`**：`v9/v10` 已停止维护，v11 有破坏性变化
 - [ ] **代码分割优化**：当前 `designer` chunk 达 1.4MB，建议按需加载优化
 
+### 待验证（重启后端后确认）
+
+- [ ] **classpath:template/ 报表模板加载**：后端 `ClasspathReportProvider` 在运行时找不到 `classpath:template/template.ureport.xml`。模板文件已正确打包进 `aureport-ultra-web.jar`（2026-05-13 验证），需重启后端服务后确认是否解决。如仍失败需检查 Spring `ApplicationContext.getResource()` 的 classloader 行为。
+
 ### 非阻塞性警告（暂不处理）
 
 - `>>>` CSS 深度选择器弃用 → 计划中逐步替换为 `:deep()`
