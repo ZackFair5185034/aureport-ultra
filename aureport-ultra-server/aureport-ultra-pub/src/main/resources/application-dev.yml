@@ -1,11 +1,11 @@
 spring:
   datasource:
-    username: root
-    password: root
-    url: jdbc:mysql://localhost:3306/aureport_ultra?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    username: urp
+    password: T7nZ7weNG4FBFi75
+    url: jdbc:mysql://192.168.101.188:3306/urp?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 aureport-ultra:
   servletPrefix: report
-  fileStoreDir: E:/luckStudio/IO/aureport-ultra
+  fileStoreDir: /home/coding/aureport-ultra/reports
   debug: true
