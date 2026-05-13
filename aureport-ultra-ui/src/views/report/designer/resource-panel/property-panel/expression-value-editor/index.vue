@@ -376,7 +376,7 @@ function handlePropertyConditionSave(propertyConditions: any[]) {
 </script>
 
 <style scoped>
-.simple-suggest /deep/ .default-input{
+.simple-suggest :deep(.default-input){
   display: inline-block !important;
   width: 250px !important;
   height: 35px;

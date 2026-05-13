@@ -120,7 +120,7 @@ function onFormatInputChange() {
 </script>
 
 <style scoped>
-.simple-suggest /deep/ .default-input {
+.simple-suggest :deep(.default-input) {
   width: 268px !important;
   height: 35px;
 }

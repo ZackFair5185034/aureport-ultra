@@ -479,7 +479,7 @@ function _buildFields(): any[] | null {
 </script>
 
 <style scoped>
-.simple-suggest /deep/ .default-input{
+.simple-suggest :deep(.default-input){
   width: 250px !important;
   height: 35px;
   display: inline-block;
