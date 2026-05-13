@@ -30,7 +30,8 @@
     "vue-i18n": "^10.0.0",
     "vue-router": "^4.5.0",
     "vue-simple-suggest": "^1.11.2",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^2.24.3",
+    "@parcel/watcher": "^2.4.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
