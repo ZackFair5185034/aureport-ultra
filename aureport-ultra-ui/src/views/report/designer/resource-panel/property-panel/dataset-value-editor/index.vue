@@ -20,6 +20,7 @@
             :show-sort-options="showSortOptions"
             :show-expand-options="showExpandOptions"
             :condition-property-items="conditionPropertyItems"
+            :selected-nest-property="selectedNestProperty"
             @update:selectedDataset="val => selectedDataset = val"
             @update:selectedProperty="val => selectedProperty = val"
             @update:selectedAggregate="val => selectedAggregate = val"
@@ -33,6 +34,8 @@
             @update:showSortOptions="val => showSortOptions = val"
             @update:showExpandOptions="val => showExpandOptions = val"
             @update:conditionPropertyItems="val => conditionPropertyItems = val"
+            @update:selectedNestProperty="val => selectedNestProperty = val"
+            @nest-property-change="handleNestPropertyChange"
             @dataset-change="handleDatasetChange"
             @property-change="handlePropertyChange"
             @aggregate-change="handleAggregateChange"
@@ -135,6 +138,7 @@ const mappingKeyProperty = ref('')
 const mappingValueProperty = ref('')
 const conditionPropertyItems = ref<any[]>([])
 const groupItems = ref<any[]>([])
+const selectedNestProperty = ref('')
 
 watch(() => [props.rowIndex, props.colIndex], () => {
   loadCellData()
@@ -208,6 +212,7 @@ function loadInitialValues(cellDef: any) {
     mappingDataset.value = value.mappingDataset || ''
     mappingKeyProperty.value = value.mappingKeyProperty || ''
     mappingValueProperty.value = value.mappingValueProperty || ''
+    selectedNestProperty.value = value.nestProperty || ''
   }
 
   if (cellDef.conditionPropertyItems) {
@@ -438,7 +443,17 @@ function _updateTableData() {
       if (valueType === 'simple') {
         data = value.value
       } else if (valueType === 'dataset') {
-        data = value.datasetName + "." + value.aggregate + "(" + value.property + ")"
+        let text = value.datasetName + "." + value.aggregate + "("
+        if (value.aggregate === 'iterate') {
+          text += value.nestProperty || ''
+          text += ')'
+          if (value.property) {
+            text += '.' + value.property
+          }
+        } else {
+          text += value.property + ')'
+        }
+        data = text
       } else if (valueType === 'expression') {
         data = value.value
       }
@@ -557,6 +572,22 @@ function _setFillBlankRows(value: boolean) {
         newCellDef.multiple = 0
       }
       setCell(i, j, newCellDef)
+    }
+  }
+  setDirty()
+}
+
+function handleNestPropertyChange() {
+  for (let i = props.rowIndex; i <= props.row2Index; i++) {
+    for (let j = props.colIndex; j <= props.col2Index; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef) continue
+      const valueType = cellDef.value.type
+      if (valueType === 'dataset') {
+        const newCellDef = deepCopy(cellDef)
+        newCellDef.value.nestProperty = selectedNestProperty.value
+        setCell(i, j, newCellDef)
+      }
     }
   }
   setDirty()

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ureport xmlns="http://www.example.org/ureport2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.example.org/ureport2 http://www.example.org/ureport2 ">
+	<!-- 报表标题 -->
+	<cell expand="None" name="A1" row="1" col="1" col-span="7">
+		<simple-value><![CDATA[销售订单汇总表]]></simple-value>
+		<cell-style font-size="16" font-weight="bold" align="center" valign="middle" forecolor="#1a56db"></cell-style>
+	</cell>
+
+	<!-- 表头行 -->
+	<cell expand="None" name="A2" row="2" col="1">
+		<simple-value><![CDATA[订单号]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="B2" row="2" col="2">
+		<simple-value><![CDATA[客户名称]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="C2" row="2" col="3">
+		<simple-value><![CDATA[产品名称]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="D2" row="2" col="4">
+		<simple-value><![CDATA[单价]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="E2" row="2" col="5">
+		<simple-value><![CDATA[数量]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="F2" row="2" col="6">
+		<simple-value><![CDATA[订单金额]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+	<cell expand="None" name="G2" row="2" col="7">
+		<simple-value><![CDATA[订单状态]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="center" valign="middle" background-color="#e0e7ff"></cell-style>
+	</cell>
+
+	<!-- 数据行 - 使用 Down 扩展，数据向下扩展 -->
+	<cell expand="Down" name="A3" row="3" col="1">
+		<dataset-value aggregate="select" property="order_no" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="center" valign="middle"></cell-style>
+	</cell>
+	<cell expand="Down" name="B3" row="3" col="2">
+		<dataset-value aggregate="select" property="customer_name" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="left" valign="middle"></cell-style>
+	</cell>
+	<cell expand="Down" name="C3" row="3" col="3">
+		<dataset-value aggregate="select" property="product_name" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="left" valign="middle"></cell-style>
+	</cell>
+	<cell expand="Down" name="D3" row="3" col="4">
+		<dataset-value aggregate="select" property="unit_price" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="right" valign="middle"></cell-style>
+	</cell>
+	<cell expand="Down" name="E3" row="3" col="5">
+		<dataset-value aggregate="select" property="quantity" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="center" valign="middle"></cell-style>
+	</cell>
+	<cell expand="Down" name="F3" row="3" col="6">
+		<dataset-value aggregate="select" property="total_amount" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="right" valign="middle" forecolor="#dc2626" font-weight="bold"></cell-style>
+	</cell>
+	<cell expand="Down" name="G3" row="3" col="7">
+		<dataset-value aggregate="select" property="status" dataset-name="orders"></dataset-value>
+		<cell-style font-size="10" align="center" valign="middle"></cell-style>
+	</cell>
+
+	<!-- 汇总行 -->
+	<cell expand="None" name="A4" row="4" col="1" col-span="5">
+		<simple-value><![CDATA[总计]]></simple-value>
+		<cell-style font-size="10" font-weight="bold" align="right" valign="middle" background-color="#fef3c7"></cell-style>
+	</cell>
+	<cell expand="None" name="F4" row="4" col="6">
+		<expression-value><![CDATA[sum(F3)]]></expression-value>
+		<cell-style font-size="11" font-weight="bold" align="right" valign="middle" background-color="#fef3c7" forecolor="#dc2626"></cell-style>
+	</cell>
+	<cell expand="None" name="G4" row="4" col="7">
+		<simple-value><![CDATA[]]></simple-value>
+		<cell-style font-size="10" align="center" valign="middle" background-color="#fef3c7"></cell-style>
+	</cell>
+
+	<!-- 行高定义 -->
+	<row row-number="1" height="40"/>
+	<row row-number="2" height="28"/>
+	<row row-number="3" height="24"/>
+	<row row-number="4" height="30"/>
+
+	<!-- 列宽定义 -->
+	<column col-number="1" width="120"/>
+	<column col-number="2" width="100"/>
+	<column col-number="3" width="150"/>
+	<column col-number="4" width="90"/>
+	<column col-number="5" width="60"/>
+	<column col-number="6" width="100"/>
+	<column col-number="7" width="80"/>
+
+	<!-- 页面设置 -->
+	<paper type="A4" orientation="landscape" paging-mode="fitpage"></paper>
+
+	<!-- 数据源定义 -->
+	<datasource name="mysql" type="jdbc" driver="com.mysql.cj.jdbc.Driver"
+		username="urp" password="T7nZ7weNG4FBFi75" url="jdbc:mysql://192.168.101.188:3306/urp?serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=utf-8">
+		<!-- 订单数据，带关联查询 -->
+		<dataset name="orders" type="sql">
+			<sql><![CDATA[
+				SELECT
+					o.order_no,
+					c.name AS customer_name,
+					p.name AS product_name,
+					p.price AS unit_price,
+					o.quantity,
+					o.total_amount,
+					o.status
+				FROM orders o
+				LEFT JOIN customers c ON o.customer_id = c.id
+				LEFT JOIN products p ON o.product_id = p.id
+				ORDER BY o.order_date DESC, o.order_no DESC
+			]]></sql>
+			<field name="order_no"/>
+			<field name="customer_name"/>
+			<field name="product_name"/>
+			<field name="unit_price"/>
+			<field name="quantity"/>
+			<field name="total_amount"/>
+			<field name="status"/>
+		</dataset>
+	</datasource>
+</ureport>

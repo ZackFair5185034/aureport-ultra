@@ -43,6 +43,7 @@ public class DatasetUtils {
         aggregates.put(AggregateType.min, new MinAggregate());
         aggregates.put(AggregateType.max, new MaxAggregate());
         aggregates.put(AggregateType.customgroup, new CustomGroupAggregate());
+        aggregates.put(AggregateType.iterate, new IterateAggregate());
     }
 
     public static List<BindData> computeDatasetExpression(DatasetExpression expr, Cell cell, Context context) {

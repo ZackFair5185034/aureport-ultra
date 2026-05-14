@@ -167,11 +167,36 @@ public class Utils implements ApplicationContextAware {
     public static Object getProperty(Object obj, String property) {
         if (obj == null) return null;
         try {
-            if (obj instanceof Map && property.indexOf(".") == -1) {
+            // Map 只支持简单 key（无点号、无数组下标）
+            if (obj instanceof Map && property.indexOf(".") == -1 && property.indexOf("[") == -1) {
                 Map<?, ?> map = (Map<?, ?>) obj;
                 return map.get(property);
             }
-            return PropertyUtils.getProperty(obj, property);
+
+            // 支持嵌套属性路径 + 数组下标，如 familyMembers[0].name
+            String[] parts = property.split("\\.");
+            Object current = obj;
+            for (String part : parts) {
+                if (current == null) return null;
+
+                if (part.contains("[")) {
+                    // 分离属性名和数组下标，如 familyMembers[0] -> prop="familyMembers", idx=0
+                    String prop = part.substring(0, part.indexOf("["));
+                    int idx = Integer.parseInt(part.substring(part.indexOf("[") + 1, part.indexOf("]")));
+
+                    if (!prop.isEmpty()) {
+                        current = PropertyUtils.getProperty(current, prop);
+                    }
+                    if (current instanceof List) {
+                        current = ((List<?>) current).get(idx);
+                    } else if (current instanceof Object[]) {
+                        current = ((Object[]) current)[idx];
+                    }
+                } else {
+                    current = PropertyUtils.getProperty(current, part);
+                }
+            }
+            return current;
         } catch (Exception ex) {
             throw new ReportComputeException(ex);
         }

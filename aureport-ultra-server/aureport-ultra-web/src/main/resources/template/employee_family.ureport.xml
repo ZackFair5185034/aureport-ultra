@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ureport xmlns="http://www.example.org/ureport2">
+	<!-- 报表标题 -->
+	<cell expand="None" name="A1" row="1" col="1" col-span="6">
+		<simple-value><![CDATA[员工家庭信息表]]></simple-value>
+	</cell>
+
+	<!-- 表头 -->
+	<cell expand="None" name="A2" row="2" col="1">
+		<simple-value><![CDATA[工号]]></simple-value>
+	</cell>
+	<cell expand="None" name="B2" row="2" col="2">
+		<simple-value><![CDATA[姓名]]></simple-value>
+	</cell>
+	<cell expand="None" name="C2" row="2" col="3">
+		<simple-value><![CDATA[部门]]></simple-value>
+	</cell>
+	<cell expand="None" name="D2" row="2" col="4">
+		<simple-value><![CDATA[职位]]></simple-value>
+	</cell>
+	<cell expand="None" name="E2" row="2" col="5">
+		<simple-value><![CDATA[家庭成员]]></simple-value>
+	</cell>
+	<cell expand="None" name="F2" row="2" col="6">
+		<simple-value><![CDATA[关系]]></simple-value>
+	</cell>
+
+	<!-- 数据行：员工信息，leftParentCellName 建立父子关系 -->
+	<cell expand="Down" name="A3" row="3" col="1" leftParentCellName="B3">
+		<dataset-value aggregate="select" property="id" dataset-name="employees"></dataset-value>
+	</cell>
+	<cell expand="Down" name="B3" row="3" col="2">
+		<dataset-value aggregate="select" property="name" dataset-name="employees"></dataset-value>
+	</cell>
+	<cell expand="Down" name="C3" row="3" col="3">
+		<dataset-value aggregate="select" property="dept" dataset-name="employees"></dataset-value>
+	</cell>
+	<cell expand="Down" name="D3" row="3" col="4">
+		<dataset-value aggregate="select" property="position" dataset-name="employees"></dataset-value>
+	</cell>
+
+	<!-- 家庭成员：嵌套 List 属性，通过父格 B3 过滤 -->
+	<cell expand="Down" name="E3" row="3" col="5" leftParentCellName="B3">
+		<dataset-value aggregate="select" property="familyMembers" dataset-name="employees"></dataset-value>
+	</cell>
+	<cell expand="Down" name="F3" row="3" col="6" leftParentCellName="B3">
+		<dataset-value aggregate="select" property="familyMembers.relation" dataset-name="employees"></dataset-value>
+	</cell>
+
+	<!-- 姓名列需要向下扩展以匹配家庭成员行数，这里用聚合让引擎知道要展开 -->
+	<!-- 由于 familyMembers 是 List，B3 需要设置 aggregate 让引擎知道它是父格 -->
+
+	<row row-number="1" height="40"/>
+	<row row-number="2" height="30"/>
+	<row row-number="3" height="25"/>
+
+	<column col-number="1" width="60"/>
+	<column col-number="2" width="80"/>
+	<column col-number="3" width="80"/>
+	<column col-number="4" width="100"/>
+	<column col-number="5" width="80"/>
+	<column col-number="6" width="80"/>
+
+	<paper type="A4" orientation="portrait"></paper>
+
+	<!-- Spring Bean 数据源 -->
+	<datasource name="empDs" type="spring" bean="employeeService">
+		<dataset name="employees" type="bean" method="queryEmployees" clazz="com.aureport.ultra.web.demo.model.Employee">
+			<field name="id"/>
+			<field name="name"/>
+			<field name="dept"/>
+			<field name="position"/>
+			<field name="salary"/>
+			<field name="email"/>
+			<field name="familyMembers"/>
+		</dataset>
+	</datasource>
+</ureport>

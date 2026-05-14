@@ -41,6 +41,9 @@
 import { ref, computed, watch } from 'vue'
 import { useReportStore } from '@/stores/report'
 
+// 显式引入目录名与组件名不一致的工具组件
+import AlignTopTool from './align-tool/index.vue'
+
 defineOptions({ name: 'TopToolBar' })
 
 const store = useReportStore()

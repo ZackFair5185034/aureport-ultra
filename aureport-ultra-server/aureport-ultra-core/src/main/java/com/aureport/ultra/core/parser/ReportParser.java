@@ -69,7 +69,8 @@ public class ReportParser {
                     continue;
                 }
                 Element ele = (Element) obj;
-                Parser<?> parser = parsers.get(ele.getName());
+                String eleName = ele.getName();
+                Parser<?> parser = parsers.get(eleName);
                 if (parser != null) {
                     Object target = parser.parse(ele);
                     if (target instanceof RowDefinition) {
@@ -135,6 +136,8 @@ public class ReportParser {
                         throw new ReportException("Cell [" + cell.getName() + "] 's left parent cell [" + leftParentCellName + "] not exist.");
                     }
                     cell.setLeftParentCell(targetCell);
+                    targetCell.getRowChildrenCells().add(cell);
+                    System.out.println("[REBUILD DEBUG] " + cell.getName() + " -> left parent " + leftParentCellName + " (rowChildren count=" + targetCell.getRowChildrenCells().size() + ")");
                 }
             } else {
                 if (colNumber > 1) {

@@ -42,6 +42,7 @@ public class DatasetValueParser extends ValueParser {
         value.setAggregate(AggregateType.valueOf(element.attributeValue("aggregate")));
         value.setDatasetName(element.attributeValue("dataset-name"));
         value.setProperty(element.attributeValue("property"));
+        value.setNestProperty(element.attributeValue("nest-property"));
         String order = element.attributeValue("order");
         if (StringUtils.isNotBlank(order)) {
             value.setOrder(Order.valueOf(order));

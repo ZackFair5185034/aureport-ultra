@@ -56,6 +56,16 @@
         </u-button>
       </u-form-item>
 
+      <u-form-item class="property-label" :label="t('property.dataset.nestProperty')" v-show="internalSelectedAggregate === 'iterate'">
+        <u-input
+            v-model="internalNestProperty"
+            :clearable="true"
+            style="width:250px"
+            :placeholder="t('property.dataset.nestPropertyTip')"
+            @change="handleNestPropertyChange"
+        />
+      </u-form-item>
+
       <u-form-item class="property-label" :label="t('property.dataset.sortType')" v-show="internalShowSortOptions">
         <u-radio-group v-model="internalSelectedSort" @change="handleSortChange">
           <u-radio
@@ -196,6 +206,7 @@ const props = withDefaults(defineProps<{
   showSortOptions?: boolean
   showExpandOptions?: boolean
   conditionPropertyItems?: any[]
+  selectedNestProperty?: string
 }>(), {
   datasets: () => [],
   currentFields: () => [],
@@ -212,7 +223,8 @@ const props = withDefaults(defineProps<{
   multiple: 0,
   showSortOptions: true,
   showExpandOptions: true,
-  conditionPropertyItems: () => []
+  conditionPropertyItems: () => [],
+  selectedNestProperty: ''
 })
 
 const emit = defineEmits<{
@@ -229,6 +241,7 @@ const emit = defineEmits<{
   (e: 'update:showSortOptions', value: boolean): void
   (e: 'update:showExpandOptions', value: boolean): void
   (e: 'update:conditionPropertyItems', value: any[]): void
+  (e: 'update:selectedNestProperty', value: string): void
   (e: 'dataset-change', value: string): void
   (e: 'property-change', value: string): void
   (e: 'aggregate-change', value: any): void
@@ -255,6 +268,7 @@ const internalFillBlankRows = ref('custom')
 const internalMultiple = ref(0)
 const internalShowSortOptions = ref(true)
 const internalShowExpandOptions = ref(true)
+const internalNestProperty = ref('')
 const isInitialized = ref(false)
 const propertyConditionDialogVisible = ref(false)
 const propertyConditionDialogDatasetName = ref('')
@@ -287,6 +301,7 @@ const aggregateOptions = computed(() => [
   { value: 'select', label: t('property.dataset.select') },
   { value: 'group', label: t('property.dataset.group') },
   { value: 'customgroup', label: t('property.dataset.customGroup') },
+  { value: 'iterate', label: t('property.dataset.iterate') },
   { value: 'sum', label: t('property.dataset.sum') },
   { value: 'count', label: t('property.dataset.count') },
   { value: 'max', label: t('property.dataset.max') },
@@ -328,6 +343,7 @@ watch(() => props.fillBlankRows, (val) => { internalFillBlankRows.value = val })
 watch(() => props.multiple, (val) => { internalMultiple.value = val })
 watch(() => props.showSortOptions, (val) => { internalShowSortOptions.value = val })
 watch(() => props.showExpandOptions, (val) => { internalShowExpandOptions.value = val })
+watch(() => props.selectedNestProperty, (val) => { internalNestProperty.value = val })
 
 initData()
 
@@ -344,6 +360,7 @@ function initData() {
   internalMultiple.value = props.multiple
   internalShowSortOptions.value = props.showSortOptions
   internalShowExpandOptions.value = props.showExpandOptions
+  internalNestProperty.value = props.selectedNestProperty
 }
 
 onMounted(() => {
@@ -439,6 +456,11 @@ function handlePropertyConditionSave(propertyConditions: any[]) {
   const updatedConditions = deepCopy(propertyConditions)
   emit('update:conditionPropertyItems', updatedConditions)
   emit('condition-property-items-change', updatedConditions)
+  setDirty()
+}
+
+function handleNestPropertyChange() {
+  emit('update:selectedNestProperty', internalNestProperty.value)
   setDirty()
 }
 

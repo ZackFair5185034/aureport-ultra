@@ -42,6 +42,11 @@ public class DatasetExpression extends BaseExpression {
     private AggregateType aggregate;
     private String property;
     /**
+     * 嵌套属性路径，用于 iterate 聚合类型
+     * 指定从父行对象中迭代展开的数组属性，如 familyMembers
+     */
+    private String nestProperty;
+    /**
      * 当aggregate类型为自定义分组时，采用此属性来存储自定义分组各个项目
      */
     private List<GroupItem> groupItems;
@@ -94,6 +99,14 @@ public class DatasetExpression extends BaseExpression {
 
     public void setProperty(String property) {
         this.property = property;
+    }
+
+    public String getNestProperty() {
+        return nestProperty;
+    }
+
+    public void setNestProperty(String nestProperty) {
+        this.nestProperty = nestProperty;
     }
 
     public List<GroupItem> getGroupItems() {
