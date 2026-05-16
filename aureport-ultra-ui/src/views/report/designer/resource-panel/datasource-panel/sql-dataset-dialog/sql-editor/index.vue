@@ -31,7 +31,7 @@ import { useI18n } from 'vue-i18n'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/hint/show-hint.js'
 import 'codemirror/addon/lint/lint.js'
-import { showAlert } from '@/utils/comnon.js'
+import { showAlert } from '@/utils/comnon'
 import { scriptValidation } from '@/api/designer'
 
 defineOptions({ name: 'SqlEditor' })

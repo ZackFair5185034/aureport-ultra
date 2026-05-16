@@ -11,10 +11,10 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty, buildNewCellDef } from '@/utils/table.js'
-import { showAlert } from '@/utils/comnon.js'
+import { undoManager, setDirty, buildNewCellDef } from '@/utils/table'
+import { showAlert } from '@/utils/comnon'
 import { addCell, getCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'MergeTool' })
 

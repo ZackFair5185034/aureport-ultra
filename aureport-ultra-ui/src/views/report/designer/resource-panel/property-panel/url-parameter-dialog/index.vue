@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showConfirm } from '@/utils/comnon.js'
+import { showConfirm } from '@/utils/comnon'
 import URLParameterItemDialog from '@/views/report/designer/resource-panel/property-panel/url-parameter-dialog/url-parameter-item-dialog/index.vue'
 
 defineOptions({ name: 'URLParameterDialog' })

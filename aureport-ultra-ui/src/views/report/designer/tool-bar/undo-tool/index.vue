@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { undoManager } from '@/utils/table.js'
-import { showAlert } from '@/utils/comnon.js'
+import { undoManager } from '@/utils/table'
+import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'UndoTool' })
 

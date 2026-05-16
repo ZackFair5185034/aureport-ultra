@@ -155,7 +155,7 @@ import { makeUpJs } from './utils/js'
 import { makeUpCss } from './utils/css'
 import { drawingDefaultValue, initDrawingDefaultValue, cleanDrawingDefaultValue } from './utils/drawingDefault'
 import logo from '@/assets/images/form-designer/logo.png'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
 import { deepCopy } from '@/components/utils'
 
 // Wrap in ref for vuedraggable v4 v-model compatibility

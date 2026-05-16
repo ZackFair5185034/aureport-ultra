@@ -1,24 +1,21 @@
-# luck-report-ui
+# aureport-ultra-ui
 
-## Project setup
-```
-npm install
-```
+Aureport Ultra 报表设计器前端，基于 Vue 3 + Vite 8 + TypeScript。
 
-### Compiles and hot-reloads for development
-```
-npm run serve
+## 开发
+
+```bash
+npx vite --port 8080
 ```
 
-### Compiles and minifies for production
-```
-npm run build
+## 构建
+
+```bash
+pnpm build
 ```
 
-### Lints and fixes files
-```
-npm run lint
-```
+## 类型检查
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+```bash
+pnpm typecheck
+```

@@ -96,9 +96,9 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
-import { formatDate, resetDirty, tableToXml } from '@/utils/table.js'
+import { formatDate, resetDirty, tableToXml } from '@/utils/table'
 import { saveReportFile, deleteReportFile, loadReportProviders, loadReportProvidersByPath } from '@/api/designer'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
 
 defineOptions({ name: 'SaveDialog' })
 

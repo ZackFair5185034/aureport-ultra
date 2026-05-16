@@ -56,8 +56,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
-import { setDirty } from '@/utils/table.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
 import { v1 as uuid } from 'uuid'
 import PropertyConditionItemDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-item-dialog/index.vue'
 

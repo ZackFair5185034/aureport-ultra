@@ -45,9 +45,9 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import { setDirty } from '@/utils/table';
-import { deepCopy } from '@/components/utils/index.js';
+import { deepCopy } from '@/components/utils/index';
 import { getCell, setCell } from '@/utils/contextActions';
-import chartWidgetManager from '@/views/report/designer/edit-table/chart-widget/manager.js';
+import chartWidgetManager from '@/views/report/designer/edit-table/chart-widget/manager';
 import ChartDataset from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-dataset/index.vue';
 import ChartAxis from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-axis/index.vue';
 import ChartOption from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-option/index.vue';

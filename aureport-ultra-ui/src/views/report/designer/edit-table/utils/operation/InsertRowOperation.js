@@ -1,8 +1,8 @@
 /**
  * Created by Jacky.Gao on 2017-02-17.
  */
-import {buildNewCellDef, resetTableData, setDirty, undoManager} from '@/utils/table.js';
-import {renderRowHeader} from '@/views/report/designer/edit-table/utils/HeaderUtils.js';
+import {buildNewCellDef, resetTableData, setDirty, undoManager} from '@/utils/table';
+import {renderRowHeader} from '@/views/report/designer/edit-table/utils/HeaderUtils';
 import {$t} from "@/locales";
 import {showAlert} from "@/utils/comnon";
 import {

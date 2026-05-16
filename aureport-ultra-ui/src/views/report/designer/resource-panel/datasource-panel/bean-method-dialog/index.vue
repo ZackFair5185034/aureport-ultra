@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setDirty } from '@/utils/table.js'
+import { setDirty } from '@/utils/table'
 import MethodSelectDialog from '@/views/report/designer/resource-panel/datasource-panel/method-select-dialog/index.vue'
 import { showAlert } from '@/utils/comnon'
 

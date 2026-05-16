@@ -1,7 +1,7 @@
 /**
  * Created by Jacky.Gao on 2017-02-17.
  */
-import {resetTableData, setDirty, undoManager} from '@/utils/table.js';
+import {resetTableData, setDirty, undoManager} from '@/utils/table';
 import {renderRowHeader} from '../HeaderUtils.js';
 import {$t} from "@/locales";
 import {showAlert} from "@/utils/comnon";

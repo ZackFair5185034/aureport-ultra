@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { pointToMM, mmToPoint } from '@/utils/table.js'
+import { pointToMM, mmToPoint } from '@/utils/table'
 
 defineOptions({ name: 'HeaderFooterSettings' })
 

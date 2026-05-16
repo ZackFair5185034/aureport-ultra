@@ -22,7 +22,7 @@ import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import SearchForm from "@/views/report/designer/search-form/index.vue"
 import { deepClone } from "@/views/report/designer/search-form/utils"
-import { updateReportDef } from '@/utils/contextActions.js'
+import { updateReportDef } from '@/utils/contextActions'
 
 defineOptions({ name: 'SearchFormDialog' })
 

@@ -13,9 +13,9 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import { useRouter, useRoute } from 'vue-router'
-import { tableToXml } from '@/utils/table.js'
-import { showAlert } from '@/utils/comnon.js'
-import { savePreviewFile } from '@/api/designer/index.js'
+import { tableToXml } from '@/utils/table'
+import { showAlert } from '@/utils/comnon'
+import { savePreviewFile } from '@/api/designer/index'
 import { createNavigator, getLibMode } from '@/lib/navigator'
 
 defineOptions({ name: 'PreviewTool' })

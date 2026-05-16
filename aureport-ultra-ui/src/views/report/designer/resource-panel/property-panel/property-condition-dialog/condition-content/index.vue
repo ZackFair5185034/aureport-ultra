@@ -57,8 +57,8 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
-import { showAlert } from '@/utils/comnon.js'
-import { setDirty } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
 import { v1 as uuid } from 'uuid'
 import ConditionContentDialog from '../condition-content-dialog/index.vue'
 

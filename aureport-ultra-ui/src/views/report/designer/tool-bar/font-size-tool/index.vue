@@ -13,12 +13,12 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table.js'
-import { showAlert } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { undoManager, setDirty } from '@/utils/table'
+import { showAlert } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import ButtonGroup from '@/components/button-group/index.vue'
 import { getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'FontSizeTool' })
 
@@ -145,7 +145,7 @@ function refresh(startRow: number, startCol: number, endRow: number, endCol: num
 </script>
 
 <style scoped>
-.font-size-tool-dropdown ::v-deep .button-text {
+.font-size-tool-dropdown :deep(.button-text) {
   display: inline-block;
   vertical-align: top;
   width: 28px;

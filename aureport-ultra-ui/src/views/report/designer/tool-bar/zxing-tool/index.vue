@@ -13,13 +13,13 @@
 // @ts-nocheck
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table.js'
-import { showAlert } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { undoManager, setDirty } from '@/utils/table'
+import { showAlert } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import Handsontable from 'handsontable'
 import ButtonGroup from '@/components/button-group/index.vue'
 import { getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'ZxingTool' })
 

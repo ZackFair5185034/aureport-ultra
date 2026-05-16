@@ -94,14 +94,14 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useReportStore } from '@/stores/report'
 import { useI18n } from 'vue-i18n'
 import { v1 as uuidv1 } from 'uuid'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import SqlDatasetDialog from '@/views/report/designer/resource-panel/datasource-panel/sql-dataset-dialog/index.vue'
 import FieldNameDialog from '../field-name-dialog/index.vue'
 import ContextMenu from '../context-menu/index.vue'
-import { buildFields as apiBuildFields } from '@/api/designer/index.js'
+import { buildFields as apiBuildFields } from '@/api/designer/index'
 import { addCell, getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'BuildinTree' })
 

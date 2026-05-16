@@ -6,7 +6,7 @@
  * - 保持了对 context 数据的集中管理
  *
  * 使用示例：
- * import { addCell, removeCell } from '@/utils/contextActions.js';
+ * import { addCell, removeCell } from '@/utils/contextActions';
  *
  * // 在组件或函数中调用
  * addCell(cell);

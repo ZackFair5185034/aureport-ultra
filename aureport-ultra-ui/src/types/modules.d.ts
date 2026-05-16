@@ -10,7 +10,7 @@ declare module '@/utils/comnon' {
   export function isMobile(): boolean
 }
 
-declare module '@/utils/comnon.js' {
+declare module '@/utils/comnon' {
   export function showAlert(message: string, options?: Record<string, unknown>): Promise<unknown>
   export function showConfirm(message: string, options?: Record<string, unknown>): Promise<unknown>
   export function isMobile(): boolean
@@ -35,7 +35,7 @@ declare module '@/utils/table' {
   export function objToXml(obj: unknown, indent?: number, defaultTag?: string | null): string
 }
 
-declare module '@/utils/table.js' {
+declare module '@/utils/table' {
   export function resetTableData(hot: unknown): void
   export function buildNewCellDef(rowNumber: number, columnNumber: number): Record<string, unknown>
   export function tableToXml(context: unknown): string
@@ -87,7 +87,7 @@ declare module '@/utils/contextActions' {
   }
 }
 
-declare module '@/utils/contextActions.js' {
+declare module '@/utils/contextActions' {
   import type { CellDef, ReportContext, RowHeader } from '@/types'
   export function getContext(): ReportContext | null
   export function addCell(cell: CellDef): void
@@ -157,7 +157,7 @@ declare module '@/views/report/designer/edit-table/manager' {
   export default TableManager
 }
 
-declare module '@/views/report/designer/edit-table/manager.js' {
+declare module '@/views/report/designer/edit-table/manager' {
   const TableManager: {
     get: () => any
     set: (table: any) => void
@@ -167,12 +167,12 @@ declare module '@/views/report/designer/edit-table/manager.js' {
   export default TableManager
 }
 
-declare module '@/views/report/designer/edit-table/utils/ContextMenu.js' {
+declare module '@/views/report/designer/edit-table/utils/ContextMenu' {
   const buildMenuConfigure: () => Record<string, unknown>
   export default buildMenuConfigure
 }
 
-declare module '@/views/report/designer/edit-table/utils/CellRenderer.js' {
+declare module '@/views/report/designer/edit-table/utils/CellRenderer' {
   export function afterRenderer(
     TD: HTMLTableCellElement,
     row: number,
@@ -183,7 +183,7 @@ declare module '@/views/report/designer/edit-table/utils/CellRenderer.js' {
   ): void
 }
 
-declare module '@/views/report/designer/edit-table/utils/HeaderUtils.js' {
+declare module '@/views/report/designer/edit-table/utils/HeaderUtils' {
   export function renderRowHeader(hot: unknown): void
 }
 
@@ -218,7 +218,7 @@ declare module '@/views/report/designer/search-form/utils' {
   export const beautifierConf: { html: Record<string, unknown> }
 }
 
-declare module '@/views/report/designer/search-form/utils/index.js' {
+declare module '@/views/report/designer/search-form/utils/index' {
   export function doSearch(context: unknown): void
   export function resetSearch(context: unknown): void
   export function deepClone<T>(obj: T): T
@@ -268,11 +268,11 @@ declare module 'js-beautify' {
 
 // ====== Cross-tab-widget utilities ======
 
-declare module '@/views/report/designer/edit-table/cross-tab-widget/class.js' {
+declare module '@/views/report/designer/edit-table/cross-tab-widget/class' {
   export function buildCrossTabCell(cellDef: unknown, context: unknown, rowIndex: number, colIndex: number, row2Index: number, col2Index: number): Record<string, unknown>
 }
 
-declare module '@/views/report/designer/edit-table/cross-tab-widget/manager.js' {
+declare module '@/views/report/designer/edit-table/cross-tab-widget/manager' {
   const CrossTabManager: {
     get: () => any
     set: (table: any) => void
@@ -282,7 +282,7 @@ declare module '@/views/report/designer/edit-table/cross-tab-widget/manager.js' 
   export default CrossTabManager
 }
 
-declare module '@/views/report/designer/search-form/utils/index.js' {
+declare module '@/views/report/designer/search-form/utils/index' {
   export function doSearch(context: unknown): void
   export function resetSearch(context: unknown): void
 }
@@ -301,17 +301,24 @@ declare module '@/views/report/preview/utils/chart.js' {
   export function buildChart(canvasId: string, chartJson: Record<string, unknown>): Promise<unknown>
 }
 
+declare module '@/views/report/designer/search-form/utils/render' {
+  import type { Component } from 'vue'
+  const RenderComponent: Component
+  export default RenderComponent
+}
+
+declare module '@/views/report/designer/search-form/utils/render.jsx' {
+  import type { Component } from 'vue'
+  const RenderComponent: Component
+  export default RenderComponent
+}
+
 declare module '@/views/report/preview/utils/render' {
   export function buildLocationSearchParameters(searchFormParameters: Record<string, unknown>): string
   export function renderTemplateToComponent(componentStr: string, mountNode: HTMLElement | string): Record<string, any>
   export function simplifyObject(obj: unknown): unknown
 }
 
-declare module '@/views/report/designer/search-form/utils/render.jsx' {
-  export function buildLocationSearchParameters(searchFormParameters: Record<string, unknown>): string
-  export function renderTemplateToComponent(componentStr: string, mountNode: HTMLElement | string): Record<string, any>
-  export function simplifyObject(obj: unknown): unknown
-}
 
 declare module '@/views/report/preview/utils/render.jsx' {
   export function buildLocationSearchParameters(searchFormParameters: Record<string, unknown>): string

@@ -54,7 +54,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useReportStore } from '@/stores/report'
 import { useI18n } from 'vue-i18n'
-import { setDirty } from '@/utils/table.js'
+import { setDirty } from '@/utils/table'
 import SearchTable from './search-table/index.vue'
 import SqlEditor from './sql-editor/index.vue'
 import ParameterEditor from './parameter-editor/index.vue'

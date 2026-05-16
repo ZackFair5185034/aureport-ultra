@@ -1,3 +1,4 @@
+// @ts-check
 import { h, ref, computed, defineComponent } from 'vue'
 import { makeMap } from './index'
 
@@ -51,7 +52,7 @@ const componentChild = {
       const list = []
       if (conf.options && Array.isArray(conf.options)) {
         conf.options.forEach(item => {
-          list.push(h(UOption, { label: item.label, value: item.value, disabled: item.disabled }))
+          list.push(h(UOption, { label: String(item.label), value: item.value, disabled: item.disabled }))
         })
       }
       return list

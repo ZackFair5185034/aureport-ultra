@@ -110,7 +110,7 @@ import DatasourceDialog from './datasource-dialog/index.vue'
 import SpringDialog from './spring-dialog/index.vue'
 import BuildinDatasourceSelectDialog from './buildin-datasource-select-dialog/index.vue'
 import { deepCopy } from '@/components/utils'
-import { updateReportDef } from '@/utils/contextActions.js'
+import { updateReportDef } from '@/utils/contextActions'
 
 defineOptions({ name: 'DatasourcePanel' })
 

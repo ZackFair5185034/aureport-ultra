@@ -10,7 +10,7 @@ import { Chart, registerables, ChartTypeRegistry } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 Chart.register(...registerables, ChartDataLabels)
-import { showAlert } from '@/utils/comnon.js'
+import { showAlert } from '@/utils/comnon'
 import { getCell } from '@/utils/contextActions'
 import TableManager from '../manager.js'
 import { $t } from '@/locales'

@@ -2,16 +2,16 @@
  * Created by Jacky.Gao on 2017-01-31.
  */
 import {$t} from "@/locales";
-import {setDirty, undoManager} from '@/utils/table.js';
-import {doInsertRow} from '@/views/report/designer/edit-table/utils/operation/InsertRowOperation.js';
-import {doInsertCol} from '@/views/report/designer/edit-table/utils/operation/InsertColOperation.js';
-import {doDeleteRow} from '@/views/report/designer/edit-table/utils/operation/DeleteRowOperation.js';
-import {doDeleteCol} from '@/views/report/designer/edit-table/utils/operation/DeleteColOperation.js';
-import {renderRowHeader} from '@/views/report/designer/edit-table/utils/HeaderUtils.js';
+import {setDirty, undoManager} from '@/utils/table';
+import {doInsertRow} from '@/views/report/designer/edit-table/utils/operation/InsertRowOperation';
+import {doInsertCol} from '@/views/report/designer/edit-table/utils/operation/InsertColOperation';
+import {doDeleteRow} from '@/views/report/designer/edit-table/utils/operation/DeleteRowOperation';
+import {doDeleteCol} from '@/views/report/designer/edit-table/utils/operation/DeleteColOperation';
+import {renderRowHeader} from '@/views/report/designer/edit-table/utils/HeaderUtils';
 import Class from '@/views/report/designer/edit-table/row-col-width-height-dialog/class';
 import RowColNumberDialogClass from '@/views/report/designer/edit-table/row-col-number-dialog/class';
 import Handsontable from 'handsontable';
-import {showAlert} from "@/utils/comnon.js";
+import {showAlert} from "@/utils/comnon";
 import {addCell, addRowHeader, adjustDelRowHeaders, getCell, removeCell} from "@/utils/contextActions";
 import TableManager from '../manager.js';
 

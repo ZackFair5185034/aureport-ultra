@@ -1,12 +1,12 @@
 #!/bin/bash
 # Dockerfile、jar包、start.sh要在同一目录下
 # 脚本配置（根据你的实际情况修改）
-JAR_FILE="luck-report-pub.jar"          # jar包名称
-DOCKERFILE_PATH="./"                 # Dockerfile所在目录（当前目录为./）
-IMAGE_NAME="luck-report-pub:prod"       # 新镜像名称和标签
-CONTAINER_NAME="luck-report-pub-prod"   # 容器名称
-PORT_MAPPING="8050:8050"             # 端口映射（宿主机:容器）
-VOLUME_MAPPING="/home/soft/luck-report/files/:/home/soft/luck-report/files/"  # 目录映射配置（宿主机路径:容器路径）
+JAR_FILE="aureport-ultra-pub.jar"
+DOCKERFILE_PATH="./"
+IMAGE_NAME="aureport-ultra-pub:prod"
+CONTAINER_NAME="aureport-ultra-pub-prod"
+PORT_MAPPING="8050:8050"
+VOLUME_MAPPING="/home/soft/aureport-ultra/files/:/home/soft/aureport-ultra/files/"
 
 # 脚本颜色输出（可选，增强可读性）
 RED='\033[0;31m'

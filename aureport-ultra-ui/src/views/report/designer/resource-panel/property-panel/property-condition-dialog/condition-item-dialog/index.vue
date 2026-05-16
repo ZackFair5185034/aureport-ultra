@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert } from '@/utils/comnon.js'
+import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'PropertyConditionItemDialog' })
 

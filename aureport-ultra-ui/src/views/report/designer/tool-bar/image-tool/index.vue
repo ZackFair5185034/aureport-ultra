@@ -11,13 +11,13 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { buildNewCellDef, setDirty, undoManager } from '@/utils/table.js'
+import { buildNewCellDef, setDirty, undoManager } from '@/utils/table'
 import Handsontable from 'handsontable'
-import { showAlert } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { showAlert } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import imageIcon from '@/assets/icons/image.svg'
 import { addCell, getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'ImageTool' })
 

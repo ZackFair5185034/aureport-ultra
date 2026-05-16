@@ -88,8 +88,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatDate } from '@/utils/table.js'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
+import { formatDate } from '@/utils/table'
+import { showAlert, showConfirm } from '@/utils/comnon'
 import { loadReportProviders, loadReportProvidersByPath, deleteReportFile } from '@/api/designer'
 import { createNavigator, getLibMode } from '@/lib/navigator'
 import { useRouter, useRoute } from 'vue-router'

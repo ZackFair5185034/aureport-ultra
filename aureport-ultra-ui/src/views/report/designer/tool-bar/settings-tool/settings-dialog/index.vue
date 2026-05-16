@@ -87,13 +87,22 @@
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
+import ColumnSettings from './column/index.vue'
+// @ts-ignore
+import PageSettings from './page/index.vue'
+// @ts-ignore
+import HeaderFooterSettings from './headerFooter/index.vue'
+// @ts-ignore
+import PagingSettings from './paging/index.vue'
+
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
-import { showAlert } from '@/utils/comnon.js'
-import { buildPageSizeList, mmToPoint, setDirty } from '@/utils/table.js'
-import { deepCopy } from '@/components/utils/index.js'
-import { updateReportDef } from '@/utils/contextActions.js'
+import { showAlert } from '@/utils/comnon'
+import { buildPageSizeList, mmToPoint, setDirty } from '@/utils/table'
+import { deepCopy } from '@/components/utils/index'
+import { updateReportDef } from '@/utils/contextActions'
 
 defineOptions({ name: 'SettingsDialog' })
 

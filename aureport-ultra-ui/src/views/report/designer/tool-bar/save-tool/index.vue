@@ -17,9 +17,9 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
-import { showAlert } from '@/utils/comnon.js'
-import { resetDirty, tableToXml } from '@/utils/table.js'
-import { saveReportFile } from '@/api/designer/index.js'
+import { showAlert } from '@/utils/comnon'
+import { resetDirty, tableToXml } from '@/utils/table'
+import { saveReportFile } from '@/api/designer/index'
 
 defineOptions({ name: 'SaveTool' })
 

@@ -60,7 +60,7 @@ import { useI18n } from 'vue-i18n'
 import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils'
 import { setCell, getCell, getContext } from '@/utils/contextActions'
-import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js'
+import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class'
 
 defineOptions({ name: 'SlashValueEditor' })
 

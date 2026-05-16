@@ -19,6 +19,7 @@ import { h, defineComponent } from 'vue'
 import URow from '@/components/row/index.vue'
 import UCol from '@/components/col/index.vue'
 import UFormItem from '@/components/form-item/index.vue'
+// @ts-ignore
 import RenderComponent from '../utils/render'
 
 const props = defineProps<{
@@ -29,10 +30,10 @@ const props = defineProps<{
   formConf: any
 }>()
 
-const attrs = useAttrs()
-const onActiveItem = computed(() => attrs['onActiveItem'])
-const onCopyItem = computed(() => attrs['onCopyItem'])
-const onDeleteItem = computed(() => attrs['onDeleteItem'])
+const attrs = useAttrs() as Record<string, (...args: any[]) => void>
+const onActiveItem = computed(() => attrs['onActiveItem'] as ((element: any) => void) | undefined)
+const onCopyItem = computed(() => attrs['onCopyItem'] as ((element: any, parent: any[]) => void) | undefined)
+const onDeleteItem = computed(() => attrs['onDeleteItem'] as ((index: number, parent: any[]) => void) | undefined)
 
 const itemBtns = (element: any, index: number, parent: any[]) => {
   return [
@@ -73,7 +74,7 @@ const colFormItem = (element: any, index: number, parent: any[]) => {
     }
   }, () => [
     h(UFormItem, {
-      labelWidth: element.labelWidth ? Number(element.labelWidth) : null,
+      labelWidth: element.labelWidth ? Number(element.labelWidth) : undefined,
       label: element.label,
       required: element.required
     }, () => [

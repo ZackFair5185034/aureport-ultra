@@ -14,14 +14,14 @@
 // @ts-nocheck
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { setDirty, undoManager } from '@/utils/table.js'
-import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js'
-import CrossTabWidgetManager from '@/views/report/designer/edit-table/cross-tab-widget/manager.js'
+import { setDirty, undoManager } from '@/utils/table'
+import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class'
+import CrossTabWidgetManager from '@/views/report/designer/edit-table/cross-tab-widget/manager'
 import Handsontable from 'handsontable'
-import { showAlert } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { showAlert } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import { getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'CrosstabTool' })
 

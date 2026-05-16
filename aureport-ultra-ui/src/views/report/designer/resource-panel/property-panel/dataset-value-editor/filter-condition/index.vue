@@ -65,8 +65,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
-import { setDirty } from '@/utils/table.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
 import { v1 as uuidv1 } from 'uuid'
 import ConditionDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue'
 

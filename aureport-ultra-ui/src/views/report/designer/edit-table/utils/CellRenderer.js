@@ -2,10 +2,10 @@
  * Created by Jacky.Gao on 2017-01-31.
  */
 import {$t} from "@/locales";
-import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js';
-import ChartWidget from '@/views/report/designer/edit-table/chart-widget/class.js';
-import chartWidgetManager from '@/views/report/designer/edit-table/chart-widget/manager.js';
-import CrossTabWidgetManager from '@/views/report/designer/edit-table/cross-tab-widget/manager.js';
+import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class';
+import ChartWidget from '@/views/report/designer/edit-table/chart-widget/class';
+import chartWidgetManager from '@/views/report/designer/edit-table/chart-widget/manager';
+import CrossTabWidgetManager from '@/views/report/designer/edit-table/cross-tab-widget/manager';
 import imageIcon from '@/assets/icons/image.svg';
 import qrcodeIcon from '@/assets/icons/qrcode.svg';
 import barcodeIcon from '@/assets/icons/barcode.svg';

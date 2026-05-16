@@ -96,12 +96,12 @@ import { useReportStore } from '@/stores/report'
 import CodeMirror from 'codemirror'
 import 'codemirror/addon/hint/show-hint.js'
 import 'codemirror/addon/lint/lint.js'
-import { setDirty } from '@/utils/table.js'
-import { scriptValidation } from '@/api/designer/index.js'
-import { showAlert } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { setDirty } from '@/utils/table'
+import { scriptValidation } from '@/api/designer/index'
+import { showAlert } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import { getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'ZxingValueEditor' })
 

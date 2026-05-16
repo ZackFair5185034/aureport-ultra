@@ -24,8 +24,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert } from '@/utils/comnon.js'
-import { setDirty } from '@/utils/table.js'
+import { showAlert } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
 
 defineOptions({ name: 'SpringDialog' })
 

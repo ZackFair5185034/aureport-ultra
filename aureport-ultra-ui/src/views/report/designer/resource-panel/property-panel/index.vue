@@ -111,8 +111,8 @@
 // @ts-nocheck
 import { ref, watch } from 'vue'
 import { useReportStore } from '@/stores/report';
-import { setDirty } from '@/utils/table.js';
-import { deepCopy } from '@/components/utils/index.js';
+import { setDirty } from '@/utils/table';
+import { deepCopy } from '@/components/utils/index';
 import { getCell, getCellName, setCell } from "@/utils/contextActions";
 import ExpressionValueEditor from './expression-value-editor/index.vue';
 import SimpleValueEditor from './simple-value-editor/index.vue';
@@ -124,8 +124,8 @@ import ChartValueEditor from './chart-value-editor/index.vue';
 import BubbleChartValueEditor from './bubble-chart-value-editor/index.vue';
 import ScatterChartValueEditor from './scatter-chart-value-editor/index.vue';
 import CellValueEditor from './cell-value-editor/index.vue';
-import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class.js';
-import TableManager from '@/views/report/designer/edit-table/manager.js';
+import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class';
+import TableManager from '@/views/report/designer/edit-table/manager';
 
 defineOptions({ name: 'PropertyPanel' })
 

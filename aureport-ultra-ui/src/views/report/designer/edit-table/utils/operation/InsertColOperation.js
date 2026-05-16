@@ -1,10 +1,10 @@
 /**
  * Created by Jacky.Gao on 2017-02-17.
  */
-import {buildNewCellDef, resetTableData, setDirty, undoManager} from '@/utils/table.js';
-import {showAlert} from '@/utils/comnon.js';
+import {buildNewCellDef, resetTableData, setDirty, undoManager} from '@/utils/table';
+import {showAlert} from '@/utils/comnon';
 import {$t} from "@/locales";
-import {addCell, getCell, getCellsMap, removeCell} from '@/utils/contextActions.js';
+import {addCell, getCell, getCellsMap, removeCell} from '@/utils/contextActions';
 import {deepCopy} from '@/components/utils';
 
 /**

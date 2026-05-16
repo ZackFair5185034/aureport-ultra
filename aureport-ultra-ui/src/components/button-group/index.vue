@@ -62,7 +62,7 @@ function closeDropdown() {
 }
 
 function handleClickOutside(event: MouseEvent) {
-  if (mainButton.value && !mainButton.value.contains(event.target as Node)) {
+  if (mainButton.value && mainButton.value instanceof HTMLElement && !mainButton.value.contains(event.target as Node)) {
     closeDropdown()
   }
 }

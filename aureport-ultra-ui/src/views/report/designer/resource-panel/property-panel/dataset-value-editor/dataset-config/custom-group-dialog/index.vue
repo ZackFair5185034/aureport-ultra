@@ -118,8 +118,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert, showConfirm } from '@/utils/comnon.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { showAlert, showConfirm } from '@/utils/comnon'
+import { deepCopy } from '@/components/utils/index'
 import GroupItemDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-item-dialog/index.vue'
 import ConditionDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue'
 

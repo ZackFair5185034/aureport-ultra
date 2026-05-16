@@ -1,8 +1,8 @@
 /**
  * Created by Jacky.Gao on 2017-02-17.
  */
-import {resetTableData, setDirty, undoManager} from '@/utils/table.js';
-import {showAlert} from '@/utils/comnon.js';
+import {resetTableData, setDirty, undoManager} from '@/utils/table';
+import {showAlert} from '@/utils/comnon';
 import {$t} from "@/locales";
 import {addCell, getCell, getContext, removeCell} from "@/utils/contextActions";
 import {deepCopy} from '@/components/utils';

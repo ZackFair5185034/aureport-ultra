@@ -33,7 +33,7 @@ import { useReportStore } from '@/stores/report'
 import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils'
 import { setCell, getCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'SimpleValueEditor' })
 

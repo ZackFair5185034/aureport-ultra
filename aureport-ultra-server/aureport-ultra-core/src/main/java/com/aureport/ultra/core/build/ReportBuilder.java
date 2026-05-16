@@ -45,7 +45,7 @@ import java.util.*;
  * @since 2016年11月1日
  */
 public class ReportBuilder extends BasePagination implements ApplicationContextAware {
-	public static final String BEAN_ID = "luck-reportreportBuilder";
+	public static final String BEAN_ID = "aureport-ultra-reportBuilder";
 	private ApplicationContext applicationContext;
 	private Map<String, DatasourceProvider> datasourceProviderMap = new HashMap<String, DatasourceProvider>();
 	private Map<Expand, CellBuilder> cellBuildersMap = new HashMap<Expand, CellBuilder>();
@@ -455,6 +455,5 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 		for (DatasourceProvider dp : datasourceProviders) {
 			datasourceProviderMap.put(dp.getName(), dp);
 		}
-		new Splash().doPrint();
 	}
 }
