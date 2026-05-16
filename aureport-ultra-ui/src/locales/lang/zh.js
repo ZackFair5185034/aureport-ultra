@@ -523,6 +523,8 @@ const zh = {
             "qrcode": "二维码",
             "barcode": "条码",
             "chart": "图表",
+            "richtext": "富文本",
+            "richtextTip": "支持加粗、斜体、颜色等样式",
             "leftParent": "左父格",
             "topParent": "上父格",
             "default": "默认",

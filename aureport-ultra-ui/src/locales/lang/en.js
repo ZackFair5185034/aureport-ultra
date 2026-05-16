@@ -522,6 +522,8 @@ const en = {
             "qrcode": "QRCode",
             "barcode": "Barcode",
             "chart": "Chart",
+            "richtext": "Rich Text",
+            "richtextTip": "Support bold, italic, color and more",
             "leftParent": "Left Parent",
             "topParent": "Top Parent",
             "default": "Default",

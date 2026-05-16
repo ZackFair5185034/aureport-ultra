@@ -104,6 +104,7 @@ declare module 'vue' {
     RadioGroup: typeof import('./../components/radio-group/index.vue')['default']
     RedoTool: typeof import('./../views/report/designer/tool-bar/redo-tool/index.vue')['default']
     ResourcePanel: typeof import('./../views/report/designer/resource-panel/index.vue')['default']
+    RichTextValueEditor: typeof import('./../views/report/designer/resource-panel/property-panel/rich-text-value-editor/index.vue')['default']
     RightPanel: typeof import('./../views/report/designer/search-form/right-panel/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

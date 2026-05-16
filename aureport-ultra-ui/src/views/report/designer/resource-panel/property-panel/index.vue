@@ -72,6 +72,16 @@
       :col2-index="col2Index"
     />
 
+    <!-- 富文本值编辑器Vue组件 -->
+    <rich-text-value-editor
+      ref="richTextEditor"
+      v-if="richTextValueEditorVisible"
+      :row-index="rowIndex"
+      :col-index="colIndex"
+      :row2-index="row2Index"
+      :col2-index="col2Index"
+    />
+
     <!-- 图表编辑器容器 -->
     <div ref="chartEditorContainer">
       <template v-for="(chartType, index) in chartEditorTypes" :key="index">
@@ -126,6 +136,7 @@ import ScatterChartValueEditor from './scatter-chart-value-editor/index.vue';
 import CellValueEditor from './cell-value-editor/index.vue';
 import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class';
 import TableManager from '@/views/report/designer/edit-table/manager';
+import RichTextEditor from './rich-text-value-editor/index.vue';
 
 defineOptions({ name: 'PropertyPanel' })
 
@@ -176,6 +187,7 @@ const slashValueEditorVisible = ref(false)
 const zxingValueEditorVisible = ref(false)
 const bubbleChartValueEditorVisible = ref(false)
 const scatterChartValueEditorVisible = ref(false)
+const richTextValueEditorVisible = ref(false)
 
 const expressionValueEditor = ref<any>(null)
 const simpleValueEditor = ref<any>(null)
@@ -187,6 +199,7 @@ const chartEditor = ref<any>(null)
 const bubbleChartEditor = ref<any>(null)
 const scatterChartEditor = ref<any>(null)
 const chartEditorContainer = ref<HTMLDivElement | null>(null)
+const richTextEditor = ref<any>(null)
 
 watch(() => props.refreshTrigger, () => {
   refresh()
@@ -201,6 +214,7 @@ function hideAllEditors() {
   zxingValueEditorVisible.value = false
   bubbleChartValueEditorVisible.value = false
   scatterChartValueEditorVisible.value = false
+  richTextValueEditorVisible.value = false
   currentChartType.value = ''
 }
 
@@ -225,6 +239,7 @@ function refresh() {
   zxingValueEditorVisible.value = false
   bubbleChartValueEditorVisible.value = false
   scatterChartValueEditorVisible.value = false
+  richTextValueEditorVisible.value = false
 
   let type = cellDef.value.type || 'simple';
   if (type === 'chart') {
@@ -261,6 +276,8 @@ function refresh() {
       slashValueEditorVisible.value = true;
     } else if (type === 'zxing') {
       zxingValueEditorVisible.value = true;
+    } else if (type === 'richtext') {
+      richTextValueEditorVisible.value = true;
     }
   }
 
@@ -368,6 +385,14 @@ function handleCellTypeChange(value: string) {
     };
     setCell(props.rowIndex, props.colIndex, newCellDef);
     hideAllEditors();
+  } else if (value === 'richtext') {
+    if (newCellDef.value.type !== 'richtext') {
+      newCellDef.value = { type: 'richtext', value: '' };
+    }
+    newCellDef.expand = 'None';
+    setCell(props.rowIndex, props.colIndex, newCellDef);
+    hideAllEditors();
+    richTextValueEditorVisible.value = true;
   }
 
   const hot = TableManager.get();
