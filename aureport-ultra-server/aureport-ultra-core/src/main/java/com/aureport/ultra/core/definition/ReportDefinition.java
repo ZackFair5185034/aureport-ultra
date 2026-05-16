@@ -172,8 +172,9 @@ public class ReportDefinition implements Serializable {
 			if (StringUtils.isNotBlank(fontFamilty)) {
 				sb.append("font-family:").append(fontFamilty).append(";");
 			}
-			int fontSize = cellStyle.getFontSize();
-			sb.append("font-size:").append(fontSize).append("pt;");
+		int fontSize = cellStyle.getFontSize();
+		if (fontSize == 0) fontSize = 10; // Default 10pt when not explicitly set
+		sb.append("font-size:").append(fontSize).append("pt;");
 			String foreColor = cellStyle.getForecolor();
 			if (StringUtils.isNotBlank(foreColor)) {
 				sb.append("color:rgb(").append(foreColor).append(");");

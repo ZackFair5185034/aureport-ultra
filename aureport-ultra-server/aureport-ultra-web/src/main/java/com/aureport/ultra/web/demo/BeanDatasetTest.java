@@ -68,14 +68,16 @@ public class BeanDatasetTest {
     private static List<Employee> buildTestData() {
         List<Employee> list = new ArrayList<>();
 
-        Employee e1 = new Employee(1, "张三", "技术部", "高级工程师", 25000.0, "zhangsan@company.com");
-        e1.addFamilyMember(new FamilyMember("李红", "配偶", "13800001111", 30));
-        e1.addFamilyMember(new FamilyMember("张明", "子女", "13800001112", 8));
+        Employee e1 = new Employee(1, "张三", "技术部", "高级工程师", 25000.0, "zhangsan@company.com",
+                28, "本科", "13800001110", "篮球、编程、摄影", "110101199801011234");
+        e1.addFamilyMember(new FamilyMember("李红", "配偶", "13800001111", 30, "教师"));
+        e1.addFamilyMember(new FamilyMember("张明", "子女", "13800001112", 8, "学生"));
 
-        Employee e2 = new Employee(2, "李四", "产品部", "产品经理", 22000.0, "lisi@company.com");
-        e2.addFamilyMember(new FamilyMember("王芳", "配偶", "13800002221", 28));
-        e2.addFamilyMember(new FamilyMember("李华", "子女", "13800002222", 5));
-        e2.addFamilyMember(new FamilyMember("李强", "父亲", "13800002223", 65));
+        Employee e2 = new Employee(2, "李四", "产品部", "产品经理", 22000.0, "lisi@company.com",
+                32, "硕士", "13900002220", "游泳、阅读、旅行", "110101199201012345");
+        e2.addFamilyMember(new FamilyMember("王芳", "配偶", "13800002221", 28, "医生"));
+        e2.addFamilyMember(new FamilyMember("李华", "子女", "13800002222", 5, "学生"));
+        e2.addFamilyMember(new FamilyMember("李强", "父亲", "13800002223", 65, "退休"));
 
         list.add(e1);
         list.add(e2);

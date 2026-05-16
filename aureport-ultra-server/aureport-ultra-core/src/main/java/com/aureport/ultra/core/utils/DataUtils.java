@@ -45,13 +45,18 @@ public class DataUtils {
             topList = topCell.getBindData();
         }
         if (leftList == null && topList == null) {
+            // 无父格：直接返回全量数据
             List<?> data = context.getDatasetData(datasetName);
             return data;
         } else if (leftList == null) {
             return topList;
         } else if (topList == null) {
+            // 有左父格：用父格的 rowList 作为数据源（主子表关联关键）
+            // GroupAggregate 已经把数据按 group 分好了，每行代表一个分组
+            // 子格通过 left-parent-cell 引用主格，数据来自主格的 bindData
             return leftList;
         } else {
+            // 左右父格同时存在：取较小者作为数据源
             List<Object> list = null;
             Object data = null;
             String prop = null;

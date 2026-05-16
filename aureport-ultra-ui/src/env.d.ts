@@ -69,5 +69,5 @@ declare module 'vue-color' {
 }
 
 interface Window {
-  __luck_report_public_path__?: string
+  __aureport_public_path__?: string
 }

@@ -1,78 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ureport xmlns="http://www.example.org/ureport2">
-	<!-- 报表标题 -->
-	<cell expand="None" name="A1" row="1" col="1" col-span="6">
-		<simple-value><![CDATA[员工家庭信息表]]></simple-value>
-	</cell>
+    <cell expand="None" name="A1" row="1" col="1" col-span="13">
+        <simple-value><![CDATA[员工信息综合表（含家庭成员）]]></simple-value>
+    </cell>
 
-	<!-- 表头 -->
-	<cell expand="None" name="A2" row="2" col="1">
-		<simple-value><![CDATA[工号]]></simple-value>
-	</cell>
-	<cell expand="None" name="B2" row="2" col="2">
-		<simple-value><![CDATA[姓名]]></simple-value>
-	</cell>
-	<cell expand="None" name="C2" row="2" col="3">
-		<simple-value><![CDATA[部门]]></simple-value>
-	</cell>
-	<cell expand="None" name="D2" row="2" col="4">
-		<simple-value><![CDATA[职位]]></simple-value>
-	</cell>
-	<cell expand="None" name="E2" row="2" col="5">
-		<simple-value><![CDATA[家庭成员]]></simple-value>
-	</cell>
-	<cell expand="None" name="F2" row="2" col="6">
-		<simple-value><![CDATA[关系]]></simple-value>
-	</cell>
+    <cell expand="None" name="A2" row="2" col="1"><simple-value><![CDATA[姓名]]></simple-value></cell>
+    <cell expand="None" name="B2" row="2" col="2"><simple-value><![CDATA[年龄]]></simple-value></cell>
+    <cell expand="None" name="C2" row="2" col="3"><simple-value><![CDATA[学历]]></simple-value></cell>
+    <cell expand="None" name="D2" row="2" col="4"><simple-value><![CDATA[手机号]]></simple-value></cell>
+    <cell expand="None" name="E2" row="2" col="5"><simple-value><![CDATA[爱好]]></simple-value></cell>
+    <cell expand="None" name="F2" row="2" col="6"><simple-value><![CDATA[身份证]]></simple-value></cell>
+    <cell expand="None" name="G2" row="2" col="7"><simple-value><![CDATA[部门]]></simple-value></cell>
+    <cell expand="None" name="H2" row="2" col="8"><simple-value><![CDATA[职位]]></simple-value></cell>
+    <cell expand="None" name="I2" row="2" col="9"><simple-value><![CDATA[家属姓名]]></simple-value></cell>
+    <cell expand="None" name="J2" row="2" col="10"><simple-value><![CDATA[关系]]></simple-value></cell>
+    <cell expand="None" name="K2" row="2" col="11"><simple-value><![CDATA[职业]]></simple-value></cell>
+    <cell expand="None" name="L2" row="2" col="12"><simple-value><![CDATA[联系方式]]></simple-value></cell>
+    <cell expand="None" name="M2" row="2" col="13"><simple-value><![CDATA[年龄]]></simple-value></cell>
 
-	<!-- 数据行：员工信息，leftParentCellName 建立父子关系 -->
-	<cell expand="Down" name="A3" row="3" col="1" leftParentCellName="B3">
-		<dataset-value aggregate="select" property="id" dataset-name="employees"></dataset-value>
-	</cell>
-	<cell expand="Down" name="B3" row="3" col="2">
-		<dataset-value aggregate="select" property="name" dataset-name="employees"></dataset-value>
-	</cell>
-	<cell expand="Down" name="C3" row="3" col="3">
-		<dataset-value aggregate="select" property="dept" dataset-name="employees"></dataset-value>
-	</cell>
-	<cell expand="Down" name="D3" row="3" col="4">
-		<dataset-value aggregate="select" property="position" dataset-name="employees"></dataset-value>
-	</cell>
+    <cell expand="Down" name="A3" row="3" col="1"><dataset-value aggregate="select" property="emp_name" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="B3" row="3" col="2"><dataset-value aggregate="select" property="emp_age" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="C3" row="3" col="3"><dataset-value aggregate="select" property="emp_education" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="D3" row="3" col="4"><dataset-value aggregate="select" property="emp_phone" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="E3" row="3" col="5"><dataset-value aggregate="select" property="emp_hobbies" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="F3" row="3" col="6"><dataset-value aggregate="select" property="emp_id_number" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="G3" row="3" col="7"><dataset-value aggregate="select" property="emp_dept" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="H3" row="3" col="8"><dataset-value aggregate="select" property="emp_position" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="I3" row="3" col="9"><dataset-value aggregate="select" property="fm_name" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="J3" row="3" col="10"><dataset-value aggregate="select" property="fm_relation" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="K3" row="3" col="11"><dataset-value aggregate="select" property="fm_occupation" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="L3" row="3" col="12"><dataset-value aggregate="select" property="fm_phone" dataset-name="empFlat"/></cell>
+    <cell expand="Down" name="M3" row="3" col="13"><dataset-value aggregate="select" property="fm_age" dataset-name="empFlat"/></cell>
 
-	<!-- 家庭成员：嵌套 List 属性，通过父格 B3 过滤 -->
-	<cell expand="Down" name="E3" row="3" col="5" leftParentCellName="B3">
-		<dataset-value aggregate="select" property="familyMembers" dataset-name="employees"></dataset-value>
-	</cell>
-	<cell expand="Down" name="F3" row="3" col="6" leftParentCellName="B3">
-		<dataset-value aggregate="select" property="familyMembers.relation" dataset-name="employees"></dataset-value>
-	</cell>
+    <row row-number="1" height="40"/>
+    <row row-number="2" height="30"/>
+    <row row-number="3" height="26"/>
 
-	<!-- 姓名列需要向下扩展以匹配家庭成员行数，这里用聚合让引擎知道要展开 -->
-	<!-- 由于 familyMembers 是 List，B3 需要设置 aggregate 让引擎知道它是父格 -->
+    <column col-number="1" width="60"/>
+    <column col-number="2" width="40"/>
+    <column col-number="3" width="50"/>
+    <column col-number="4" width="100"/>
+    <column col-number="5" width="100"/>
+    <column col-number="6" width="140"/>
+    <column col-number="7" width="70"/>
+    <column col-number="8" width="90"/>
+    <column col-number="9" width="70"/>
+    <column col-number="10" width="60"/>
+    <column col-number="11" width="80"/>
+    <column col-number="12" width="100"/>
+    <column col-number="13" width="50"/>
 
-	<row row-number="1" height="40"/>
-	<row row-number="2" height="30"/>
-	<row row-number="3" height="25"/>
+    <paper type="A4" orientation="landscape" paging-mode="fitpage"/>
 
-	<column col-number="1" width="60"/>
-	<column col-number="2" width="80"/>
-	<column col-number="3" width="80"/>
-	<column col-number="4" width="100"/>
-	<column col-number="5" width="80"/>
-	<column col-number="6" width="80"/>
-
-	<paper type="A4" orientation="portrait"></paper>
-
-	<!-- Spring Bean 数据源 -->
-	<datasource name="empDs" type="spring" bean="employeeService">
-		<dataset name="employees" type="bean" method="queryEmployees" clazz="com.aureport.ultra.web.demo.model.Employee">
-			<field name="id"/>
-			<field name="name"/>
-			<field name="dept"/>
-			<field name="position"/>
-			<field name="salary"/>
-			<field name="email"/>
-			<field name="familyMembers"/>
-		</dataset>
-	</datasource>
+    <datasource name="empDs" type="spring" bean="employeeService">
+        <dataset name="empFlat" type="bean" method="queryEmployeeFamilyFlat" clazz="java.util.Map">
+            <field name="emp_name"/><field name="emp_age"/><field name="emp_education"/>
+            <field name="emp_phone"/><field name="emp_hobbies"/><field name="emp_id_number"/>
+            <field name="emp_dept"/><field name="emp_position"/>
+            <field name="fm_name"/><field name="fm_relation"/><field name="fm_occupation"/>
+            <field name="fm_phone"/><field name="fm_age"/>
+        </dataset>
+    </datasource>
 </ureport>
