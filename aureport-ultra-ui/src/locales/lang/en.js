@@ -529,8 +529,8 @@ const en = {
             "renderBean": "Render Bean",
             "selectBean": "Select Bean",
             "none": "None",
-            "urlExpressionExample": "For Example:$# == '1' ? 'a.html' : 'b.html'}",
-            "urlExpressionSupport": "Support expressions, expressions defined in ${...}",
+            "urlExpressionExample": "E.g.: 'condition ? a.html : b.html'",
+            "urlExpressionSupport": "Support expressions, expressions defined in {'${'}...{'}'}",
             "linkUrl": "Link Url"
         },
         "base": {

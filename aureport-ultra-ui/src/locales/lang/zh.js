@@ -461,7 +461,7 @@ const zh = {
             "tableName": "表名",
             "type": "类型",
             "datasetName": "数据集名称",
-            "desc": "SQL支持表达式，格式为：${表达式...}</span>)",
+            "desc": "SQL支持表达式，格式为：${表达式}",
             "syntaxCheckError": "语法检查操作失败！",
             "fiterParam": "查询参数",
             "paramDesc": "(请将上述SQL中用到的查询参数名定义在下面的表格中)",
@@ -530,8 +530,8 @@ const zh = {
             "renderBean": "渲染Bean",
             "selectBean": "选择Bean",
             "none": "无",
-            "urlExpressionExample": "如:\\$\\{# == '1' ? 'a.html' : 'b.html'}",
-            "urlExpressionSupport": "支持表达式，表达式定义在${...}中",
+            "urlExpressionExample": "如: '条件 ? a.html : b.html'",
+            "urlExpressionSupport": "支持表达式，表达式定义在 {'${'}...{'}'} 中",
             "linkUrl": "链接地址"
         },
         "base": {

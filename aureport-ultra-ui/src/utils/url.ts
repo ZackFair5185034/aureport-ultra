@@ -14,3 +14,7 @@ export function updateUrlParams(params: Record<string, string | number | boolean
     window.history.replaceState({}, '', url.toString())
   }
 }
+
+export function getUrlQueryString(): string {
+  return window.location.search.slice(1)
+}

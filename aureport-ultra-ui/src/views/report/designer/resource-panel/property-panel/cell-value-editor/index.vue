@@ -188,12 +188,12 @@
 // @ts-nocheck
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert } from '@/utils/comnon.js'
-import { setDirty } from '@/utils/table.js'
-import { deepCopy } from '@/components/utils/index.js'
+import { showAlert } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
+import { deepCopy } from '@/components/utils/index'
 import { getCell, getCellName, setCell } from '@/utils/contextActions'
 import URLParameterDialog from '@/views/report/designer/resource-panel/property-panel/url-parameter-dialog/index.vue'
-import TableManager from '@/views/report/designer/edit-table/manager.js'
+import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'CellValueEditor' })
 
@@ -246,14 +246,14 @@ const parentTypeOptions = computed(() => [
 
 const leftParentRowNumberOptionsFormatted = computed(() =>
   leftParentRowNumberOptions.value.map(num => ({
-    label: num,
+    label: String(num),
     value: num.toString()
   }))
 )
 
 const topParentRowNumberOptionsFormatted = computed(() =>
   topParentRowNumberOptions.value.map(num => ({
-    label: num,
+    label: String(num),
     value: num.toString()
   }))
 )
