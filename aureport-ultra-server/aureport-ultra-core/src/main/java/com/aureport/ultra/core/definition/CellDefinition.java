@@ -47,11 +47,27 @@ public class CellDefinition implements Serializable {
     @JsonIgnore
     private Expression linkUrlExpression;
 
+    /**
+     * 悬浮提示文本，支持表达式，如 ${cell_name}
+     */
+    private String tooltip;
+    @JsonIgnore
+    private Expression tooltipExpression;
+
     private boolean fillBlankRows;
     /**
      * 允许填充空白行时fillBlankRows=true，要求当前数据行数必须是multiple定义的行数的倍数，否则就补充空白行
      */
     private int multiple;
+
+    /**
+     * 是否为分组表头单元格
+     */
+    private boolean groupHead;
+    /**
+     * 是否为分组表尾单元格
+     */
+    private boolean groupFoot;
 
     private Expand expand = Expand.None;
 
@@ -114,6 +130,10 @@ public class CellDefinition implements Serializable {
         cell.setFillBlankRows(fillBlankRows);
         cell.setMultiple(multiple);
         cell.setLinkUrlExpression(linkUrlExpression);
+        cell.setTooltip(tooltip);
+        cell.setTooltipExpression(tooltipExpression);
+        cell.setGroupHead(groupHead);
+        cell.setGroupFoot(groupFoot);
         return cell;
     }
 
@@ -296,5 +316,37 @@ public class CellDefinition implements Serializable {
 
     public void setLinkUrlExpression(Expression linkUrlExpression) {
         this.linkUrlExpression = linkUrlExpression;
+    }
+
+    public String getTooltip() {
+        return tooltip;
+    }
+
+    public void setTooltip(String tooltip) {
+        this.tooltip = tooltip;
+    }
+
+    public Expression getTooltipExpression() {
+        return tooltipExpression;
+    }
+
+    public void setTooltipExpression(Expression tooltipExpression) {
+        this.tooltipExpression = tooltipExpression;
+    }
+
+    public boolean isGroupHead() {
+        return groupHead;
+    }
+
+    public void setGroupHead(boolean groupHead) {
+        this.groupHead = groupHead;
+    }
+
+    public boolean isGroupFoot() {
+        return groupFoot;
+    }
+
+    public void setGroupFoot(boolean groupFoot) {
+        this.groupFoot = groupFoot;
     }
 }

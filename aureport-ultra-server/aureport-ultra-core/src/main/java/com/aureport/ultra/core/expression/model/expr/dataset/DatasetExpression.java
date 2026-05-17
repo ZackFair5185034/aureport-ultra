@@ -51,6 +51,21 @@ public class DatasetExpression extends BaseExpression {
      */
     private List<GroupItem> groupItems;
 
+    /**
+     * 当aggregate类型为 groupfoot 时，采用此属性来存储子聚合类型（sum/avg/count/max/min）
+     */
+    private String subAggregate;
+
+    /**
+     * 当aggregate类型为 grouphead 时，标记当前单元格为分组表头
+     */
+    private boolean groupHead;
+
+    /**
+     * 当aggregate类型为 groupfoot 时，标记当前单元格为分组表尾
+     */
+    private boolean groupFoot;
+
     private MappingType mappingType = MappingType.simple;
 
     private String mappingDataset;
@@ -189,5 +204,29 @@ public class DatasetExpression extends BaseExpression {
 
     public Map<String, String> getMapping() {
         return mapping;
+    }
+
+    public String getSubAggregate() {
+        return subAggregate;
+    }
+
+    public void setSubAggregate(String subAggregate) {
+        this.subAggregate = subAggregate;
+    }
+
+    public boolean isGroupHead() {
+        return groupHead;
+    }
+
+    public void setGroupHead(boolean groupHead) {
+        this.groupHead = groupHead;
+    }
+
+    public boolean isGroupFoot() {
+        return groupFoot;
+    }
+
+    public void setGroupFoot(boolean groupFoot) {
+        this.groupFoot = groupFoot;
     }
 }

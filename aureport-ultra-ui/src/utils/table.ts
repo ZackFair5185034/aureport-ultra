@@ -443,6 +443,9 @@ export function tableToXml(context: ReportContext): string {
       if (cellDef.linkTargetWindow && cellDef.linkTargetWindow !== '') {
         cellXml += ` link-target-window="${cellDef.linkTargetWindow}"`
       }
+      if (cellDef.tooltip && cellDef.tooltip !== '') {
+        cellXml += ` tooltip="${cellDef.tooltip}"`
+      }
 
       cellXml += '>'
       const cellStyle = cellDef.cellStyle
@@ -471,7 +474,10 @@ export function tableToXml(context: ReportContext): string {
           throw msg
         }
         const mappingType = value.mappingType || 'simple'
-        cellXml += `<dataset-value dataset-name="${encode(value.datasetName)}" aggregate="${value.aggregate}" property="${value.property}" order="${value.order}" mapping-type="${mappingType}"`
+        let dsAttrs = `dataset-name="${encode(value.datasetName)}" aggregate="${value.aggregate}" property="${value.property}" order="${value.order || ''}" mapping-type="${mappingType}"`
+        if (value.groupHead) dsAttrs += ` group-head="true"`
+        if (value.groupFoot) dsAttrs += ` group-foot="true"`
+        cellXml += `<dataset-value ${dsAttrs}>`
         if (mappingType === 'dataset') {
           cellXml += ` mapping-dataset="${value.mappingDataset}" mapping-key-property="${value.mappingKeyProperty}" mapping-value-property="${value.mappingValueProperty}"`
         }

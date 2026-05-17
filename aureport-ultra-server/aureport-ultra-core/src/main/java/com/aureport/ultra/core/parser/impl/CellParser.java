@@ -88,6 +88,25 @@ public class CellParser implements Parser<CellDefinition> {
                 cell.setLinkUrlExpression(urlExpression);
             }
         }
+        // 解析 tooltip 属性
+        String tooltip = element.attributeValue("tooltip");
+        cell.setTooltip(tooltip);
+        if (StringUtils.isNotBlank(tooltip)) {
+            if (tooltip.startsWith(ExpressionUtils.EXPR_PREFIX) && tooltip.endsWith(ExpressionUtils.EXPR_SUFFIX)) {
+                String expr = tooltip.substring(2, tooltip.length() - 1);
+                Expression tooltipExpression = ExpressionUtils.parseExpression(expr);
+                cell.setTooltipExpression(tooltipExpression);
+            }
+        }
+        // 解析分组表头/表尾属性
+        String groupHead = element.attributeValue("group-head");
+        if (StringUtils.isNotBlank(groupHead)) {
+            cell.setGroupHead(Boolean.valueOf(groupHead));
+        }
+        String groupFoot = element.attributeValue("group-foot");
+        if (StringUtils.isNotBlank(groupFoot)) {
+            cell.setGroupFoot(Boolean.valueOf(groupFoot));
+        }
         List<LinkParameter> linkParameters = null;
         List<ConditionPropertyItem> conditionPropertyItems = null;
         for (Object obj : element.elements()) {

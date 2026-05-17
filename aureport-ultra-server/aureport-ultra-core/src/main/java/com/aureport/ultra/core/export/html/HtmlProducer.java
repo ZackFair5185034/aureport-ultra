@@ -141,7 +141,51 @@ public class HtmlProducer {
                         sb.append("<td");
                     }
                 }
-                sb.append(" class='_" + cell.getName() + "' ");
+                sb.append(" class='_" + cell.getName());
+                if (cell.isGroupHead()) {
+                    sb.append(" grouphead-cell");
+                }
+                if (cell.isGroupFoot()) {
+                    sb.append(" groupfoot-cell");
+                }
+                sb.append("' ");
+                // 渲染 tooltip 属性
+                String tooltipText = cell.getTooltip();
+                if (StringUtils.isNotBlank(tooltipText)) {
+                    Expression tooltipExpr = cell.getTooltipExpression();
+                    if (tooltipExpr != null) {
+                        ExpressionData<?> exprData = tooltipExpr.execute(cell, cell, context);
+                        if (exprData instanceof BindDataListExpressionData) {
+                            BindDataListExpressionData listExprData = (BindDataListExpressionData) exprData;
+                            List<BindData> bindDataList = listExprData.getData();
+                            if (bindDataList != null && bindDataList.size() > 0) {
+                                Object data = bindDataList.get(0).getValue();
+                                if (data != null) {
+                                    tooltipText = data.toString();
+                                }
+                            }
+                        } else if (exprData instanceof ObjectExpressionData) {
+                            ObjectExpressionData objExprData = (ObjectExpressionData) exprData;
+                            Object data = objExprData.getData();
+                            if (data != null) {
+                                tooltipText = data.toString();
+                            }
+                        } else if (exprData instanceof ObjectListExpressionData) {
+                            ObjectListExpressionData objListExprData = (ObjectListExpressionData) exprData;
+                            List<?> list = objListExprData.getData();
+                            if (list != null && list.size() > 0) {
+                                Object data = list.get(0);
+                                if (data != null) {
+                                    tooltipText = data.toString();
+                                }
+                            }
+                        }
+                    }
+                    if (StringUtils.isNotBlank(tooltipText)) {
+                        tooltipText = StringEscapeUtils.escapeHtml4(tooltipText);
+                        sb.append("title=\"" + tooltipText + "\" ");
+                    }
+                }
                 String style = buildCustomStyle(cell);
                 sb.append(" " + style + "");
                 sb.append(">");

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="progressbar_test" width="800" height="600">
+  <paper>
+    <top-margin>20</top-margin>
+    <bottom-margin>20</bottom-margin>
+    <left-margin>20</left-margin>
+    <right-margin>20</right-margin>
+  </paper>
+  <dataset name="progressDemo">
+    <data>
+      <property name="label" type="String">项目进度</property>
+      <property name="minValue" type="Number">0</property>
+      <property name="maxValue" type="Number">100</property>
+      <property name="currentValue" type="Number">75</property>
+    </data>
+    <data>
+      <property name="label" type="String">销售目标</property>
+      <property name="minValue" type="Number">0</property>
+      <property name="maxValue" type="Number">1000000</property>
+      <property name="currentValue" type="Number">650000</property>
+    </data>
+    <data>
+      <property name="label" type="String">完成率</property>
+      <property name="minValue" type="Number">0</property>
+      <property name="maxValue" type="Number">100</property>
+      <property name="currentValue" type="Number">85</property>
+    </data>
+  </dataset>
+
+  <!-- 表头 -->
+  <cell name="A1" row="0" col="0" row-span="2" col-span="2">
+    <cell-style>
+      <forecolor>255,255,255</forecolor>
+      <bgcolor>64,158,255</bgcolor>
+      <align>center</align>
+      <valign>middle</valign>
+      <bold>true</bold>
+    </cell-style>
+    <simple-value>进度条单元格测试报表</simple-value>
+  </cell>
+
+  <!-- 标签列 -->
+  <cell name="A3" row="2" col="0">
+    <cell-style>
+      <bold>true</bold>
+      <align>center</align>
+      <bgcolor>245,247,250</bgcolor>
+    </cell-style>
+    <simple-value>项目名称</simple-value>
+  </cell>
+
+  <!-- 进度条列 -->
+  <cell name="B3" row="2" col="1">
+    <cell-style>
+      <bold>true</bold>
+      <align>center</align>
+      <bgcolor>245,247,250</bgcolor>
+    </cell-style>
+    <simple-value>进度条</simple-value>
+  </cell>
+
+  <!-- 数据行1 -->
+  <cell name="A4" row="3" col="0">
+    <cell-style>
+      <align>left</align>
+      <valign>middle</valign>
+    </cell-style>
+    <dataset-value datasetName="progressDemo" property="label" aggregate="none"/>
+  </cell>
+
+  <cell name="B4" row="3" col="1" col-span="2">
+    <cell-style>
+      <align>center</align>
+      <valign>middle</valign>
+    </cell-style>
+    <progressbar-value min-value="0" max-value="100" current-value="75" bar-color="#67C23A" bg-color="#E4E7ED"/>
+  </cell>
+
+  <!-- 数据行2 -->
+  <cell name="A5" row="4" col="0">
+    <cell-style>
+      <align>left</align>
+      <valign>middle</valign>
+    </cell-style>
+    <simple-value>销售目标</simple-value>
+  </cell>
+
+  <cell name="B5" row="4" col="1" col-span="2">
+    <cell-style>
+      <align>center</align>
+      <valign>middle</valign>
+    </cell-style>
+    <progressbar-value min-value="0" max-value="1000000" current-value="650000" bar-color="#409EFF" bg-color="#E4E7ED"/>
+  </cell>
+
+  <!-- 数据行3 -->
+  <cell name="A6" row="5" col="0">
+    <cell-style>
+      <align>left</align>
+      <valign>middle</valign>
+    </cell-style>
+    <simple-value>完成率</simple-value>
+  </cell>
+
+  <cell name="B6" row="5" col="1" col-span="2">
+    <cell-style>
+      <align>center</align>
+      <valign>middle</valign>
+    </cell-style>
+    <progressbar-value min-value="0" max-value="100" current-value="85" bar-color="#E6A23C" bg-color="#E4E7ED"/>
+  </cell>
+
+</report>

@@ -21,6 +21,8 @@
             :show-expand-options="showExpandOptions"
             :condition-property-items="conditionPropertyItems"
             :selected-nest-property="selectedNestProperty"
+            :group-head="groupHead"
+            :group-foot="groupFoot"
             @update:selectedDataset="val => selectedDataset = val"
             @update:selectedProperty="val => selectedProperty = val"
             @update:selectedAggregate="val => selectedAggregate = val"
@@ -35,6 +37,8 @@
             @update:showExpandOptions="val => showExpandOptions = val"
             @update:conditionPropertyItems="val => conditionPropertyItems = val"
             @update:selectedNestProperty="val => selectedNestProperty = val"
+            @update:groupHead="val => groupHead = val"
+            @update:groupFoot="val => groupFoot = val"
             @nest-property-change="handleNestPropertyChange"
             @dataset-change="handleDatasetChange"
             @property-change="handlePropertyChange"
@@ -139,10 +143,40 @@ const mappingValueProperty = ref('')
 const conditionPropertyItems = ref<any[]>([])
 const groupItems = ref<any[]>([])
 const selectedNestProperty = ref('')
+const groupHead = ref(false)
+const groupFoot = ref(false)
 
 watch(() => [props.rowIndex, props.colIndex], () => {
   loadCellData()
 }, { immediate: true })
+
+watch(groupHead, () => {
+  if (!initialized.value) return
+  for (let i = props.rowIndex; i <= props.row2Index; i++) {
+    for (let j = props.colIndex; j <= props.col2Index; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef || !cellDef.value) continue
+      const newCellDef = deepCopy(cellDef)
+      newCellDef.value.groupHead = groupHead.value
+      setCell(i, j, newCellDef)
+    }
+  }
+  setDirty()
+})
+
+watch(groupFoot, () => {
+  if (!initialized.value) return
+  for (let i = props.rowIndex; i <= props.row2Index; i++) {
+    for (let j = props.colIndex; j <= props.col2Index; j++) {
+      const cellDef = getCell(i, j)
+      if (!cellDef || !cellDef.value) continue
+      const newCellDef = deepCopy(cellDef)
+      newCellDef.value.groupFoot = groupFoot.value
+      setCell(i, j, newCellDef)
+    }
+  }
+  setDirty()
+})
 
 function loadCellData() {
   initialized.value = false
@@ -213,6 +247,8 @@ function loadInitialValues(cellDef: any) {
     mappingKeyProperty.value = value.mappingKeyProperty || ''
     mappingValueProperty.value = value.mappingValueProperty || ''
     selectedNestProperty.value = value.nestProperty || ''
+    groupHead.value = value.groupHead || false
+    groupFoot.value = value.groupFoot || false
   }
 
   if (cellDef.conditionPropertyItems) {

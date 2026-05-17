@@ -22,6 +22,7 @@ export interface CellDef {
   linkUrl?: string
   linkTargetWindow?: string
   linkParameters?: LinkParameter[]
+  tooltip?: string
   conditionPropertyItems?: ConditionPropertyItem[]
 }
 
@@ -34,6 +35,8 @@ export interface CellValue {
   property?: string
   aggregate?: AggregateType
   order?: SortType
+  groupHead?: boolean
+  groupFoot?: boolean
   mappingType?: string
   mappingDataset?: string
   mappingKeyProperty?: string

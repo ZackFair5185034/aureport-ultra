@@ -78,6 +78,14 @@ public class Cell implements ReportCell {
     private List<Object> bindData;
     private Range duplicateRange;
     private boolean forPaging;
+    /**
+     * 是否为分组表头单元格
+     */
+    private boolean groupHead;
+    /**
+     * 是否为分组表尾单元格
+     */
+    private boolean groupFoot;
     private String linkUrl;
     private String linkTargetWindow;
     private List<LinkParameter> linkParameters;
@@ -85,6 +93,12 @@ public class Cell implements ReportCell {
     private Map<String, String> linkParameterMap;
 
     private Expression linkUrlExpression;
+
+    /**
+     * 悬浮提示文本，支持表达式，如 ${cell_name}
+     */
+    private String tooltip;
+    private Expression tooltipExpression;
 
     private List<ConditionPropertyItem> conditionPropertyItems;
 
@@ -182,6 +196,8 @@ public class Cell implements ReportCell {
         cell.setFillBlankRows(fillBlankRows);
         cell.setMultiple(multiple);
         cell.setLinkUrlExpression(linkUrlExpression);
+        cell.setTooltip(tooltip);
+        cell.setTooltipExpression(tooltipExpression);
         return cell;
     }
 
@@ -932,6 +948,22 @@ public class Cell implements ReportCell {
         this.linkUrlExpression = linkUrlExpression;
     }
 
+    public String getTooltip() {
+        return tooltip;
+    }
+
+    public void setTooltip(String tooltip) {
+        this.tooltip = tooltip;
+    }
+
+    public Expression getTooltipExpression() {
+        return tooltipExpression;
+    }
+
+    public void setTooltipExpression(Expression tooltipExpression) {
+        this.tooltipExpression = tooltipExpression;
+    }
+
     private String buildExpression(Context context, String name, Expression expr) {
         ExpressionData<?> exprData = expr.execute(this, this, context);
         if (exprData instanceof ObjectListExpressionData) {
@@ -985,5 +1017,21 @@ public class Cell implements ReportCell {
             }
         }
         return "";
+    }
+
+    public boolean isGroupHead() {
+        return groupHead;
+    }
+
+    public void setGroupHead(boolean groupHead) {
+        this.groupHead = groupHead;
+    }
+
+    public boolean isGroupFoot() {
+        return groupFoot;
+    }
+
+    public void setGroupFoot(boolean groupFoot) {
+        this.groupFoot = groupFoot;
     }
 }

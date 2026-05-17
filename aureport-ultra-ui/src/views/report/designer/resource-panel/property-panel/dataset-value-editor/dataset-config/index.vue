@@ -56,6 +56,24 @@
         </u-button>
       </u-form-item>
 
+      <u-form-item class="property-label">
+        <u-checkbox
+            v-model="internalGroupHead"
+            :disabled="internalSelectedAggregate !== 'grouphead'"
+            @change="handleGroupHeadChange"
+        >
+          {{ t('property.dataset.groupHead') }}
+        </u-checkbox>
+        <u-checkbox
+            v-model="internalGroupFoot"
+            :disabled="internalSelectedAggregate !== 'groupfoot'"
+            style="margin-left: 20px"
+            @change="handleGroupFootChange"
+        >
+          {{ t('property.dataset.groupFoot') }}
+        </u-checkbox>
+      </u-form-item>
+
       <u-form-item class="property-label" :label="t('property.dataset.nestProperty')" v-show="internalSelectedAggregate === 'iterate'">
         <u-input
             v-model="internalNestProperty"
@@ -207,6 +225,8 @@ const props = withDefaults(defineProps<{
   showExpandOptions?: boolean
   conditionPropertyItems?: any[]
   selectedNestProperty?: string
+  groupHead?: boolean
+  groupFoot?: boolean
 }>(), {
   datasets: () => [],
   currentFields: () => [],
@@ -224,7 +244,9 @@ const props = withDefaults(defineProps<{
   showSortOptions: true,
   showExpandOptions: true,
   conditionPropertyItems: () => [],
-  selectedNestProperty: ''
+  selectedNestProperty: '',
+  groupHead: false,
+  groupFoot: false
 })
 
 const emit = defineEmits<{
@@ -242,6 +264,8 @@ const emit = defineEmits<{
   (e: 'update:showExpandOptions', value: boolean): void
   (e: 'update:conditionPropertyItems', value: any[]): void
   (e: 'update:selectedNestProperty', value: string): void
+  (e: 'update:groupHead', value: boolean): void
+  (e: 'update:groupFoot', value: boolean): void
   (e: 'dataset-change', value: string): void
   (e: 'property-change', value: string): void
   (e: 'aggregate-change', value: any): void
@@ -269,6 +293,8 @@ const internalMultiple = ref(0)
 const internalShowSortOptions = ref(true)
 const internalShowExpandOptions = ref(true)
 const internalNestProperty = ref('')
+const internalGroupHead = ref(false)
+const internalGroupFoot = ref(false)
 const isInitialized = ref(false)
 const propertyConditionDialogVisible = ref(false)
 const propertyConditionDialogDatasetName = ref('')
@@ -302,6 +328,8 @@ const aggregateOptions = computed(() => [
   { value: 'group', label: t('property.dataset.group') },
   { value: 'customgroup', label: t('property.dataset.customGroup') },
   { value: 'iterate', label: t('property.dataset.iterate') },
+  { value: 'grouphead', label: t('property.dataset.groupHead') },
+  { value: 'groupfoot', label: t('property.dataset.groupFoot') },
   { value: 'sum', label: t('property.dataset.sum') },
   { value: 'count', label: t('property.dataset.count') },
   { value: 'max', label: t('property.dataset.max') },
@@ -344,6 +372,8 @@ watch(() => props.multiple, (val) => { internalMultiple.value = val })
 watch(() => props.showSortOptions, (val) => { internalShowSortOptions.value = val })
 watch(() => props.showExpandOptions, (val) => { internalShowExpandOptions.value = val })
 watch(() => props.selectedNestProperty, (val) => { internalNestProperty.value = val })
+watch(() => props.groupHead, (val) => { internalGroupHead.value = val })
+watch(() => props.groupFoot, (val) => { internalGroupFoot.value = val })
 
 initData()
 
@@ -361,6 +391,8 @@ function initData() {
   internalShowSortOptions.value = props.showSortOptions
   internalShowExpandOptions.value = props.showExpandOptions
   internalNestProperty.value = props.selectedNestProperty
+  internalGroupHead.value = props.groupHead
+  internalGroupFoot.value = props.groupFoot
 }
 
 onMounted(() => {
@@ -475,6 +507,18 @@ function handleCustomGroupConfig() {
 
 function handleCustomGroupSave(groupItems: any[]) {
   emit('update-custom-group', groupItems)
+  setDirty()
+}
+
+function handleGroupHeadChange() {
+  if (!isInitialized.value) return
+  emit('update:groupHead', internalGroupHead.value)
+  setDirty()
+}
+
+function handleGroupFootChange() {
+  if (!isInitialized.value) return
+  emit('update:groupFoot', internalGroupFoot.value)
   setDirty()
 }
 

@@ -508,6 +508,9 @@ const zh = {
         "prop": {
             "linkConfig": "链接配置",
             "target": "目标窗口",
+            "tooltipConfig": "悬浮提示配置",
+            "tooltipContent": "提示内容",
+            "tooltipExpressionSupport": "支持表达式，表达式定义在 ${...} 中",
             "newWindow": "新窗口",
             "currentWindow": "当前窗口",
             "parentWindow": "父窗口",
@@ -560,6 +563,8 @@ const zh = {
             "group": "分组",
             "customGroup": "自定义分组",
             "iterate": "嵌套迭代",
+            "groupHead": "分组表头",
+            "groupFoot": "分组表尾",
             "nestProperty": "嵌套属性",
             "nestPropertyTip": "如 familyMembers（数组属性路径）",
             "sum": "汇总",
