@@ -1,76 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbook>
-    <props>
-        <prop name="name">富文本测试报表</prop>
-        <prop name="description">测试富文本单元格功能</prop>
-    </props>
-    <paper orientation="landscape" width="842" height="595" marginTop="20" marginBottom="20" marginLeft="20" marginRight="20" />
-    <columns>
-        <column width="100"></column>
-        <column width="200"></column>
-        <column width="150"></column>
-        <column width="120"></column>
-    </columns>
-    <rows>
-        <row height="35">
-            <cell name="A1" row="1" col="1" col-span="4">
-                <simple-value>富文本单元格测试报表</simple-value>
-                <cell-style forecolor="255,0,0" font-size="18" bold="true" align="center" />
-            </cell>
-        </row>
-        <row height="30">
-            <cell name="A2" row="2" col="1">
-                <simple-value>功能演示</simple-value>
-                <cell-style forecolor="0,0,255" bold="true" />
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A3" row="3" col="1">
-                <simple-value>加粗文本：</simple-value>
-            </cell>
-            <cell name="B3" row="3" col="2">
-                <richtext-value><![CDATA[<b>这是一段加粗的文字</b>]]></richtext-value>
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A4" row="4" col="1">
-                <simple-value>斜体文本：</simple-value>
-            </cell>
-            <cell name="B4" row="4" col="2">
-                <richtext-value><![CDATA[<i>这是一段斜体的文字</i>]]></richtext-value>
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A5" row="5" col="1">
-                <simple-value>彩色文本：</simple-value>
-            </cell>
-            <cell name="B5" row="5" col="2">
-                <richtext-value><![CDATA[<span style="color:red">红色文字</span> + <span style="color:green">绿色文字</span>]]></richtext-value>
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A6" row="6" col="1">
-                <simple-value>混合样式：</simple-value>
-            </cell>
-            <cell name="B6" row="6" col="2">
-                <richtext-value><![CDATA[<b><i><span style="color:#0066CC">加粗+斜体+蓝色</span></i></b>]]></richtext-value>
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A7" row="7" col="1">
-                <simple-value>带背景色：</simple-value>
-            </cell>
-            <cell name="B7" row="7" col="2">
-                <richtext-value><![CDATA[<span style="background-color:yellow">黄色背景的文字</span>]]></richtext-value>
-            </cell>
-        </row>
-        <row height="50">
-            <cell name="A8" row="8" col="1">
-                <simple-value>XSS防护测试：</simple-value>
-            </cell>
-            <cell name="B8" row="8" col="2">
-                <richtext-value><![CDATA[<script>alert('xss')</script>]]></richtext-value>
-            </cell>
-        </row>
-    </rows>
-</workbook>
+<ureport xmlns="http://www.example.org/ureport2">
+	<row row-number="1" height="40"/>
+	<row row-number="2" height="30"/>
+	<row row-number="3" height="30"/>
+	<row row-number="4" height="30"/>
+	<row row-number="5" height="30"/>
+	<row row-number="6" height="30"/>
+	<row row-number="7" height="30"/>
+
+	<cell name="A1" row="1" col="1" col-span="4">
+		<simple-value>富文本单元格测试报表</simple-value>
+		<cell-style font-size="18" font-weight="bold" align="center"></cell-style>
+	</cell>
+
+	<cell name="A2" row="2" col="1">
+		<simple-value>功能演示</simple-value>
+		<cell-style font-size="12" font-weight="bold" forecolor="#0000FF"></cell-style>
+	</cell>
+
+	<cell name="A3" row="3" col="1">
+		<simple-value>加粗文本：</simple-value>
+	</cell>
+	<cell name="B3" row="3" col="2">
+		<richtext-value><![CDATA[<b>这是一段加粗的文字</b>]]></richtext-value>
+	</cell>
+
+	<cell name="A4" row="4" col="1">
+		<simple-value>斜体文本：</simple-value>
+	</cell>
+	<cell name="B4" row="4" col="2">
+		<richtext-value><![CDATA[<i>这是一段斜体的文字</i>]]></richtext-value>
+	</cell>
+
+	<cell name="A5" row="5" col="1">
+		<simple-value>彩色文本：</simple-value>
+	</cell>
+	<cell name="B5" row="5" col="2">
+		<richtext-value><![CDATA[<span style="color:red">红色文字</span>]]></richtext-value>
+	</cell>
+
+	<cell name="A6" row="6" col="1">
+		<simple-value>混合样式：</simple-value>
+	</cell>
+	<cell name="B6" row="6" col="2">
+		<richtext-value><![CDATA[<b><i><span style="color:#0066CC">加粗+斜体+蓝色</span></i></b>]]></richtext-value>
+	</cell>
+
+	<cell name="A7" row="7" col="1">
+		<simple-value>XSS防护测试：</simple-value>
+	</cell>
+	<cell name="B7" row="7" col="2">
+		<richtext-value><![CDATA[<script>alert('xss')</script>]]></richtext-value>
+	</cell>
+</ureport>

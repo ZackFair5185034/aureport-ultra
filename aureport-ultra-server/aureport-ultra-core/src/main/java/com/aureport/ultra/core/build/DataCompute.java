@@ -46,6 +46,10 @@ public class DataCompute {
         valueComputesMap.put(zxingValueCompute.type().name(), zxingValueCompute);
         ChartValueCompute chartValueCompute = new ChartValueCompute();
         valueComputesMap.put(chartValueCompute.type().name(), chartValueCompute);
+        RichTextValueCompute richTextValueCompute = new RichTextValueCompute();
+        valueComputesMap.put(richTextValueCompute.type().name(), richTextValueCompute);
+        ProgressBarValueCompute progressBarValueCompute = new ProgressBarValueCompute();
+        valueComputesMap.put(progressBarValueCompute.type().name(), progressBarValueCompute);
 
     }
 

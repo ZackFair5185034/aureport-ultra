@@ -20,6 +20,7 @@ import com.aureport.ultra.core.chart.ChartData;
 import com.aureport.ultra.core.definition.Alignment;
 import com.aureport.ultra.core.definition.Border;
 import com.aureport.ultra.core.definition.CellStyle;
+import com.aureport.ultra.core.definition.value.ProgressBarValue;
 import com.aureport.ultra.core.definition.value.RichTextValue;
 import com.aureport.ultra.core.expression.model.Expression;
 import com.aureport.ultra.core.expression.model.data.BindDataListExpressionData;
