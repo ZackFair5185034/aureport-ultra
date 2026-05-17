@@ -7,7 +7,7 @@
 | 文档 | 内容 | 状态 |
 |------|------|------|
 | [技术选型.md](./技术选型.md) | 前端技术栈选型、Handsontable 版本调研 | ✅ 完成 |
-| [竞品分析.md](./竞品分析.md) | UReport2、FineReport、润乾报表等对比 | 📋 待完成 |
+| [竞品分析.md](./竞品分析.md) | UReport2、FineReport、润乾报表等对比 | ✅ 完成 |
 | [Handsontable调研.md](./Handsontable调研.md) | Handsontable 6.2.2→17.x 版本调研结论 | ✅ 完成 |
 
 ## 调研规范
