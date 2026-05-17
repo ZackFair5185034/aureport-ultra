@@ -61,7 +61,7 @@
   <!-- 数据源定义 -->
   <datasource name="mysql" type="jdbc"
               driver="com.mysql.cj.jdbc.Driver"
-              username="urp" password="T7n Z7weNG4FBFi75"
+              username="urp" password="T7nZ7weNG4FBFi75"
               url="jdbc:mysql://192.168.101.188:3306/urp?serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=utf-8">
     <dataset name="orders" type="sql">
       <sql><![CDATA[
