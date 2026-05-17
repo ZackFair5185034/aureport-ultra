@@ -24,6 +24,8 @@ Aureport Ultra 报表引擎变更记录。
 - **RowDefinition row-number 属性解析**：`RowParser` 正确解析 `row-number` 属性并设置到 `rowNumber` 字段。
 - **ColumnDefinition col-number 属性解析**：`ColumnParser` 正确解析 `col-number` 属性并设置到 `columnNumber` 字段。
 - **ReportDefinition.newReport NPE**：`rowMap.get()` 可能返回 null 的问题（待完整修复）。
+- **设置弹窗样式修复**：`.u-dialog-wrap` 添加 `color: #333` 解决白字白底看不见的问题。
+- **设置弹窗关闭按钮**：修复 `update:visible` 事件传播链，X 按钮和取消按钮已可正常关闭。
 
 ---
 
