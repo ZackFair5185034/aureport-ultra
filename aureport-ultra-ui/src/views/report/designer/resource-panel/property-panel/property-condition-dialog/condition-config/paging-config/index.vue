@@ -1,5 +1,6 @@
 <template>
-  <div class="form-group" style="margin-bottom: 5px;">
+  <u-checkbox-group>
+    <div class="form-group" style="margin-bottom: 5px;">
     <div class="u-inline">
       <u-checkbox v-model="pagingBreakChecked" @change="onPagingBreakChange">
         {{ t('dialog.propCondition.paging') }}
@@ -25,7 +26,8 @@
         </u-input-number>
       </div>
     </span>
-  </div>
+    </div>
+  </u-checkbox-group>
 </template>
 
 <script setup lang="ts">

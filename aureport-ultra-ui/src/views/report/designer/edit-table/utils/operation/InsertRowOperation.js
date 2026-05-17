@@ -15,6 +15,32 @@ import {
 } from "@/utils/contextActions";
 import {deepCopy} from '@/components/utils';
 
+function parseCellName(cellName) {
+    const match = cellName.match(/^([A-Z]+)(\d+)$/);
+    if (!match) return null;
+    let colIndex = 0;
+    const colStr = match[1];
+    for (let i = 0; i < colStr.length; i++) {
+        colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64);
+    }
+    return {colIndex: colIndex - 1, rowNumber: parseInt(match[2])};
+}
+
+function updateParentRowRefs(cell, thresholdRow, delta, context) {
+    if (cell.topParentCellName) {
+        const info = parseCellName(cell.topParentCellName);
+        if (info && info.rowNumber >= thresholdRow) {
+            cell.topParentCellName = context.LETTERS[info.colIndex] + (info.rowNumber + delta);
+        }
+    }
+    if (cell.leftParentCellName) {
+        const info = parseCellName(cell.leftParentCellName);
+        if (info && info.rowNumber >= thresholdRow) {
+            cell.leftParentCellName = context.LETTERS[info.colIndex] + (info.rowNumber + delta);
+        }
+    }
+}
+
 export function doInsertRow(above, number = 1) {
     const selected = this.getSelected();
     if (!selected) {
@@ -51,11 +77,11 @@ export function doInsertRow(above, number = 1) {
         rowHeights: newRowHeights,
         manualRowResize: newRowHeights
     });
-    resetTableData(this);
+    const context = getContext();
+    resetTableData(this, context);
     setDirty();
 
     const _this = this;
-    const context = getContext();
     const cellsMap = context.cellsMap
     const removeCells = [];
     let removeRowHeight = 25;
@@ -81,6 +107,7 @@ export function doInsertRow(above, number = 1) {
             }
             for (let cell of changeCells) {
                 cell.rowNumber = cell.rowNumber + number;
+                updateParentRowRefs(cell, position + 1, number, context);
                 addCell(cell);
             }
             for (let cell of removeCells) {
@@ -90,7 +117,7 @@ export function doInsertRow(above, number = 1) {
                 rowHeights: newRowHeights,
                 manualRowResize: newRowHeights
             });
-            resetTableData(_this);
+            resetTableData(_this, context);
             setDirty();
         },
         undo: function () {
@@ -130,9 +157,10 @@ export function doInsertRow(above, number = 1) {
             }
             for (let cell of changeCells) {
                 cell.rowNumber = cell.rowNumber - number;
+                updateParentRowRefs(cell, position + 2, -number, context);
                 addCell(cell);
             }
-            resetTableData(_this);
+            resetTableData(_this, context);
             setDirty();
         }
     });
@@ -157,6 +185,7 @@ function buildNewRowCells(hot, position, number) {
     for (let cell of changeCells) {
         let newCell = deepCopy(cell);
         newCell.rowNumber = cell.rowNumber + number;
+        updateParentRowRefs(newCell, position + 1, number, context);
         addCell(newCell);
     }
     for (let i = 0; i < number; i++) {

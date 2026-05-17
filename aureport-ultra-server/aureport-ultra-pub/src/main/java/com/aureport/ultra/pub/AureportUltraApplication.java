@@ -14,7 +14,6 @@ public class AureportUltraApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AureportUltraApplication.class, args);
-        System.out.println("Aureport Ultra 后台启动成功！");
     }
 
 }

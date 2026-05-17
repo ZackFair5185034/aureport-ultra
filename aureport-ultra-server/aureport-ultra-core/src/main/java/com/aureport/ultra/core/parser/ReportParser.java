@@ -115,8 +115,8 @@ public class ReportParser {
         for (CellDefinition cell : cells) {
             cellsMap.put(cell.getName(), cell);
             int rowNum = cell.getRowNumber(), colNum = cell.getColumnNumber(), rowSpan = cell.getRowSpan(), colSpan = cell.getColSpan();
-            rowSpan = rowSpan > 0 ? rowSpan-- : 1;
-            colSpan = colSpan > 0 ? colSpan-- : 1;
+            rowSpan = rowSpan > 0 ? rowSpan - 1 : 1;
+            colSpan = colSpan > 0 ? colSpan - 1 : 1;
             int rowStart = rowNum, rowEnd = rowNum + rowSpan, colStart = colNum, colEnd = colNum + colSpan;
             for (int i = rowStart; i < rowEnd; i++) {
                 cellsRowColMap.put(i + "," + colNum, cell);
@@ -137,7 +137,6 @@ public class ReportParser {
                     }
                     cell.setLeftParentCell(targetCell);
                     targetCell.getRowChildrenCells().add(cell);
-                    System.out.println("[REBUILD DEBUG] " + cell.getName() + " -> left parent " + leftParentCellName + " (rowChildren count=" + targetCell.getRowChildrenCells().size() + ")");
                 }
             } else {
                 if (colNumber > 1) {

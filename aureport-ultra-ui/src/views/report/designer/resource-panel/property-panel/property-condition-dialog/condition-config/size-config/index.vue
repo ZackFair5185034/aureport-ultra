@@ -1,5 +1,6 @@
 <template>
   <div>
+    <u-checkbox-group>
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="rowHeightChecked" @change="onRowHeightChange">
@@ -27,6 +28,7 @@
         </div>
       </span>
     </div>
+    </u-checkbox-group>
   </div>
 </template>
 

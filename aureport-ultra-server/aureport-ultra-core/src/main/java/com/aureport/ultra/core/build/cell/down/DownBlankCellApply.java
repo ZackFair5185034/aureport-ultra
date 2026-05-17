@@ -85,7 +85,9 @@ public class DownBlankCellApply {
                 continue;
             }
             context.removeBlankCell(targetCell);
-            targetCell.setLeftParentCell(leftParentCell);
+            if (targetCell.getLeftParentCell() == originalCell) {
+                targetCell.setLeftParentCell(leftParentCell);
+            }
             targetCell.setValue(childCell.getValue());
             if (targetCell.getTopParentCell() == originalCell) {
                 targetCell.setTopParentCell(leftParentCell);

@@ -631,6 +631,10 @@ const en = {
             "name": "Name",
             "angle": "Angle"
         },
+        "richtext": {
+            "config": "Rich Text Config",
+            "tip": "Supports bold, italic, color and more styles"
+        },
         "zxing": {
             "config": "Barcode Config",
             "width": "Width",

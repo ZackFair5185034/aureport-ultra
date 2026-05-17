@@ -57,21 +57,23 @@
       </u-form-item>
 
       <u-form-item class="property-label">
-        <u-checkbox
-            v-model="internalGroupHead"
-            :disabled="internalSelectedAggregate !== 'grouphead'"
-            @change="handleGroupHeadChange"
-        >
-          {{ t('property.dataset.groupHead') }}
-        </u-checkbox>
-        <u-checkbox
-            v-model="internalGroupFoot"
-            :disabled="internalSelectedAggregate !== 'groupfoot'"
-            style="margin-left: 20px"
-            @change="handleGroupFootChange"
-        >
-          {{ t('property.dataset.groupFoot') }}
-        </u-checkbox>
+        <u-checkbox-group>
+          <u-checkbox
+              v-model="internalGroupHead"
+              :disabled="internalSelectedAggregate !== 'grouphead'"
+              @change="handleGroupHeadChange"
+          >
+            {{ t('property.dataset.groupHead') }}
+          </u-checkbox>
+          <u-checkbox
+              v-model="internalGroupFoot"
+              :disabled="internalSelectedAggregate !== 'groupfoot'"
+              style="margin-left: 20px"
+              @change="handleGroupFootChange"
+          >
+            {{ t('property.dataset.groupFoot') }}
+          </u-checkbox>
+        </u-checkbox-group>
       </u-form-item>
 
       <u-form-item class="property-label" :label="t('property.dataset.nestProperty')" v-show="internalSelectedAggregate === 'iterate'">
@@ -130,12 +132,12 @@
 
       <u-form-item class="property-label" :label="t('property.base.format')">
         <vue-simple-suggest
-            :value="internalFormat"
+            :model-value="internalFormat"
             :list="suggestionList"
             :filter-by-query="true"
             :placeholder="t('property.base.formatTip')"
             class="simple-suggest"
-            @input="handleFormatChange"
+            @update:model-value="handleFormatChange"
         ></vue-simple-suggest>
       </u-form-item>
 
@@ -197,8 +199,8 @@ import CustomGroupDialog from '@/views/report/designer/resource-panel/property-p
 import { setDirty } from '@/utils/table'
 import { showAlert } from '@/utils/comnon'
 import { deepCopy } from '@/components/utils/index'
-import VueSimpleSuggest from 'vue-simple-suggest'
-import 'vue-simple-suggest/dist/styles.css'
+import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
+import '@ffrosch/vue-simple-suggest/style.css'
 
 defineOptions({ name: 'DatasetConfigTab' })
 

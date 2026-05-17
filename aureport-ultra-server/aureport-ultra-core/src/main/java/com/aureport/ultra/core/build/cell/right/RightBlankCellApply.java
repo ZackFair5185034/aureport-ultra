@@ -87,7 +87,9 @@ public class RightBlankCellApply {
                 continue;
             }
             context.removeBlankCell(targetCell);
-            targetCell.setTopParentCell(topParentCell);
+            if (originalCell == targetCell.getTopParentCell()) {
+                targetCell.setTopParentCell(topParentCell);
+            }
             targetCell.setValue(childCell.getValue());
             if (originalCell == targetCell.getLeftParentCell()) {
                 targetCell.setLeftParentCell(topParentCell);

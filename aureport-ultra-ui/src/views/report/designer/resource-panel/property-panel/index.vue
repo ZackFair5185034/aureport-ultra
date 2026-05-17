@@ -14,6 +14,7 @@
 
     <!-- 表达式值编辑器Vue组件 -->
     <expression-value-editor
+      key="editor-expression"
       ref="expressionValueEditor"
       v-if="expressionValueEditorVisible"
       :row-index="rowIndex"
@@ -24,6 +25,7 @@
 
     <!-- 简单值编辑器Vue组件 -->
     <simple-value-editor
+      key="editor-simple"
       ref="simpleValueEditor"
       v-if="simpleValueEditorVisible"
       :row-index="rowIndex"
@@ -34,6 +36,7 @@
 
     <!-- 数据集值编辑器Vue组件 -->
     <dataset-value-editor
+      key="editor-dataset"
       ref="datasetValueEditor"
       v-if="datasetValueEditorVisible"
       :row-index="rowIndex"
@@ -44,6 +47,7 @@
 
     <!-- 图片值编辑器Vue组件 -->
     <image-value-editor
+      key="editor-image"
       ref="imageValueEditor"
       v-if="imageValueEditorVisible"
       :row-index="rowIndex"
@@ -54,6 +58,7 @@
 
     <!-- 斜线值编辑器Vue组件 -->
     <slash-value-editor
+      key="editor-slash"
       ref="slashValueEditor"
       v-if="slashValueEditorVisible"
       :row-index="rowIndex"
@@ -64,6 +69,7 @@
 
     <!-- 二维码/条形码值编辑器Vue组件 -->
     <zxing-value-editor
+      key="editor-zxing"
       ref="zxingValueEditor"
       v-if="zxingValueEditorVisible"
       :row-index="rowIndex"
@@ -74,6 +80,7 @@
 
     <!-- 富文本值编辑器Vue组件 -->
     <rich-text-value-editor
+      key="editor-richtext"
       ref="richTextEditor"
       v-if="richTextValueEditorVisible"
       :row-index="rowIndex"
@@ -86,6 +93,7 @@
     <div ref="chartEditorContainer">
       <template v-for="(chartType, index) in chartEditorTypes" :key="index">
         <chart-value-editor
+          :key="'chart-' + chartType.id"
           ref="chartEditor"
           v-if="currentChartType === chartType.id"
           :id="chartType.id"
@@ -97,6 +105,7 @@
         />
       </template>
       <bubble-chart-value-editor
+        key="editor-bubble-chart"
         ref="bubbleChartEditor"
         v-if="bubbleChartValueEditorVisible"
         :row-index="rowIndex"
@@ -105,6 +114,7 @@
         :col2-index="col2Index"
       />
       <scatter-chart-value-editor
+        key="editor-scatter-chart"
         ref="scatterChartEditor"
         v-if="scatterChartValueEditorVisible"
         :row-index="rowIndex"

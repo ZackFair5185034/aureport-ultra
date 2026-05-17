@@ -4,14 +4,13 @@
       class="tool-button"
       icon="icon-settings"
       @click="handleClick"
-  >
+  />
   <SettingsDialog
       :visible="dialogVisible"
       @update:visible="dialogVisible = $event"
       @close="handleDialogClose"
       @ok="handleDialogOk"
   />
-  </u-button>
 </template>
 
 <script setup lang="ts">

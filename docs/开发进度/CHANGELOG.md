@@ -27,6 +27,15 @@ Aureport Ultra 报表引擎变更记录。
 - **设置弹窗样式修复**：`.u-dialog-wrap` 添加 `color: #333` 解决白字白底看不见的问题。
 - **设置弹窗关闭按钮**：修复 `update:visible` 事件传播链，X 按钮和取消按钮已可正常关闭。
 
+#### 前端设计器
+- **vue-simple-suggest 兼容性修复**：将 Vue 2 不兼容的 `vue-simple-suggest` v1.11.2 替换为 Vue 3 原生 fork `@ffrosch/vue-simple-suggest` v2.0.7，解决 `this.constructor` 不存在于 Vue 3 `PublicInstanceProxyHandlers` 导致的崩溃。
+- **UCheckbox 注入警告修复**：为 9 个组件中独立使用的 `<u-checkbox>` 包裹 `<u-checkbox-group>`，消除 `[Vue warn]: injection 'checkboxGroupContext' not found` 警告，涉及数据集配置和全部 8 个条件属性配置（值、颜色、字体、对齐、边框、尺寸、分页、链接）。
+- **父子格引用修复**：插入/删除行列时更新受影响单元格的 `leftParentCellName`/`topParentCellName` 字段（P0-1）；右键清除内容时重置父格引用（P0-4）。
+
+#### 核心引擎
+- **ReportParser rowSpan/colSpan 自减 Bug 修复**：后缀 `--` 改为前缀 `--`，确保合并单元格的行/列范围计算正确（P0-2）。
+- **BlankCellApply 父子格重定向修复**：`DownBlankCellApply` 和 `RightBlankCellApply` 同时重定向 `leftParentCell` 和 `topParentCell`，修复同时持有两种父格引用的单元格在一侧填充后引用失效的问题（P0-3）。
+
 ---
 
 ## [1.1.0] - 2026-05-15

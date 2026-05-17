@@ -15,6 +15,32 @@ import {
 } from "@/utils/contextActions";
 import {deepCopy} from '@/components/utils';
 
+function parseCellName(cellName) {
+    const match = cellName.match(/^([A-Z]+)(\d+)$/);
+    if (!match) return null;
+    let colIndex = 0;
+    const colStr = match[1];
+    for (let i = 0; i < colStr.length; i++) {
+        colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64);
+    }
+    return {colIndex: colIndex - 1, rowNumber: parseInt(match[2])};
+}
+
+function updateParentRowRefs(cell, thresholdRow, delta, context) {
+    if (cell.topParentCellName) {
+        const info = parseCellName(cell.topParentCellName);
+        if (info && info.rowNumber >= thresholdRow) {
+            cell.topParentCellName = context.LETTERS[info.colIndex] + (info.rowNumber + delta);
+        }
+    }
+    if (cell.leftParentCellName) {
+        const info = parseCellName(cell.leftParentCellName);
+        if (info && info.rowNumber >= thresholdRow) {
+            cell.leftParentCellName = context.LETTERS[info.colIndex] + (info.rowNumber + delta);
+        }
+    }
+}
+
 export function doDeleteRow() {
     const selected = this.getSelected();
     const context = getContext();
@@ -96,10 +122,11 @@ export function doDeleteRow() {
     for (let cell of changeCells) {
         let newCell = deepCopy(cell);
         newCell.rowNumber = cell.rowNumber - dif;
+        updateParentRowRefs(newCell, endRow + 2, -dif, context);
         addCell(newCell);
     }
     this.updateSettings({rowHeights: newRowHeights, mergeCells: newMergeCells});
-    resetTableData(this);
+    resetTableData(this, context);
     setDirty();
 
     const _this = this;
@@ -172,10 +199,11 @@ export function doDeleteRow() {
             for (let cell of changeCells) {
                 let newCell = deepCopy(cell);
                 newCell.rowNumber = cell.rowNumber - dif;
+                updateParentRowRefs(newCell, endRow + 2, -dif, getContext());
                 addCell(newCell);
             }
             _this.updateSettings({rowHeights: newRowHeights, mergeCells: newMergeCells});
-            resetTableData(_this);
+            resetTableData(_this, context);
             setDirty();
         },
         undo: function () {
@@ -197,13 +225,14 @@ export function doDeleteRow() {
             for (let cell of changeCells) {
                 let newCell = deepCopy(cell);
                 newCell.rowNumber = cell.rowNumber + dif;
+                updateParentRowRefs(newCell, startRow + 1, dif, getContext());
                 addCell(newCell);
             }
             for (let cell of removeCells) {
                 addCell(cell);
             }
             _this.updateSettings({rowHeights: oldRowHeights, mergeCells: oldMergeCells});
-            resetTableData(_this);
+            resetTableData(_this, context);
             setDirty();
         }
     })

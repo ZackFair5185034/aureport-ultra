@@ -260,12 +260,14 @@ export default function buildMenuConfigure(){
                 }
                 let key=cell.rowNumber+","+cell.columnNumber;
                 if(type==='content'){
-                    let orgValue=removeCellsMap.get(key);
-                    if(!orgValue){
+                    let orgData=removeCellsMap.get(key);
+                    if(!orgData){
                         showAlert($t('table.contextMenu.cancelConetntFail'));
                         return;
                     }
-                    cell.value=orgValue;
+                    cell.value=orgData.value;
+                    cell.leftParentCellName=orgData.leftParentCellName;
+                    cell.topParentCellName=orgData.topParentCellName;
                     let value=cell.value;
                     let valueType=value.type;
                     let text=value.value;
@@ -366,13 +368,19 @@ export default function buildMenuConfigure(){
                 cell.cellStyle.format=null;
                 let key=cell.rowNumber+","+cell.columnNumber;
                 if(type==='content'){
-                    removeCellsMap.set(key,cell.value);
+                    removeCellsMap.set(key,{
+                        value: cell.value,
+                        leftParentCellName: cell.leftParentCellName,
+                        topParentCellName: cell.topParentCellName
+                    });
                     cell.value={
                         type:'simple',
                         value:''
                     };
                     cell.expand='None';
                     cell.conditionPropertyItems=null;
+                    cell.leftParentCellName=null;
+                    cell.topParentCellName=null;
                     hot.setDataAtCell(i,j,'');
                 }else if(type==='style'){
                     removeCellsMap.set(key,cell.cellStyle);

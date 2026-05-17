@@ -11,6 +11,9 @@ importers:
       '@ckpack/vue-color':
         specifier: ^1.6.0
         version: 1.6.0(vue@3.5.34(typescript@5.8.2))
+      '@ffrosch/vue-simple-suggest':
+        specifier: ^2.0.7
+        version: 2.0.7(vue@3.5.34(typescript@5.8.2))
       '@parcel/watcher':
         specifier: ^2.4.1
         version: 2.5.6
@@ -68,9 +71,6 @@ importers:
       vue-router:
         specifier: ^4.5.0
         version: 4.6.4(vue@3.5.34(typescript@5.8.2))
-      vue-simple-suggest:
-        specifier: ^1.11.2
-        version: 1.11.2(vue@3.5.34(typescript@5.8.2))
       vuedraggable:
         specifier: ^4.1.0
         version: 4.1.0(vue@3.5.34(typescript@5.8.2))
@@ -493,6 +493,11 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@ffrosch/vue-simple-suggest@2.0.7':
+    resolution: {integrity: sha512-tbHujHa7WzJChuH0RUn2z2bVUNps34/r5bRlWpJSAn+0cnVRLM43SfiPw4Cp1oe0afNV0QtlXTbF57bQWtnYJg==}
+    peerDependencies:
+      vue: 3.x
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2373,10 +2378,6 @@ packages:
     resolution: {integrity: sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA==}
     engines: {node: '>=12'}
 
-  strip-ansi@6.0.0:
-    resolution: {integrity: sha512-AuvKTrTfQNYNIctbR1K/YGTR1756GycPsg7b9bdV9Duqur4gv6aKqHXah67Z8ImS7WEz5QVcOtlfW2rZEugt6w==}
-    engines: {node: '>=8'}
-
   strip-ansi@6.0.1:
     resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
     engines: {node: '>=8'}
@@ -2525,6 +2526,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   varint@6.0.0:
@@ -2640,11 +2642,6 @@ packages:
     resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
     peerDependencies:
       vue: ^3.5.0
-
-  vue-simple-suggest@1.11.2:
-    resolution: {integrity: sha512-mduUGE/ZdFjgxoBTz8nv5/IBHwYV8h780z1p282MQBDTvIII+qCSJHim1VxYJ4NbOQhVoB+93tqlwduV41YTcg==}
-    peerDependencies:
-      vue: ^2.5.0
 
   vue-tsc@2.2.0:
     resolution: {integrity: sha512-gtmM1sUuJ8aSb0KoAFmK9yMxb8TxjewmxqTJ1aKphD5Cbu0rULFY6+UQT51zW7SpUcenfPUuflKyVwyx9Qdnxg==}
@@ -3045,6 +3042,10 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@ffrosch/vue-simple-suggest@2.0.7(vue@3.5.34(typescript@5.8.2))':
+    dependencies:
+      vue: 3.5.34(typescript@5.8.2)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -4874,17 +4875,13 @@ snapshots:
     dependencies:
       emoji-regex: 8.0.0
       is-fullwidth-code-point: 3.0.0
-      strip-ansi: 6.0.0
+      strip-ansi: 6.0.1
 
   string-width@5.1.2:
     dependencies:
       eastasianwidth: 0.2.0
       emoji-regex: 9.2.2
       strip-ansi: 7.2.0
-
-  strip-ansi@6.0.0:
-    dependencies:
-      ansi-regex: 5.0.1
 
   strip-ansi@6.0.1:
     dependencies:
@@ -5150,10 +5147,6 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.34(typescript@5.8.2)
 
-  vue-simple-suggest@1.11.2(vue@3.5.34(typescript@5.8.2)):
-    dependencies:
-      vue: 3.5.34(typescript@5.8.2)
-
   vue-tsc@2.2.0(typescript@5.8.2):
     dependencies:
       '@volar/typescript': 2.4.28
@@ -5187,7 +5180,7 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       string-width: 4.2.0
-      strip-ansi: 6.0.0
+      strip-ansi: 6.0.1
 
   wrap-ansi@8.1.0:
     dependencies:

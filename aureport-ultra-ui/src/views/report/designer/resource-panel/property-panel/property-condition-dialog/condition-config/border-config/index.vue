@@ -1,5 +1,6 @@
 <template>
   <div>
+    <u-checkbox-group>
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="borderChecked" @change="onBorderChange">
@@ -12,6 +13,7 @@
         </u-button>
       </span>
     </div>
+    </u-checkbox-group>
 
     <CustomBorderDialog
       v-model:visible="customBorderDialogVisible"

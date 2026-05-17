@@ -28,7 +28,7 @@ export interface CellDef {
 
 /** 单元格值 */
 export interface CellValue {
-  type: 'simple' | 'expression' | 'dataset' | 'image' | 'slash' | 'zxing' | 'chart'
+  type: 'simple' | 'expression' | 'dataset' | 'image' | 'slash' | 'zxing' | 'chart' | 'richtext'
   value?: string
   // dataset
   datasetName?: string

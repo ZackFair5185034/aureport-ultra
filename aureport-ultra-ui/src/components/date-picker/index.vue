@@ -196,7 +196,7 @@ const emit = defineEmits<{
   'panel-change': [type: unknown, oldType: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext>('formItemContext')
+const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
 
 const datePickerRef = ref<{ openPopup: () => void; closePopup: () => void; clearDate: () => void } | null>(null)
 const innerValue = ref(props.modelValue)

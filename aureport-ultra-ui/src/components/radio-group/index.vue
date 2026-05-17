@@ -26,7 +26,7 @@ const emit = defineEmits<{
   change: [value: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext>('formItemContext')
+const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
 
 const radioGroupContext: RadioGroupContext = reactive({
   get modelValue() { return props.modelValue },

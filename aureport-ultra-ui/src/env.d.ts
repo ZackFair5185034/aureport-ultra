@@ -55,7 +55,7 @@ declare module 'save-svg-as-png' {
   export function saveSvgAsPng(el: SVGElement, filename: string, opts?: Record<string, unknown>): void
 }
 
-declare module 'vue-simple-suggest' {
+declare module '@ffrosch/vue-simple-suggest' {
   import type { DefineComponent } from 'vue'
   const component: DefineComponent<object, object, unknown>
   export default component

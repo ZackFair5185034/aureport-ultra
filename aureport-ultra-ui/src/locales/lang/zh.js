@@ -634,6 +634,10 @@ const zh = {
             "name": "名称",
             "angle": "角度"
         },
+        "richtext": {
+            "config": "富文本配置",
+            "tip": "支持加粗、斜体、颜色等样式"
+        },
         "zxing": {
             "config": "条码配置",
             "width": "宽",

@@ -1,6 +1,11 @@
 import { createApp, type App } from 'vue'
 import RowColWidthHeightDialogVue from './index.vue'
 import i18n from '@/locales'
+import UDialog from '@/components/dialog/index.vue'
+import UForm from '@/components/form/index.vue'
+import UFormItem from '@/components/form-item/index.vue'
+import UInputNumber from '@/components/input-number/index.vue'
+import UButton from '@/components/button/index.vue'
 
 export default class RowColWidthHeightDialog {
   private app: App<Element> | null = null
@@ -12,6 +17,16 @@ export default class RowColWidthHeightDialog {
 
     const app = createApp(RowColWidthHeightDialogVue)
     app.use(i18n)
+    app.component('UDialog', UDialog)
+    app.component('u-dialog', UDialog)
+    app.component('UForm', UForm)
+    app.component('u-form', UForm)
+    app.component('UFormItem', UFormItem)
+    app.component('u-form-item', UFormItem)
+    app.component('UInputNumber', UInputNumber)
+    app.component('u-input-number', UInputNumber)
+    app.component('UButton', UButton)
+    app.component('u-button', UButton)
     this.vm = app.mount(mountPoint)
     this.app = app
   }

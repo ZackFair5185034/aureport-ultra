@@ -1,5 +1,6 @@
 <template>
   <div>
+    <u-checkbox-group>
     <div class="form-group" style="margin-bottom: 5px;">
       <div class="u-inline">
         <u-checkbox v-model="newValueChecked" @change="onNewValueChange">
@@ -31,18 +32,19 @@
              :filter-by-query="true"
              class="simple-suggest"
              style="display: inline-block"
-             @input="onFormatInputChange"
+             @update:model-value="onFormatInputChange"
          ></vue-simple-suggest>
       </span>
     </div>
+    </u-checkbox-group>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onBeforeMount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import VueSimpleSuggest from 'vue-simple-suggest'
-import 'vue-simple-suggest/dist/styles.css'
+import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
+import '@ffrosch/vue-simple-suggest/style.css'
 // @ts-ignore
 import configOptions from '../constants/config-options.js'
 

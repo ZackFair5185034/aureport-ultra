@@ -136,7 +136,7 @@ const emit = defineEmits<{
   'remove-tag': [value: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext>('formItemContext')
+const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
 
 const options = ref<OptionInstance[]>([])
 const visible = ref(false)

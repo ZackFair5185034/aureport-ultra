@@ -49,7 +49,7 @@
             :filter-by-query="true"
             :placeholder="t('property.base.formatTip')"
             class="simple-suggest"
-            @input="handleFormatChange"
+            @update:model-value="handleFormatChange"
         ></vue-simple-suggest>
       </u-form-item>
 
@@ -93,8 +93,8 @@ import 'codemirror/addon/lint/lint.js'
 import { setDirty } from '@/utils/table'
 import { scriptValidation, parseDatasetName } from '@/api/designer/index'
 import PropertyConditionDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/index.vue'
-import VueSimpleSuggest from 'vue-simple-suggest'
-import 'vue-simple-suggest/dist/styles.css'
+import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
+import '@ffrosch/vue-simple-suggest/style.css'
 import { showAlert } from '@/utils/comnon'
 import { deepCopy } from '@/components/utils/index'
 import { getCell, setCell } from '@/utils/contextActions'

@@ -28,7 +28,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean | string | number]
 }>()
 
-const formItemContext = inject<FormItemContext>('formItemContext')
+const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
 
 const _activeColor = computed(() =>
   props.modelValue === props.activeValue && props.activeColor ? props.activeColor : ''

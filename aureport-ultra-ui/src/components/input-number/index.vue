@@ -27,7 +27,7 @@ const emit = defineEmits<{
   change: [value: number | string]
 }>()
 
-const formItemContext = inject<FormItemContext>('formItemContext')
+const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
 
 const currentValue = ref<number | string>(0)
 const increaseForbid = ref(false)

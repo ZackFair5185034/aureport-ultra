@@ -156,22 +156,7 @@
         </u-form-item>
       </div>
 
-      <!-- 悬浮提示配置 -->
-      <div class="form-group" style="margin-bottom:6px">
-        <div class="property-quote">
-          {{ t('property.prop.tooltipConfig') }}
-        </div>
-
-        <u-form-item class="property-label" :label="t('property.prop.tooltipContent')">
-          <u-input
-              v-model="tooltip"
-              :placeholder="t('property.prop.tooltipExpressionSupport')"
-              style="width: 250px;"
-              @change="handleTooltipChange"
-          />
-        </u-form-item>
-      </div>
-
+      
       <!-- 单元格类型 -->
       <u-form-item class="property-label" v-show="showTypeGroup" :label="t('property.prop.cellType')">
         <u-select
@@ -254,7 +239,6 @@ const linkUrl = ref('')
 const linkTarget = ref('_blank')
 const cellType = ref('simple')
 const linkParameters = ref<any[]>([])
-const tooltip = ref('')
 
 const parentTypeOptions = computed(() => [
   { label: t('property.prop.default'), value: 'default' },
@@ -416,11 +400,9 @@ function buildParentCellNameOptions() {
   if (cellDef) {
     linkUrl.value = cellDef.linkUrl || ''
     linkTarget.value = cellDef.linkTargetWindow || '_blank'
-    tooltip.value = cellDef.tooltip || ''
   } else {
     linkUrl.value = ''
     linkTarget.value = '_blank'
-    tooltip.value = ''
   }
 
   if (cellDef && cellDef.value) {
@@ -590,15 +572,6 @@ function handleLinkParametersChange(value: any[]) {
 
 function handleCellTypeChange(value: string) {
   emit('cell-type-change', value)
-}
-
-function handleTooltipChange(value: string) {
-  const cellDef = getCell(props.rowIndex, props.colIndex)
-  if (!cellDef) return
-  const newCellDef = deepCopy(cellDef)
-  newCellDef.tooltip = value
-  setCell(props.rowIndex, props.colIndex, newCellDef)
-  setDirty()
 }
 </script>
 

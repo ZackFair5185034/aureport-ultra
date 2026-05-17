@@ -1,5 +1,6 @@
 <template>
-  <div class="form-group" style="margin-bottom: 5px;">
+  <u-checkbox-group>
+    <div class="form-group" style="margin-bottom: 5px;">
     <div class="u-inline">
       <u-checkbox v-model="linkChecked" @change="onLinkChange">
         {{ t('dialog.propCondition.link') }}
@@ -35,13 +36,14 @@
       </div>
     </div>
 
+    </div>
+  </u-checkbox-group>
     <URLParameterDialog
       v-model:visible="urlParameterDialogVisible"
       :parameters="linkParameters || []"
       @saveAfter="handleUrlParameterSaveAfter"
       @parameters-change="onLinkParametersChange"
     />
-  </div>
 </template>
 
 <script setup lang="ts">
