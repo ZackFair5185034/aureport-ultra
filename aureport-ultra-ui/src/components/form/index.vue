@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, reactive, provide, computed } from 'vue'
-import { oneOf } from '../utils'
 
 defineOptions({ name: 'UForm' })
 

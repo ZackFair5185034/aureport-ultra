@@ -18,7 +18,7 @@ module.exports = {
                 includeExports: true
             }
         ], // 不允许重复导入
-        "no-unused-vars": "off", // 不允许变量未使用
+        "no-unused-vars": ["warn", { "args": "none", "vars": "all", "ignoreRestSiblings": true }], // 不允许变量未使用
 
         'no-duplicate-case': 2, // switch中的case标签不能重复
         'padded-blocks': 0, // 块语句内行首行尾是否要空行

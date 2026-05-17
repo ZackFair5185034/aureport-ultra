@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { oneOf } from '../utils'
 
 defineOptions({ name: 'UButton', inheritAttrs: false })
 

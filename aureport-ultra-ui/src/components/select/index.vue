@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, provide, reactive } from 'vue'
-import { oneOf, debounce } from '../utils'
+import { debounce } from '../utils'
 import { LoadingDirective as vLoading } from '../loading/instance'
 import type { FormItemContext } from '../form-item/index.vue'
 

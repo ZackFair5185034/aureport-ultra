@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
-import { oneOf, debounce } from '../utils'
+import { debounce } from '../utils'
 
 defineOptions({ name: 'UInput' })
 
