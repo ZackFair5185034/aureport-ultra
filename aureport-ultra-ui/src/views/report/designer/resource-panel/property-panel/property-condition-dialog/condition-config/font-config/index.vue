@@ -1,233 +1,22 @@
-<template>
-  <div>
-    <u-checkbox-group>
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="fontChecked" @change="onFontChange">
-          {{ t('dialog.propCondition.font') }}
-        </u-checkbox>
-      </div>
-      <span v-show="fontChecked" style="margin-left: 10px">
-        <div class="u-inline">
-          <u-select
-              v-model="fontFamily"
-              :clearable="true"
-              @change="onFontFamilyChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in fontOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-        <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
-        <div class="u-inline" style="margin-left: 10px">
-          <u-select
-              v-model="fontFamilyScope"
-              :clearable="true"
-              @change="onFontFamilyScopeChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in scopeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-      </span>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="fontSizeChecked" @change="onFontSizeChange">
-          {{ t('dialog.propCondition.fontSize') }}
-        </u-checkbox>
-      </div>
-      <span v-show="fontSizeChecked" style="padding-left: 10px;">
-        <div class="u-inline">
-          <u-select
-              v-model="fontSize"
-              :clearable="true"
-              @change="onFontSizeValueChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in fontSizeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-        <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
-        <div class="u-inline" style="margin-left: 10px">
-          <u-select
-              v-model="fontSizeScope"
-              :clearable="true"
-              @change="onFontSizeScopeChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in scopeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-      </span>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="fontBoldChecked" @change="onFontBoldChange">
-          {{ t('dialog.propCondition.bold') }}
-        </u-checkbox>
-      </div>
-      <span v-show="fontBoldChecked" style="padding-left: 10px">
-        <div class="u-inline">
-          <u-select
-              v-model="fontBold"
-              :clearable="true"
-              @change="onFontBoldValueChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in yesNoOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-        <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
-        <div class="u-inline" style="margin-left: 10px">
-          <u-select
-              v-model="fontBoldScope"
-              :clearable="true"
-              @change="onFontBoldScopeChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in scopeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-      </span>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="fontItalicChecked" @change="onFontItalicChange">
-          {{ t('dialog.propCondition.italic') }}
-        </u-checkbox>
-      </div>
-      <span v-show="fontItalicChecked" style="padding-left: 10px">
-        <div class="u-inline">
-          <u-select
-              v-model="fontItalic"
-              :clearable="true"
-              @change="onFontItalicValueChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in yesNoOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-        <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
-        <div class="u-inline" style="margin-left: 10px">
-          <u-select
-              v-model="fontItalicScope"
-              :clearable="true"
-              @change="onFontItalicScopeChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in scopeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-      </span>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="fontUnderlineChecked" @change="onFontUnderlineChange">
-          {{ t('dialog.propCondition.underline') }}
-        </u-checkbox>
-      </div>
-      <span v-show="fontUnderlineChecked" style="padding-left: 10px">
-        <div class="u-inline">
-          <u-select
-              v-model="fontUnderline"
-              :clearable="true"
-              @change="onFontUnderlineValueChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in yesNoOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-        <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
-        <div class="u-inline" style="margin-left: 10px">
-          <u-select
-              v-model="fontUnderlineScope"
-              :clearable="true"
-              @change="onFontUnderlineScopeChange"
-              style="width: 120px"
-          >
-            <u-option
-                v-for="option in scopeOptions"
-                :key="option.value"
-                :value="option.value"
-                :label="option.label"
-            />
-          </u-select>
-        </div>
-      </span>
-    </div>
-    </u-checkbox-group>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onBeforeMount } from 'vue'
+import { onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 // @ts-ignore
 import configOptions from '../constants/config-options.js'
 
 defineOptions({ name: 'FontConfig' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
   cellStyle?: any
 }>(), {
-  cellStyle: () => ({})
+  cellStyle: () => ({}),
 })
 
 const emit = defineEmits<{
   (e: 'font-change', value: any): void
 }>()
+
+const { t } = useI18n()
 
 const fontChecked = ref(false)
 const fontFamily = ref('')
@@ -261,7 +50,8 @@ watch(() => props.cellStyle, (newVal) => {
 }, { immediate: true, deep: true })
 
 function loadFontProperties(cellStyle: any) {
-  if (!cellStyle) return
+  if (!cellStyle)
+    return
 
   fontChecked.value = !!(cellStyle.fontFamily && cellStyle.fontFamily !== '0')
   fontFamily.value = fontChecked.value ? cellStyle.fontFamily : ''
@@ -272,15 +62,15 @@ function loadFontProperties(cellStyle: any) {
   fontSizeScope.value = cellStyle.fontSizeScope || 'cell'
 
   fontBoldChecked.value = !!(cellStyle.bold !== null && cellStyle.bold !== undefined && cellStyle.bold !== '')
-  fontBold.value = fontBoldChecked.value ? (cellStyle.bold === true || cellStyle.bold === "true" ? "true" : "false") : ''
+  fontBold.value = fontBoldChecked.value ? (cellStyle.bold === true || cellStyle.bold === 'true' ? 'true' : 'false') : ''
   fontBoldScope.value = cellStyle.boldScope || 'cell'
 
   fontItalicChecked.value = !!(cellStyle.italic !== null && cellStyle.italic !== undefined && cellStyle.italic !== '')
-  fontItalic.value = fontItalicChecked.value ? (cellStyle.italic === true || cellStyle.italic === "true" ? "true" : "false") : ''
+  fontItalic.value = fontItalicChecked.value ? (cellStyle.italic === true || cellStyle.italic === 'true' ? 'true' : 'false') : ''
   fontItalicScope.value = cellStyle.italicScope || 'cell'
 
   fontUnderlineChecked.value = !!(cellStyle.underline !== null && cellStyle.underline !== undefined && cellStyle.underline !== '')
-  fontUnderline.value = fontUnderlineChecked.value ? (cellStyle.underline === true || cellStyle.underline === "true" ? "true" : "false") : ''
+  fontUnderline.value = fontUnderlineChecked.value ? (cellStyle.underline === true || cellStyle.underline === 'true' ? 'true' : 'false') : ''
   fontUnderlineScope.value = cellStyle.underlineScope || 'cell'
 }
 
@@ -344,3 +134,214 @@ function onFontUnderlineScopeChange() {
   emit('font-change', { type: 'underline', checked: fontUnderlineChecked.value, value: fontUnderline.value, scope: fontUnderlineScope.value })
 }
 </script>
+
+<template>
+  <div>
+    <u-checkbox-group>
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="fontChecked" @change="onFontChange">
+            {{ t('dialog.propCondition.font') }}
+          </u-checkbox>
+        </div>
+        <span v-show="fontChecked" style="margin-left: 10px">
+          <div class="u-inline">
+            <u-select
+              v-model="fontFamily"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontFamilyChange"
+            >
+              <u-option
+                v-for="option in fontOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+          <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
+          <div class="u-inline" style="margin-left: 10px">
+            <u-select
+              v-model="fontFamilyScope"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontFamilyScopeChange"
+            >
+              <u-option
+                v-for="option in scopeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="fontSizeChecked" @change="onFontSizeChange">
+            {{ t('dialog.propCondition.fontSize') }}
+          </u-checkbox>
+        </div>
+        <span v-show="fontSizeChecked" style="padding-left: 10px;">
+          <div class="u-inline">
+            <u-select
+              v-model="fontSize"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontSizeValueChange"
+            >
+              <u-option
+                v-for="option in fontSizeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+          <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
+          <div class="u-inline" style="margin-left: 10px">
+            <u-select
+              v-model="fontSizeScope"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontSizeScopeChange"
+            >
+              <u-option
+                v-for="option in scopeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="fontBoldChecked" @change="onFontBoldChange">
+            {{ t('dialog.propCondition.bold') }}
+          </u-checkbox>
+        </div>
+        <span v-show="fontBoldChecked" style="padding-left: 10px">
+          <div class="u-inline">
+            <u-select
+              v-model="fontBold"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontBoldValueChange"
+            >
+              <u-option
+                v-for="option in yesNoOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+          <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
+          <div class="u-inline" style="margin-left: 10px">
+            <u-select
+              v-model="fontBoldScope"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontBoldScopeChange"
+            >
+              <u-option
+                v-for="option in scopeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="fontItalicChecked" @change="onFontItalicChange">
+            {{ t('dialog.propCondition.italic') }}
+          </u-checkbox>
+        </div>
+        <span v-show="fontItalicChecked" style="padding-left: 10px">
+          <div class="u-inline">
+            <u-select
+              v-model="fontItalic"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontItalicValueChange"
+            >
+              <u-option
+                v-for="option in yesNoOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+          <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
+          <div class="u-inline" style="margin-left: 10px">
+            <u-select
+              v-model="fontItalicScope"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontItalicScopeChange"
+            >
+              <u-option
+                v-for="option in scopeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="fontUnderlineChecked" @change="onFontUnderlineChange">
+            {{ t('dialog.propCondition.underline') }}
+          </u-checkbox>
+        </div>
+        <span v-show="fontUnderlineChecked" style="padding-left: 10px">
+          <div class="u-inline">
+            <u-select
+              v-model="fontUnderline"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontUnderlineValueChange"
+            >
+              <u-option
+                v-for="option in yesNoOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+          <span style="margin-left: 15px;">{{ t('dialog.propCondition.scope') }}</span>
+          <div class="u-inline" style="margin-left: 10px">
+            <u-select
+              v-model="fontUnderlineScope"
+              :clearable="true"
+              style="width: 120px"
+              @change="onFontUnderlineScopeChange"
+            >
+              <u-option
+                v-for="option in scopeOptions"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label"
+              />
+            </u-select>
+          </div>
+        </span>
+      </div>
+    </u-checkbox-group>
+  </div>
+</template>

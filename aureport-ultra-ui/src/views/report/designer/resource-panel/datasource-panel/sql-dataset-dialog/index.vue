@@ -1,71 +1,16 @@
-<template>
-  <div>
-    <UDialog
-      :title="$t('dialog.sql.title')"
-      width="1080px"
-      :visible="visible"
-      :z-index="20000"
-      @close="closeDialog"
-    >
-      <div class="dialog-content">
-        <div class="content-layout">
-          <!-- 左侧容器：搜索表格 -->
-          <div class="left-panel">
-            <SearchTable
-                :db="db"
-                :trigger-load="triggerLoadSearchTable"
-                @add="handleAddSql"
-                @load-complete="handleSearchTableLoadComplete"
-            />
-          </div>
-
-          <!-- 右侧容器：SQL 编辑器和参数编辑器 -->
-          <div class="right-panel">
-            <SqlEditor
-                :name="datasetName"
-                :sql="sql"
-                @sql-change="handleSqlChange"
-                @dataset-name-change="handleDatasetNameChange"
-            />
-            <ParameterEditor
-                :parameters="parameters"
-                @add-parameter="handleAddParameter"
-                @edit-parameter="handleEditParameter"
-                @remove-parameter="handleRemoveParameter"
-            />
-          </div>
-        </div>
-      </div>
-
-      <template #footer><div style="text-align: right">
-        <u-button @click="handlePreview" type="info" style="margin-right: 10px;">{{ $t('dialog.sql.preview') }}</u-button>
-        <u-button @click="handleConfirm">{{ $t('dialog.sql.ok') }}</u-button>
-      </div></template>
-    </UDialog>
-    <PreviewDataDialog
-      :visible="previewDialogVisible"
-      :parameters="previewParameters"
-      @close="closePreviewDialog"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { useReportStore } from '@/stores/report'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { deepCopy } from '@/components/utils'
+import { useReportStore } from '@/stores/report'
+import { showAlert } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
+import PreviewDataDialog from '@/views/report/designer/resource-panel/datasource-panel/preview-data-dialog/index.vue'
+import ParameterEditor from './parameter-editor/index.vue'
 import SearchTable from './search-table/index.vue'
 import SqlEditor from './sql-editor/index.vue'
-import ParameterEditor from './parameter-editor/index.vue'
-import PreviewDataDialog from '@/views/report/designer/resource-panel/datasource-panel/preview-data-dialog/index.vue'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils'
 
 defineOptions({ name: 'SqlDatasetDialog' })
-
-const { t } = useI18n()
-const store = useReportStore()
 
 const props = withDefaults(defineProps<{
   visible: boolean
@@ -74,13 +19,14 @@ const props = withDefaults(defineProps<{
 }>(), {
   visible: false,
   db: null,
-  datasetData: null
+  datasetData: null,
 })
-
 const emit = defineEmits<{
   (e: 'save', name: string, oldName: string, sql: string, parameters: any[]): void
   (e: 'close'): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
 
 const datasetName = ref('')
 const sql = ref('')
@@ -160,7 +106,7 @@ function handlePreview() {
   const params: any = {
     sql: sqlText,
     type,
-    parameters: deepCopy(currentData.value.parameters)
+    parameters: deepCopy(currentData.value.parameters),
   }
 
   if (type === 'jdbc') {
@@ -168,7 +114,8 @@ function handlePreview() {
     params.password = props.db.password
     params.driver = props.db.driver
     params.url = props.db.url
-  } else if (type === 'buildin') {
+  }
+  else if (type === 'buildin') {
     params.name = props.db.name
   }
 
@@ -196,13 +143,13 @@ function handleConfirm() {
   }
 
   if (check) {
-    for (let datasource of context.value!.reportDef.datasources) {
-      let dsDatasets = datasource.datasets
+    for (const datasource of context.value!.reportDef.datasources) {
+      const dsDatasets = datasource.datasets
       if (!dsDatasets || !Array.isArray(dsDatasets)) {
         continue
       }
 
-      for (let dataset of dsDatasets) {
+      for (const dataset of dsDatasets) {
         if (dataset.name === nameVal) {
           showAlert(`${t('dialog.sql.ds')}[${nameVal}]${t('dialog.sql.exist')}`)
           return
@@ -224,6 +171,60 @@ function closePreviewDialog() {
   previewDialogVisible.value = false
 }
 </script>
+
+<template>
+  <div>
+    <UDialog
+      :title="$t('dialog.sql.title')"
+      width="1080px"
+      :visible="visible"
+      :z-index="20000"
+      @close="closeDialog"
+    >
+      <div class="dialog-content">
+        <div class="content-layout">
+          <!-- 左侧容器：搜索表格 -->
+          <div class="left-panel">
+            <SearchTable
+              :db="db"
+              :trigger-load="triggerLoadSearchTable"
+              @add="handleAddSql"
+              @load-complete="handleSearchTableLoadComplete"
+            />
+          </div>
+
+          <!-- 右侧容器：SQL 编辑器和参数编辑器 -->
+          <div class="right-panel">
+            <SqlEditor
+              :name="datasetName"
+              :sql="sql"
+              @sql-change="handleSqlChange"
+              @dataset-name-change="handleDatasetNameChange"
+            />
+            <ParameterEditor
+              :parameters="parameters"
+              @add-parameter="handleAddParameter"
+              @edit-parameter="handleEditParameter"
+              @remove-parameter="handleRemoveParameter"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div style="text-align: right">
+          <u-button type="info" style="margin-right: 10px;" @click="handlePreview">{{ $t('dialog.sql.preview') }}</u-button>
+          <u-button @click="handleConfirm">{{ $t('dialog.sql.ok') }}</u-button>
+        </div>
+      </template>
+    </UDialog>
+    <PreviewDataDialog
+      :visible="previewDialogVisible"
+      :parameters="previewParameters"
+      @close="closePreviewDialog"
+    />
+  </div>
+</template>
 
 <style scoped>
 .content-layout {

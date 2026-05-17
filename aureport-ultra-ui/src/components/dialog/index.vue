@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineOptions({ name: 'UDialog' })
 
@@ -27,10 +27,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:visible': [value: boolean]
-  open: []
-  close: []
-  opend: []
-  closed: []
+  'open': []
+  'close': []
+  'opend': []
+  'closed': []
 }>()
 
 const rendered = ref(false)
@@ -40,7 +40,8 @@ watch(() => props.visible, (val) => {
   if (val) {
     rendered.value = true
     emit('open')
-  } else {
+  }
+  else {
     emit('close')
   }
 })
@@ -51,7 +52,8 @@ function handleClose() {
       emit('update:visible', false)
       emit('close')
     })
-  } else {
+  }
+  else {
     emit('update:visible', false)
     emit('close')
   }
@@ -161,7 +163,9 @@ onBeforeUnmount(() => {
   opacity: 0.8;
 }
 
-.u-dialog-close:hover { opacity: 1; }
+.u-dialog-close:hover {
+  opacity: 1;
+}
 
 .u-dialog-body {
   padding: 20px;

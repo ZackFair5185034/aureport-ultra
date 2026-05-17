@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 
 defineOptions({ name: 'UMessage' })
 
@@ -26,7 +26,7 @@ function add(params: {
   const { duration, message, showClose, useHTMLString, type } = params
 
   messageList.value.push({
-    message: message,
+    message,
     showClose: showClose || false,
     useHTMLString: useHTMLString || false,
     type: (type as MessageItem['type']) || 'info',
@@ -49,19 +49,20 @@ function add(params: {
 }
 
 function remove(key: string) {
-  const index = messageList.value.findIndex((cell) => cell.key === key)
-  if (index === -1) return
+  const index = messageList.value.findIndex(cell => cell.key === key)
+  if (index === -1)
+    return
 
   const el = document.querySelector(`[data-key="${key}"]`) as HTMLElement | null
   const height = el ? el.clientHeight + 20 : 0
   offsetTop.value -= height
 
   messageList.value.splice(index, 1)
-  messageList.value.forEach((cell) => {
+  for (const cell of messageList.value) {
     if (messageList.value.indexOf(cell) >= index) {
       cell.top -= height
     }
-  })
+  }
 }
 
 defineExpose({ add, remove })
@@ -141,9 +142,23 @@ defineExpose({ add, remove })
   color: #888;
 }
 
-.u-message-cell-close:hover { color: #000; }
+.u-message-cell-close:hover {
+  color: #000;
+}
 
-.u-message-cell-success { background-color: #eef8e9; border-color: #67c23a; color: #67c23a; }
-.u-message-cell-warning { background-color: #faedda; border-color: #e6a23c; color: #e6a23c; }
-.u-message-cell-error { background-color: #fde3e3; border-color: #f56c6c; color: #f56c6c; }
+.u-message-cell-success {
+  background-color: #eef8e9;
+  border-color: #67c23a;
+  color: #67c23a;
+}
+.u-message-cell-warning {
+  background-color: #faedda;
+  border-color: #e6a23c;
+  color: #e6a23c;
+}
+.u-message-cell-error {
+  background-color: #fde3e3;
+  border-color: #f56c6c;
+  color: #f56c6c;
+}
 </style>

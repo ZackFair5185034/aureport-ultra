@@ -9,21 +9,21 @@
 
 export default class Context {
   constructor(reportTable) {
-    this.reportDef = reportTable.reportDef;
-    this.cellsMap = reportTable.cellsMap;
-    this.rowHeaders = [];
+    this.reportDef = reportTable.reportDef
+    this.cellsMap = reportTable.cellsMap
+    this.rowHeaders = []
 
     // 工具数据
-    this._initLetters();
+    this._initLetters()
   }
 
   _initLetters() {
-    const letters = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-    this.LETTERS = letters.concat([]);
-    for(let i = 0; i < letters.length; i++) {
-      let name = letters[i];
-      for(let j = 0; j < letters.length; j++) {
-        this.LETTERS.push(name + letters[j]);
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    this.LETTERS = letters.concat([])
+    for (let i = 0; i < letters.length; i++) {
+      const name = letters[i]
+      for (const letter of letters) {
+        this.LETTERS.push(name + letter)
       }
     }
   }

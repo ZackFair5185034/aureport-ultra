@@ -1,103 +1,8 @@
-<template>
-  <div class="u-select" ref="uSelectRef">
-    <div
-      class="u-select-inner"
-      @mouseenter="setHoverAttr"
-      @mouseleave="setHoverAttr"
-    >
-      <div
-        v-if="multiple"
-        class="u-select-multi"
-        :class="{
-          'u-select-multi-disabled': disabled,
-          [`u-select-multi-${size}`]: true
-        }"
-        ref="multiPanelRef"
-        @click.self="handleMultiClick"
-      >
-        <UTag
-          size="mini"
-          type="text"
-          closeable
-          disableTransitions
-          v-for="item in currentTags"
-          :key="item.value"
-          @close="handleTagClose(item)"
-        >{{ item.label }}</UTag>
-        <input
-          type="text"
-          class="u-select-multi-input"
-          ref="multiInputRef"
-          :placeholder="disabled ? '' : '请输入'"
-          v-if="filterable"
-          :disabled="disabled"
-          @click.self="handleMultiClick"
-          @input="handleInput"
-          @focus="handleInputFocus"
-          @blur="handleInputBlur"
-        />
-      </div>
-      <input
-        class="u-select-inner-input"
-        :class="{
-          ['u-select-inner-input-select']: visible,
-          ['u-select-inner-input-disabled']: disabled,
-          ['u-select-inner-input-size-' + size]: true
-        }"
-        :style="{ 'min-height': panelHeight ? `${panelHeight}px` : undefined }"
-        type="text"
-        :placeholder="currentTags.length > 0 ? '' : placeholderLabel"
-        :disabled="disabled"
-        :value="multiple ? '' : currentLabel"
-        :readonly="!filterable"
-        @click="handleClick"
-        @input="handleInput"
-        @focus="handleInputFocus"
-        @blur="handleInputBlur"
-      />
-      <i
-        class="u-select-inner-icon iconfont icon-down"
-        :class="{
-          'u-select-inner-icon-focus': visible,
-          ['u-select-inner-icon-size-' + size]: true
-        }"
-        v-show="!(clearable && currentValue && onHover)"
-      />
-      <span
-        class="u-select-inner-icon"
-        v-show="clearable && currentValue && onHover"
-        @click="handleClear"
-      >
-        <i class="iconfont icon-close" />
-      </span>
-    </div>
-    <transition name="fade-bottom">
-      <div
-        class="u-select-options"
-        :style="{
-          top: panelHeight ? `${panelHeight + 6}px` : undefined,
-          width: optionsWidth ? `${optionsWidth}px` : undefined
-        }"
-        v-show="visible"
-        v-loading="filterable && loading"
-      >
-        <slot></slot>
-        <div
-          class="u-select-options-no-data"
-          v-show="!$slots.default || !hasOptions"
-        >
-          无数据
-        </div>
-      </div>
-    </transition>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, inject, provide, reactive } from 'vue'
-import { debounce } from '../utils'
-import { LoadingDirective as vLoading } from '../loading/instance'
 import type { FormItemContext } from '../form-item/index.vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue'
+import { LoadingDirective as vLoading } from '../loading/instance'
+import { debounce } from '../utils'
 
 defineOptions({ name: 'USelect' })
 
@@ -136,7 +41,7 @@ const emit = defineEmits<{
   'remove-tag': [value: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
 const options = ref<OptionInstance[]>([])
 const visible = ref(false)
@@ -180,13 +85,15 @@ const selectContext: SelectContext = {
   onOptionSelect(child) {
     if (props.multiple) {
       handleMultiChoose(child)
-    } else {
+    }
+    else {
       handleChoose(child)
     }
   },
   onOptionRemove(child) {
     const idx = options.value.indexOf(child)
-    if (idx !== -1) options.value.splice(idx, 1)
+    if (idx !== -1)
+      options.value.splice(idx, 1)
   },
 }
 provide('selectContext', selectContext)
@@ -198,7 +105,8 @@ function updateOptionsWidth() {
 }
 
 function handleMultiClick() {
-  if (props.disabled) return
+  if (props.disabled)
+    return
   visible.value = !visible.value
   if (props.filterable && visible.value) {
     nextTick(() => {
@@ -212,7 +120,7 @@ function handleClick() {
 }
 
 function handleChoose(opt: OptionInstance) {
-  options.value.forEach(d => (d.selected = false))
+  for (const d of options.value) (d.selected = false)
   opt.selected = true
   currentValue.value = opt.value
   currentLabel.value = opt.label
@@ -222,22 +130,27 @@ function handleChoose(opt: OptionInstance) {
 }
 
 function handleMultiChoose(opt: OptionInstance) {
-  if (props.multipleLimit > 0 && currentTags.value.length >= props.multipleLimit && !opt.choose) return
+  if (props.multipleLimit > 0 && currentTags.value.length >= props.multipleLimit && !opt.choose)
+    return
   opt.choose = !opt.choose
   if (props.filterable) {
     multiInputRef.value?.focus()
   }
+
   if (opt.choose) {
     currentTags.value.push(opt)
-  } else {
+  }
+  else {
     const idx = currentTags.value.indexOf(opt)
-    if (idx !== -1) currentTags.value.splice(idx, 1)
+    if (idx !== -1)
+      currentTags.value.splice(idx, 1)
   }
 }
 
 function addCloseEvent(event: MouseEvent) {
   const target = event.target as HTMLElement
-  if (!uSelectRef.value) return
+  if (!uSelectRef.value)
+    return
   if (!uSelectRef.value.contains(target) && visible.value) {
     visible.value = false
   }
@@ -250,7 +163,7 @@ function setHoverAttr(event: MouseEvent) {
 function handleClear() {
   currentLabel.value = ''
   currentValue.value = ''
-  options.value.forEach(d => (d.selected = false))
+  for (const d of options.value) (d.selected = false)
   emit('update:modelValue', null)
   emit('change', null)
   emit('clear')
@@ -262,19 +175,22 @@ function handleInput(e: Event) {
   debounce(() => {
     if (props.remote && typeof props.remoteMethod === 'function') {
       props.remoteMethod(currentLabel.value)
-    } else if (props.filterMethod && typeof props.filterMethod === 'function') {
+    }
+    else if (props.filterMethod && typeof props.filterMethod === 'function') {
       props.filterMethod(currentLabel.value)
-    } else {
+    }
+    else {
       filterOptionsByValue(currentLabel.value)
     }
   }, 333, 'u-select-input')
 }
 
 function filterOptionsByValue(value: string) {
-  options.value.forEach(cell => {
+  for (const cell of options.value) {
     const label = cell.label || ''
-    cell.visible = label.indexOf(value) > -1
-  })
+    cell.visible = label.includes(value)
+  }
+
   setNoDataVisible()
 }
 
@@ -283,6 +199,7 @@ function handleInputFocus(e: FocusEvent) {
     currentPlaceholder.value = currentLabel.value
     currentLabel.value = ''
   }
+
   emit('focus', e)
 }
 
@@ -291,54 +208,58 @@ function handleInputBlur(e: FocusEvent) {
     currentLabel.value = currentPlaceholder.value
     currentPlaceholder.value = ''
   }
+
   emit('blur', e)
   setTimeout(() => {
-    if (visible.value) return
+    if (visible.value)
+      return
     filterOptionsByValue('')
   }, 250)
 }
 
 function setNoDataVisible() {
-  if (props.filterable) {
-    hasOptions.value = !!options.value.find(d => d.visible)
-  } else {
-    hasOptions.value = options.value.length > 0
-  }
+  hasOptions.value = props.filterable ? options.value.some(d => d.visible) : options.value.length > 0
 }
 
 function setMultiOptionStyle(multi: boolean) {
-  options.value.forEach(d => (d.multi = multi))
+  for (const d of options.value) (d.multi = multi)
 }
 
 function handleTagClose(opt: OptionInstance) {
-  if (props.disabled) return
+  if (props.disabled)
+    return
   opt.choose = false
   emit('remove-tag', opt.value)
   const idx = currentTags.value.indexOf(opt)
-  if (idx !== -1) currentTags.value.splice(idx, 1)
+  if (idx !== -1)
+    currentTags.value.splice(idx, 1)
 }
 
 function syncValue(value: unknown) {
   if (props.multiple) {
     __syncMultiValues(value)
-  } else {
+  }
+  else {
     __syncSimpleValue(value)
   }
+
   formItemContext?.onFieldChange()
 }
 
 function __syncSimpleValue(value: unknown) {
   let found = false
-  options.value.forEach(d => {
+  for (const d of options.value) {
     if (d.value === value) {
       d.selected = true
       currentValue.value = value
       currentLabel.value = d.label
       found = true
-    } else {
+    }
+    else {
       d.selected = false
     }
-  })
+  }
+
   if (!found) {
     currentValue.value = value
     currentLabel.value = String(value ?? '')
@@ -347,18 +268,20 @@ function __syncSimpleValue(value: unknown) {
 
 function __syncMultiValues(values: unknown) {
   const vals = (values as unknown[]) || []
-  options.value.forEach(d => {
+  for (const d of options.value) {
     if (vals.includes(d.value)) {
       d.choose = true
-      if (!currentTags.value.find(tag => tag.value === d.value)) {
+      if (!currentTags.value.some(tag => tag.value === d.value)) {
         currentTags.value.push(d)
       }
-    } else {
+    }
+    else {
       d.choose = false
       const idx = currentTags.value.findIndex(tag => tag.value === d.value)
-      if (idx !== -1) currentTags.value.splice(idx, 1)
+      if (idx !== -1)
+        currentTags.value.splice(idx, 1)
     }
-  })
+  }
 }
 
 watch(() => currentTags.value.length, () => {
@@ -373,6 +296,7 @@ watch(() => currentTags.value.length, () => {
     if (cell.choose) {
       total.push(cell.value)
     }
+
     return total
   }, [])
   emit('update:modelValue', values)
@@ -404,15 +328,112 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<template>
+  <div ref="uSelectRef" class="u-select">
+    <div
+      class="u-select-inner"
+      @mouseenter="setHoverAttr"
+      @mouseleave="setHoverAttr"
+    >
+      <div
+        v-if="multiple"
+        ref="multiPanelRef"
+        class="u-select-multi"
+        :class="{
+          'u-select-multi-disabled': disabled,
+          [`u-select-multi-${size}`]: true,
+        }"
+        @click.self="handleMultiClick"
+      >
+        <UTag
+          v-for="item in currentTags"
+          :key="item.value"
+          size="mini"
+          type="text"
+          closeable
+          disableTransitions
+          @close="handleTagClose(item)"
+        >
+          {{ item.label }}
+        </UTag>
+        <input
+          v-if="filterable"
+          ref="multiInputRef"
+          type="text"
+          class="u-select-multi-input"
+          :placeholder="disabled ? '' : '请输入'"
+          :disabled="disabled"
+          @click.self="handleMultiClick"
+          @input="handleInput"
+          @focus="handleInputFocus"
+          @blur="handleInputBlur"
+        />
+      </div>
+      <input
+        class="u-select-inner-input"
+        :class="{
+          ['u-select-inner-input-select']: visible,
+          ['u-select-inner-input-disabled']: disabled,
+          [`u-select-inner-input-size-${size}`]: true,
+        }"
+        :style="{ 'min-height': panelHeight ? `${panelHeight}px` : undefined }"
+        type="text"
+        :placeholder="currentTags.length > 0 ? '' : placeholderLabel"
+        :disabled="disabled"
+        :value="multiple ? '' : currentLabel"
+        :readonly="!filterable"
+        @click="handleClick"
+        @input="handleInput"
+        @focus="handleInputFocus"
+        @blur="handleInputBlur"
+      />
+      <i
+        v-show="!(clearable && currentValue && onHover)"
+        class="u-select-inner-icon iconfont icon-down"
+        :class="{
+          'u-select-inner-icon-focus': visible,
+          [`u-select-inner-icon-size-${size}`]: true,
+        }"
+      />
+      <span
+        v-show="clearable && currentValue && onHover"
+        class="u-select-inner-icon"
+        @click="handleClear"
+      >
+        <i class="iconfont icon-close" />
+      </span>
+    </div>
+    <transition name="fade-bottom">
+      <div
+        v-show="visible"
+        v-loading="filterable && loading"
+        class="u-select-options"
+        :style="{
+          top: panelHeight ? `${panelHeight + 6}px` : undefined,
+          width: optionsWidth ? `${optionsWidth}px` : undefined,
+        }"
+      >
+        <slot />
+        <div
+          v-show="!$slots.default || !hasOptions"
+          class="u-select-options-no-data"
+        >
+          无数据
+        </div>
+      </div>
+    </transition>
+  </div>
+</template>
+
 <style scoped>
 .u-select {
   position: relative;
   width: 220px;
-  display: inline-block
+  display: inline-block;
 }
 
 .u-select-inner {
-  position: relative
+  position: relative;
 }
 
 .u-select-inner-input {
@@ -429,19 +450,19 @@ onBeforeUnmount(() => {
   line-height: 34px;
   outline: 0;
   padding: 0 30px 0 15px;
-  transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
-  width: 100%
+  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  width: 100%;
 }
 
 .u-select-inner-input-select {
-  border-color: #00554a
+  border-color: #00554a;
 }
 
 .u-select-inner-input-disabled {
   background-color: #f5f7fa;
   border-color: #e4e7ed;
   color: #c0c4cc;
-  cursor: not-allowed
+  cursor: not-allowed;
 }
 
 .u-select-inner-icon {
@@ -454,45 +475,45 @@ onBeforeUnmount(() => {
   line-height: 34px;
   text-align: center;
   cursor: pointer;
-  transition: all .2s;
-  color: #bbbcc0
+  transition: all 0.2s;
+  color: #bbbcc0;
 }
 
 .u-select-inner-icon-focus {
   transform: translateY(-50%) rotate(180deg);
-  color: #00554a
+  color: #00554a;
 }
 
 .u-select-inner-input-size-large {
   height: 40px;
-  line-height: 38px
+  line-height: 38px;
 }
 
 .u-select-inner-icon-size-large {
   height: 38px;
-  line-height: 38px
+  line-height: 38px;
 }
 
 .u-select-inner-input-size-small {
   font-size: 12px;
   height: 32px;
-  line-height: 30px
+  line-height: 30px;
 }
 
 .u-select-inner-icon-size-small {
   height: 30px;
-  line-height: 30px
+  line-height: 30px;
 }
 
 .u-select-inner-input-size-mini {
   font-size: 12px;
   height: 28px;
-  line-height: 26px
+  line-height: 26px;
 }
 
 .u-select-inner-icon-size-mini {
   height: 26px;
-  line-height: 26px
+  line-height: 26px;
 }
 
 .u-select-options {
@@ -505,29 +526,29 @@ onBeforeUnmount(() => {
   border: solid 1px #e4e7ed;
   border-radius: 4px;
   background-color: #fff;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   margin: 5px 0;
   overflow-x: hidden;
-  overflow-y: auto
+  overflow-y: auto;
 }
 
 .u-select-options::-webkit-scrollbar-track-piece {
-  background: #f8f8f8
+  background: #f8f8f8;
 }
 
 .u-select-options::-webkit-scrollbar {
   width: 6px;
-  height: 6px
+  height: 6px;
 }
 
 .u-select-options::-webkit-scrollbar-thumb:hover {
-  background-color: #bbb
+  background-color: #bbb;
 }
 
 .u-select-options::-webkit-scrollbar-thumb {
   background: #ddd;
-  border-radius: 10px
+  border-radius: 10px;
 }
 
 .u-select-options-no-data {
@@ -536,7 +557,7 @@ onBeforeUnmount(() => {
   margin: 0;
   text-align: center;
   color: #999;
-  font-size: 13px
+  font-size: 13px;
 }
 
 .u-select-multi {
@@ -548,15 +569,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  padding: 0 30px 4px 10px
+  padding: 0 30px 4px 10px;
 }
 
 .u-select-multi-disabled {
-  cursor: not-allowed !important
+  cursor: not-allowed !important;
 }
 
 .u-select-multi .u-tag {
-  margin: 4px 4px 0 0
+  margin: 4px 4px 0 0;
 }
 
 .u-select-multi-input {
@@ -567,36 +588,36 @@ onBeforeUnmount(() => {
   height: 20px;
   line-height: 20px;
   padding: 0;
-  margin-top: 4px
+  margin-top: 4px;
 }
 
 .u-select-multi-large {
-  padding: 6px 30px 10px 10px
+  padding: 6px 30px 10px 10px;
 }
 
 .u-select-multi-small {
-  padding: 2px 30px 6px 10px
+  padding: 2px 30px 6px 10px;
 }
 
 .u-select-multi-medium {
-  padding: 4px 30px 8px 10px
+  padding: 4px 30px 8px 10px;
 }
 </style>
 
 <style>
 ::-webkit-input-placeholder {
-  color: #bbbcc0
+  color: #bbbcc0;
 }
 
 :-moz-placeholder {
-  color: #bbbcc0
+  color: #bbbcc0;
 }
 
 ::-moz-placeholder {
-  color: #bbbcc0
+  color: #bbbcc0;
 }
 
 :-ms-input-placeholder {
-  color: #bbbcc0
+  color: #bbbcc0;
 }
 </style>

@@ -2,12 +2,14 @@
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
+
   const component: DefineComponent<object, object, unknown>
   export default component
 }
 
 declare module 'async-validator' {
   import { DefineComponent } from 'vue'
+
   interface RuleItem {
     type?: string
     required?: boolean
@@ -31,13 +33,12 @@ declare module 'async-validator' {
 }
 
 declare module 'handsontable' {
-  import Handsontable from 'handsontable'
-  export default Handsontable
+
 }
 
 declare module 'undo-manager' {
   interface UndoManager {
-    add: (action: { undo: () => void; redo: () => void }, group?: string) => void
+    add: (action: { undo: () => void, redo: () => void }, group?: string) => void
     undo: () => void
     redo: () => void
     hasUndo: () => boolean
@@ -57,12 +58,14 @@ declare module 'save-svg-as-png' {
 
 declare module '@ffrosch/vue-simple-suggest' {
   import type { DefineComponent } from 'vue'
+
   const component: DefineComponent<object, object, unknown>
   export default component
 }
 
 declare module 'vue-color' {
   import type { DefineComponent } from 'vue'
+
   export const Chrome: DefineComponent<object, object, unknown>
   export const Compact: DefineComponent<object, object, unknown>
   export const Sketch: DefineComponent<object, object, unknown>
@@ -71,3 +74,5 @@ declare module 'vue-color' {
 interface Window {
   __aureport_public_path__?: string
 }
+
+export { default } from 'handsontable'

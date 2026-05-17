@@ -5,20 +5,20 @@ export const rootPath = '/report'
 const routes = [
   {
     path: '/',
-    redirect: rootPath + '/designer',
+    redirect: `${rootPath}/designer`,
   },
   {
-    path: rootPath + '/preview',
+    path: `${rootPath}/preview`,
     name: 'Preview',
     component: () => import('@/views/report/preview/index.vue'),
   },
   {
-    path: rootPath + '/designer',
+    path: `${rootPath}/designer`,
     name: 'Designer',
     component: () => import('@/views/report/designer/index.vue'),
   },
   {
-    path: rootPath + '/searchFormDesigner',
+    path: `${rootPath}/searchFormDesigner`,
     name: 'searchFormDesigner',
     component: () => import('@/views/report/designer/search-form/index.vue'),
   },

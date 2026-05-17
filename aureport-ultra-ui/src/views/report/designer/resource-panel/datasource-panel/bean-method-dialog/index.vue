@@ -1,59 +1,11 @@
-<template>
-  <div>
-    <!-- Bean方法配置对话框 -->
-    <UDialog
-      :title="$t('dialog.bean.beanDatasetConfig')"
-      width="600px"
-      :visible="visible"
-      @close="closeDialog"
-    >
-      <div class="dialog-content">
-        <u-form ref="form" :label-width="120">
-          <u-form-item :label="$t('dialog.bean.datasetName')">
-            <u-input v-model="name" style="width: 400px" />
-          </u-form-item>
-
-          <u-form-item :label="$t('dialog.bean.methodName')">
-            <div class="input-group">
-              <u-input v-model="method" :placeholder="$t('dialog.bean.methodParameters')" style="width: 300px" />
-              <span class="input-group-btn">
-                <u-button type="primary" @click.prevent="selectMethod">{{ $t('dialog.bean.selectMethod') }}</u-button>
-              </span>
-            </div>
-          </u-form-item>
-
-          <u-form-item :label="$t('dialog.bean.returnObject')">
-            <u-input v-model="clazz" :placeholder="$t('dialog.bean.className')" style="width: 400px" />
-          </u-form-item>
-        </u-form>
-      </div>
-
-      <template #footer><div style="text-align: right">
-        <u-button type="info" @click="handleClose" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-        <u-button type="primary" @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-      </div></template>
-    </UDialog>
-
-    <!-- 方法选择对话框 -->
-    <MethodSelectDialog
-      :visible="methodSelectDialogVisible"
-      :beanId="beanId"
-      @save="handleMethodSelect"
-      @close="methodSelectDialogVisible = false"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { showAlert } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
 import MethodSelectDialog from '@/views/report/designer/resource-panel/datasource-panel/method-select-dialog/index.vue'
-import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'BeanMethodDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   datasources: any[]
@@ -64,13 +16,15 @@ const props = withDefaults(defineProps<{
   datasources: () => [],
   beanId: '',
   visible: false,
-  dataset: null
+  dataset: null,
 })
 
 const emit = defineEmits<{
   (e: 'save', name: string, method: string, clazz: string, oldName: string): void
   (e: 'close'): void
 }>()
+
+const { t } = useI18n()
 
 const oldName = ref('')
 const name = ref('')
@@ -120,6 +74,7 @@ function selectMethod(event?: Event) {
   if (event) {
     event.preventDefault()
   }
+
   methodSelectDialogVisible.value = true
 }
 
@@ -134,13 +89,13 @@ function validateName(): boolean {
   }
 
   if (check) {
-    for (let datasource of props.datasources) {
-      let datasets = datasource.datasets
+    for (const datasource of props.datasources) {
+      const datasets = datasource.datasets
       if (!datasets || !Array.isArray(datasets)) {
         continue
       }
 
-      for (let dataset of datasets) {
+      for (const dataset of datasets) {
         if (dataset.name === name.value) {
           showAlert(`${name.value} ${t('dialog.bean.datasetExist')}`)
           return false
@@ -148,6 +103,7 @@ function validateName(): boolean {
       }
     }
   }
+
   return true
 }
 
@@ -161,6 +117,54 @@ function save() {
   closeDialog()
 }
 </script>
+
+<template>
+  <div>
+    <!-- Bean方法配置对话框 -->
+    <UDialog
+      :title="$t('dialog.bean.beanDatasetConfig')"
+      width="600px"
+      :visible="visible"
+      @close="closeDialog"
+    >
+      <div class="dialog-content">
+        <u-form ref="form" :label-width="120">
+          <u-form-item :label="$t('dialog.bean.datasetName')">
+            <u-input v-model="name" style="width: 400px" />
+          </u-form-item>
+
+          <u-form-item :label="$t('dialog.bean.methodName')">
+            <div class="input-group">
+              <u-input v-model="method" :placeholder="$t('dialog.bean.methodParameters')" style="width: 300px" />
+              <span class="input-group-btn">
+                <u-button type="primary" @click.prevent="selectMethod">{{ $t('dialog.bean.selectMethod') }}</u-button>
+              </span>
+            </div>
+          </u-form-item>
+
+          <u-form-item :label="$t('dialog.bean.returnObject')">
+            <u-input v-model="clazz" :placeholder="$t('dialog.bean.className')" style="width: 400px" />
+          </u-form-item>
+        </u-form>
+      </div>
+
+      <template #footer>
+        <div style="text-align: right">
+          <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+          <u-button type="primary" @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
+        </div>
+      </template>
+    </UDialog>
+
+    <!-- 方法选择对话框 -->
+    <MethodSelectDialog
+      :visible="methodSelectDialogVisible"
+      :beanId="beanId"
+      @save="handleMethodSelect"
+      @close="methodSelectDialogVisible = false"
+    />
+  </div>
+</template>
 
 <style scoped>
 .dialog-content {

@@ -1,56 +1,22 @@
-<template>
-  <div>
-    <u-checkbox-group>
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="rowHeightChecked" @change="onRowHeightChange">
-          {{ t('dialog.propCondition.rowHeight') }}
-        </u-checkbox>
-      </div>
-      <span v-show="rowHeightChecked" style="margin-left: 10px;">
-        <div class="u-inline">
-          <u-input-number v-model="localRowHeight" @change="onRowHeightValueChange">
-          </u-input-number>
-        </div>
-      </span>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 5px;">
-      <div class="u-inline">
-        <u-checkbox v-model="colWidthChecked" @change="onColWidthChange">
-          {{ t('dialog.propCondition.colWidth') }}
-        </u-checkbox>
-      </div>
-      <span v-show="colWidthChecked" style="margin-left: 10px;">
-        <div class="u-inline">
-          <u-input-number v-model="localColWidth" @change="onColWidthValueChange">
-          </u-input-number>
-        </div>
-      </span>
-    </div>
-    </u-checkbox-group>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'SizeConfig' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
   rowHeight?: number | null
   colWidth?: number | null
 }>(), {
   rowHeight: null,
-  colWidth: null
+  colWidth: null,
 })
 
 const emit = defineEmits<{
   (e: 'size-change', value: any): void
 }>()
+
+const { t } = useI18n()
 
 const rowHeightChecked = ref(false)
 const localRowHeight = ref(0)
@@ -95,3 +61,35 @@ function onColWidthValueChange() {
   }
 }
 </script>
+
+<template>
+  <div>
+    <u-checkbox-group>
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="rowHeightChecked" @change="onRowHeightChange">
+            {{ t('dialog.propCondition.rowHeight') }}
+          </u-checkbox>
+        </div>
+        <span v-show="rowHeightChecked" style="margin-left: 10px;">
+          <div class="u-inline">
+            <u-input-number v-model="localRowHeight" @change="onRowHeightValueChange" />
+          </div>
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 5px;">
+        <div class="u-inline">
+          <u-checkbox v-model="colWidthChecked" @change="onColWidthChange">
+            {{ t('dialog.propCondition.colWidth') }}
+          </u-checkbox>
+        </div>
+        <span v-show="colWidthChecked" style="margin-left: 10px;">
+          <div class="u-inline">
+            <u-input-number v-model="localColWidth" @change="onColWidthValueChange" />
+          </div>
+        </span>
+      </div>
+    </u-checkbox-group>
+  </div>
+</template>

@@ -1,6 +1,12 @@
-import UndoManager from 'undo-manager'
 import type { CellDef, ReportContext, RowHeader } from '@/types'
+import UndoManager from 'undo-manager'
+import MessageBox from '@/components/messagebox/instance'
+
 import { useReportStore } from '@/stores/report'
+import { getCell } from '@/utils/contextActions'
+import { getUrlQueryString } from '@/utils/url'
+// 报表转换为 XML
+import TableManager from '@/views/report/designer/edit-table/manager.js'
 
 let hotInstance: Handsontable | null = null
 
@@ -45,44 +51,42 @@ export function resetTableData(hot: Handsontable, context: ReportContext): void 
         const valueType = cellDef.value.type
         const value = cellDef.value
         if (valueType === 'dataset') {
-          let text = value.datasetName + '.' + value.aggregate + '('
+          let text = `${value.datasetName}.${value.aggregate}(`
           const prop = value.property || ''
-          if (prop.length > 13) {
-            text += prop.substring(0, 10) + '..)'
-          } else {
-            text += prop + ')'
-          }
+          text += prop.length > 13 ? `${prop.slice(0, 10)}..)` : `${prop})`
           rowData.push(text)
-        } else if (valueType === 'expression') {
+        }
+        else if (valueType === 'expression') {
           const v = value.value || ''
-          rowData.push(v.length > 16 ? v.substring(0, 13) + '...' : v)
-        } else {
+          rowData.push(v.length > 16 ? `${v.slice(0, 13)}...` : v)
+        }
+        else {
           rowData.push(value.value || '')
         }
-      } else {
+      }
+      else {
         rowData.push('')
       }
     }
+
     data.push(rowData)
   }
+
   hot.loadData(data)
 }
 
 export function getCellName(context: ReportContext, rowIndex: number | null, colIndex: number): string {
-  if (!context || !context.LETTERS) return ''
-  if (rowIndex != null) {
-    return context.LETTERS[colIndex] + (rowIndex + 1)
-  } else {
-    return context.LETTERS[colIndex]
-  }
+  if (!context || !context.LETTERS)
+    return ''
+  return rowIndex == null ? context.LETTERS[colIndex] : context.LETTERS[colIndex] + (rowIndex + 1)
 }
 
 export function encodeXml(text: string): string {
-  return text.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
+  return text.replaceAll(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
 }
 
 export function encode(text: string): string {
-  return text.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
+  return text.replaceAll(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
 }
 
 export function mmToPoint(mm: number): number {
@@ -105,9 +109,11 @@ export function formatDate(date: Date | number | string, fmt: string): string {
   if (typeof date === 'number') {
     date = new Date(date)
   }
+
   if (typeof date === 'string') {
     return date
   }
+
   const o: Record<string, number> = {
     'M+': date.getMonth() + 1,
     'd+': date.getDate(),
@@ -116,17 +122,19 @@ export function formatDate(date: Date | number | string, fmt: string): string {
     's+': date.getSeconds(),
   }
   if (/(y+)/.test(fmt)) {
-    fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length))
+    fmt = fmt.replace(RegExp.$1, (`${date.getFullYear()}`).slice(4 - RegExp.$1.length))
   }
+
   for (const k in o) {
-    if (new RegExp('(' + k + ')').test(fmt)) {
-      fmt = fmt.replace(RegExp.$1, RegExp.$1.length === 1 ? String(o[k]) : ('00' + o[k]).substr(('' + o[k]).length))
+    if (new RegExp(`(${k})`).test(fmt)) {
+      fmt = fmt.replace(RegExp.$1, RegExp.$1.length === 1 ? String(o[k]) : (`00${o[k]}`).slice((`${o[k]}`).length))
     }
   }
+
   return fmt
 }
 
-export function buildPageSizeList(): Record<string, { width: number; height: number }> {
+export function buildPageSizeList(): Record<string, { width: number, height: number }> {
   return {
     A0: { width: 841, height: 1189 },
     A1: { width: 594, height: 841 },
@@ -156,8 +164,8 @@ export function buildPageSizeList(): Record<string, { width: number; height: num
 export const undoManager = new UndoManager()
 
 export function getParameter(name: string): string | null {
-  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)')
-  const r = window.location.search.substr(1).match(reg)
+  const reg = new RegExp(`(^|&)${name}=([^&]*)(&|$)`)
+  const r = window.location.search.slice(1).match(reg)
   return r ? r[2] : null
 }
 
@@ -169,23 +177,22 @@ export function objToXml(obj: Record<string, unknown> | null | undefined, indent
   const specialArrays = ['children', 'fields', 'options']
   const indentStr = '    '.repeat(indent)
   let tagName = (obj.tag as string) || defaultTag || ''
-  if (!tagName) return ''
+  if (!tagName)
+    return ''
 
   if (tagName === 'u-option' || tagName === 'option') {
     tagName = 'option'
-  } else if (tagName.startsWith('u-')) {
-    tagName = tagName.substring(2)
+  }
+  else if (tagName.startsWith('u-')) {
+    tagName = tagName.slice(2)
   }
 
   let attributes = ''
   for (const key in obj) {
-    if (specialArrays.includes(key)) continue
+    if (specialArrays.includes(key))
+      continue
     const value = obj[key]
-    if (Array.isArray(value) || typeof value === 'object') {
-      attributes += ` ${key}="${JSON.stringify(value).replace(/"/g, '&quot;')}"`
-    } else {
-      attributes += ` ${key}="${value}"`
-    }
+    attributes += Array.isArray(value) || typeof value === 'object' ? ` ${key}="${JSON.stringify(value).replaceAll('"', '&quot;')}"` : ` ${key}="${value}"`
   }
 
   let childrenContent = ''
@@ -198,11 +205,7 @@ export function objToXml(obj: Record<string, unknown> | null | undefined, indent
     }
   }
 
-  if (childrenContent) {
-    return `${indentStr}<${tagName}${attributes}>\n${childrenContent}${indentStr}</${tagName}>\n`
-  } else {
-    return `${indentStr}<${tagName}${attributes}></${tagName}>\n`
-  }
+  return childrenContent ? `${indentStr}<${tagName}${attributes}>\n${childrenContent}${indentStr}</${tagName}>\n` : `${indentStr}<${tagName}${attributes}></${tagName}>\n`
 }
 
 // 设置脏数据状态，启用保存按钮
@@ -217,13 +220,7 @@ export function resetDirty(): void {
   store.setSaveBtnDisable(true)
 }
 
-// 报表转换为 XML
-import TableManager from '@/views/report/designer/edit-table/manager.js'
-import { getUrlQueryString } from '@/utils/url'
-import { getCell } from '@/utils/contextActions'
-import MessageBox from '@/components/messagebox/instance'
-
-function getSpan(hot: Handsontable, row: number, col: number): { rowspan: number; colspan: number } {
+function getSpan(hot: Handsontable, row: number, col: number): { rowspan: number, colspan: number } {
   const mergeCells = (hot.getSettings() as Record<string, unknown>).mergeCells as Array<{
     row: number
     col: number
@@ -235,6 +232,7 @@ function getSpan(hot: Handsontable, row: number, col: number): { rowspan: number
       return { rowspan: item.rowspan, colspan: item.colspan }
     }
   }
+
   return { rowspan: 0, colspan: 0 }
 }
 
@@ -244,31 +242,22 @@ function buildConditions(conditions: import('@/types').Condition[] | undefined):
     const size = conditions.length
     for (const condition of conditions) {
       if (!condition.type || condition.type === 'property') {
-        if (condition.property) {
-          cellXml += `<condition property="${condition.property}" op="${encode(condition.operation)}" id="${condition.id}"`
-        } else {
-          cellXml += `<condition op="${encode(condition.operation)}" id="${condition.id}"`
-        }
+        cellXml += condition.property ? `<condition property="${condition.property}" op="${encode(condition.operation)}" id="${condition.id}"` : `<condition op="${encode(condition.operation)}" id="${condition.id}"`
         cellXml += ` type="${condition.type || 'property'}"`
-        if (condition.join && size > 1) {
-          cellXml += ` join="${condition.join}">`
-        } else {
-          cellXml += '>'
-        }
+        cellXml += condition.join && size > 1 ? ` join="${condition.join}">` : '>'
         cellXml += `<value><![CDATA[${condition.right}]]></value>`
-      } else {
+      }
+      else {
         cellXml += `<condition type="${condition.type}" op="${encode(condition.operation)}" id="${condition.id}"`
-        if (condition.join && size > 1) {
-          cellXml += ` join="${condition.join}">`
-        } else {
-          cellXml += '>'
-        }
+        cellXml += condition.join && size > 1 ? ` join="${condition.join}">` : '>'
         cellXml += `<left><![CDATA[${condition.left}]]></left>`
         cellXml += `<right><![CDATA[${condition.right}]]></right>`
       }
+
       cellXml += '</condition>'
     }
   }
+
   return cellXml
 }
 
@@ -277,79 +266,98 @@ function buildCellStyle(cellStyle: import('@/types').CellStyle, condition?: bool
   if (condition) {
     cellXml += ' for-condition="true"'
   }
+
   if (cellStyle.fontSize) {
     cellXml += ` font-size="${cellStyle.fontSize}"`
   }
+
   if (cellStyle.fontSizeScope) {
     cellXml += ` font-size-scope="${cellStyle.fontSizeScope}"`
   }
+
   if (cellStyle.forecolor && cellStyle.forecolor !== '') {
     cellXml += ` forecolor="${cellStyle.forecolor}"`
   }
+
   if (cellStyle.forecolorScope) {
     cellXml += ` forecolor-scope="${cellStyle.forecolorScope}"`
   }
+
   if (cellStyle.fontFamily) {
-    if (cellStyle.fontFamily === '0') {
-      cellXml += ' font-family=""'
-    } else {
-      cellXml += ` font-family="${cellStyle.fontFamily}"`
-    }
+    cellXml += cellStyle.fontFamily === '0' ? ' font-family=""' : ` font-family="${cellStyle.fontFamily}"`
   }
+
   if (cellStyle.fontFamilyScope) {
     cellXml += ` font-family-scope="${cellStyle.fontFamilyScope}"`
   }
+
   if (cellStyle.bgcolor && cellStyle.bgcolor !== '') {
     cellXml += ` bgcolor="${cellStyle.bgcolor}"`
   }
+
   if (cellStyle.bgcolorScope) {
     cellXml += ` bgcolor-scope="${cellStyle.bgcolorScope}"`
   }
+
   if (cellStyle.format && cellStyle.format !== '') {
     cellXml += ` format="${cellStyle.format}"`
   }
+
   if (cellStyle.bold !== undefined && cellStyle.bold !== null) {
     cellXml += ` bold="${cellStyle.bold}"`
   }
+
   if (cellStyle.boldScope) {
     cellXml += ` bold-scope="${cellStyle.boldScope}"`
   }
+
   if (cellStyle.italic !== undefined && cellStyle.italic !== null) {
     cellXml += ` italic="${cellStyle.italic}"`
   }
+
   if (cellStyle.italicScope) {
     cellXml += ` italic-scope="${cellStyle.italicScope}"`
   }
+
   if (cellStyle.underline !== undefined && cellStyle.underline !== null) {
     cellXml += ` underline="${cellStyle.underline}"`
   }
+
   if (cellStyle.underlineScope) {
     cellXml += ` underline-scope="${cellStyle.underlineScope}"`
   }
+
   if (cellStyle.wrapCompute !== undefined && cellStyle.wrapCompute !== null) {
     cellXml += ` wrap-compute="${cellStyle.wrapCompute}"`
   }
+
   if (cellStyle.align && cellStyle.align !== '') {
     cellXml += ` align="${cellStyle.align}"`
   }
+
   if (cellStyle.alignScope) {
     cellXml += ` align-scope="${cellStyle.alignScope}"`
   }
+
   if (cellStyle.valign && cellStyle.valign !== '') {
     cellXml += ` valign="${cellStyle.valign}"`
   }
+
   if (cellStyle.valignScope) {
     cellXml += ` valign-scope="${cellStyle.valignScope}"`
   }
+
   if (cellStyle.lineHeight) {
     cellXml += ` line-height="${cellStyle.lineHeight}"`
   }
+
   cellXml += '>'
   const addBorder = (pos: string, border?: import('@/types').BorderDef) => {
     if (border && typeof border !== 'string' && border.style !== 'none') {
       cellXml += `<${pos}-border width="${border.width}" style="${border.style}" color="${border.color}"/>`
     }
   }
+
   addBorder('left', cellStyle.leftBorder)
   addBorder('right', cellStyle.rightBorder)
   addBorder('top', cellStyle.topBorder)
@@ -360,7 +368,8 @@ function buildCellStyle(cellStyle: import('@/types').CellStyle, condition?: bool
 
 export function tableToXml(context: ReportContext): string {
   const hot = TableManager.get()
-  if (!hot) return ''
+  if (!hot)
+    return ''
 
   const countRows = hot.countRows()
   const countCols = hot.countCols()
@@ -379,11 +388,8 @@ export function tableToXml(context: ReportContext): string {
         break
       }
     }
-    if (band) {
-      rowsXml += `<row row-number="${i + 1}" height="${height}" band="${band}"/>`
-    } else {
-      rowsXml += `<row row-number="${i + 1}" height="${height}"/>`
-    }
+
+    rowsXml += band ? `<row row-number="${i + 1}" height="${height}" band="${band}"/>` : `<row row-number="${i + 1}" height="${height}"/>`
   }
 
   for (let i = 0; i < countCols; i++) {
@@ -396,21 +402,25 @@ export function tableToXml(context: ReportContext): string {
   const spanData: string[] = []
   for (let i = 0; i < countRows; i++) {
     for (let j = 0; j < countCols; j++) {
-      if (spanData.indexOf(i + ',' + j) > -1) {
+      if (spanData.includes(`${i},${j}`)) {
         continue
       }
+
       const cellDef = getCell(i, j)
       if (!cellDef) {
         continue
       }
+
       const cellName = getCellName(context, i, j)
       cellXml += `<cell expand="${cellDef.expand}" name="${cellName}" row="${(i + 1)}" col="${(j + 1)}"`
       if (cellDef.leftParentCellName && cellDef.leftParentCellName !== '') {
         cellXml += ` left-cell="${cellDef.leftParentCellName}"`
       }
+
       if (cellDef.topParentCellName && cellDef.topParentCellName !== '') {
         cellXml += ` top-cell="${cellDef.topParentCellName}"`
       }
+
       if (cellDef.fillBlankRows) {
         cellXml += ` fill-blank-rows="${cellDef.fillBlankRows}"`
         if (cellDef.multiple) {
@@ -427,12 +437,14 @@ export function tableToXml(context: ReportContext): string {
       const endCol = j + colSpan - 1
       for (let r = startRow; r <= endRow; r++) {
         for (let c = startCol; c <= endCol; c++) {
-          spanData.push(r + ',' + c)
+          spanData.push(`${r},${c}`)
         }
       }
+
       if (rowSpan > 1) {
         cellXml += ` row-span="${rowSpan}"`
       }
+
       if (colSpan > 1) {
         cellXml += ` col-span="${colSpan}"`
       }
@@ -440,9 +452,11 @@ export function tableToXml(context: ReportContext): string {
       if (cellDef.linkUrl && cellDef.linkUrl !== '') {
         cellXml += ` link-url="${cellDef.linkUrl}"`
       }
+
       if (cellDef.linkTargetWindow && cellDef.linkTargetWindow !== '') {
         cellXml += ` link-target-window="${cellDef.linkTargetWindow}"`
       }
+
       if (cellDef.tooltip && cellDef.tooltip !== '') {
         cellXml += ` tooltip="${cellDef.tooltip}"`
       }
@@ -457,199 +471,266 @@ export function tableToXml(context: ReportContext): string {
           cellXml += `</link-parameter>`
         }
       }
+
       const value = cellDef.value
-      if (value.type === 'dataset') {
-        let msg: string | null = null
-        if (!value.datasetName) {
-          msg = `${cellName}单元格数据集属性不能为空！`
-        }
-        if (!msg && !value.property) {
-          msg = `${cellName}单元格属性不能为空！`
-        }
-        if (!msg && !value.aggregate) {
-          msg = `${cellName}单元格聚合方式属性不能为空！`
-        }
-        if (msg) {
-          MessageBox.alert(msg)
-          throw msg
-        }
-        const mappingType = value.mappingType || 'simple'
-        let dsAttrs = `dataset-name="${encode(value.datasetName)}" aggregate="${value.aggregate}" property="${value.property}" order="${value.order || ''}" mapping-type="${mappingType}"`
-        if (value.groupHead) dsAttrs += ` group-head="true"`
-        if (value.groupFoot) dsAttrs += ` group-foot="true"`
-        cellXml += `<dataset-value ${dsAttrs}>`
-        if (mappingType === 'dataset') {
-          cellXml += ` mapping-dataset="${value.mappingDataset}" mapping-key-property="${value.mappingKeyProperty}" mapping-value-property="${value.mappingValueProperty}"`
-        }
-        cellXml += '>'
-        cellXml += buildConditions(value.conditions)
-        if (value.aggregate === 'customgroup') {
-          const groupItems = value.groupItems
-          for (const groupItem of groupItems) {
-            cellXml += `<group-item name="${groupItem.name}">`
-            for (const condition of groupItem.conditions) {
-              cellXml += `<condition property="${condition.left}" op="${encode(condition.operation || condition.op)}" id="${condition.id}"`
-              if (condition.join) {
-                cellXml += ` join="${condition.join}">`
-              } else {
-                cellXml += '>'
+      switch (value.type) {
+        case 'dataset': {
+          let msg: string | null = null
+          if (!value.datasetName) {
+            msg = `${cellName}单元格数据集属性不能为空！`
+          }
+
+          if (!msg && !value.property) {
+            msg = `${cellName}单元格属性不能为空！`
+          }
+
+          if (!msg && !value.aggregate) {
+            msg = `${cellName}单元格聚合方式属性不能为空！`
+          }
+
+          if (msg) {
+            MessageBox.alert(msg)
+            throw msg
+          }
+
+          const mappingType = value.mappingType || 'simple'
+          let dsAttrs = `dataset-name="${encode(value.datasetName)}" aggregate="${value.aggregate}" property="${value.property}" order="${value.order || ''}" mapping-type="${mappingType}"`
+          if (value.groupHead)
+            dsAttrs += ` group-head="true"`
+          if (value.groupFoot)
+            dsAttrs += ` group-foot="true"`
+          cellXml += `<dataset-value ${dsAttrs}>`
+          if (mappingType === 'dataset') {
+            cellXml += ` mapping-dataset="${value.mappingDataset}" mapping-key-property="${value.mappingKeyProperty}" mapping-value-property="${value.mappingValueProperty}"`
+          }
+
+          cellXml += '>'
+          cellXml += buildConditions(value.conditions)
+          if (value.aggregate === 'customgroup') {
+            const groupItems = value.groupItems
+            for (const groupItem of groupItems) {
+              cellXml += `<group-item name="${groupItem.name}">`
+              for (const condition of groupItem.conditions) {
+                cellXml += `<condition property="${condition.left}" op="${encode(condition.operation || condition.op)}" id="${condition.id}"`
+                cellXml += condition.join ? ` join="${condition.join}">` : '>'
+
+                cellXml += `<value><![CDATA[${condition.right}]]></value>`
+                cellXml += `</condition>`
               }
-              cellXml += `<value><![CDATA[${condition.right}]]></value>`
-              cellXml += `</condition>`
-            }
-            cellXml += '</group-item>'
-          }
-        }
-        if (mappingType === 'simple') {
-          const mappingItems = value.mappingItems
-          if (mappingItems && mappingItems.length > 0) {
-            for (const mappingItem of mappingItems) {
-              cellXml += `<mapping-item value="${encode(mappingItem.value)}" label="${encode(mappingItem.label)}"/>`
+
+              cellXml += '</group-item>'
             }
           }
-        }
-        cellXml += `</dataset-value>`
-      } else if (value.type === 'expression') {
-        if (!value.value || value.value === '') {
-          const msg = `${cellName}单元格表达式不能为空`
-          MessageBox.alert(msg)
-          throw msg
-        }
-        cellXml += `<expression-value>`
-        cellXml += `<![CDATA[${value.value}]]>`
-        cellXml += `</expression-value>`
-      } else if (value.type === 'simple') {
-        cellXml += `<simple-value>`
-        cellXml += `<![CDATA[${value.value || ''}]]>`
-        cellXml += `</simple-value>`
-      } else if (value.type === 'image') {
-        cellXml += `<image-value source="${value.source}"`
-        if (value.width) {
-          cellXml += ` width="${value.width}"`
-        }
-        if (value.height) {
-          cellXml += ` height="${value.height}"`
-        }
-        cellXml += `>`
-        cellXml += `<text>`
-        cellXml += `<![CDATA[${value.value}]]>`
-        cellXml += `</text>`
-        cellXml += `</image-value>`
-      } else if (value.type === 'zxing') {
-        cellXml += `<zxing-value source="${value.source}" category="${value.category}" width="${value.width}" height="${value.height}"`
-        if (value.format) {
-          cellXml += ` format="${value.format}"`
-        }
-        cellXml += `>`
-        cellXml += `<text>`
-        cellXml += `<![CDATA[${value.value}]]>`
-        cellXml += `</text>`
-        cellXml += `</zxing-value>`
-      } else if (value.type === 'slash') {
-        cellXml += `<slash-value>`
-        const slashes = value.slashes
-        for (const slash of slashes) {
-          cellXml += `<slash text="${slash.text}" x="${slash.x}" y="${slash.y}" degree="${slash.degree}"/>`
-        }
-        cellXml += `<base64-data>`
-        cellXml += `<![CDATA[${value.base64Data}]]>`
-        cellXml += `</base64-data>`
-        cellXml += `</slash-value>`
-      } else if (value.type === 'chart') {
-        cellXml += `<chart-value>`
-        const chart = value.chart
-        const dataset = chart.dataset
-        cellXml += `<dataset dataset-name="${dataset.datasetName}" type="${dataset.type}"`
-        if (dataset.categoryProperty) {
-          cellXml += ` category-property="${dataset.categoryProperty}"`
-        }
-        if (dataset.seriesProperty) {
-          cellXml += ` series-property="${dataset.seriesProperty}"`
-        }
-        if (dataset.seriesType) {
-          cellXml += ` series-type="${dataset.seriesType}"`
-        }
-        if (dataset.seriesText) {
-          cellXml += ` series-text="${dataset.seriesText}"`
-        }
-        if (dataset.valueProperty) {
-          cellXml += ` value-property="${dataset.valueProperty}"`
-        }
-        if ((dataset as any).rProperty) {
-          cellXml += ` r-property="${(dataset as any).rProperty}"`
-        }
-        if ((dataset as any).xProperty) {
-          cellXml += ` x-property="${(dataset as any).xProperty}"`
-        }
-        if ((dataset as any).yProperty) {
-          cellXml += ` y-property="${(dataset as any).yProperty}"`
-        }
-        if ((dataset as any).collectType) {
-          cellXml += ` collect-type="${(dataset as any).collectType}"`
-        }
-        cellXml += `/>`
-        const xaxes = chart.xaxes
-        if (xaxes) {
-          cellXml += `<xaxes`
-          if (xaxes.rotation) {
-            cellXml += ` rotation="${xaxes.rotation}"`
+
+          if (mappingType === 'simple') {
+            const mappingItems = value.mappingItems
+            if (mappingItems && mappingItems.length > 0) {
+              for (const mappingItem of mappingItems) {
+                cellXml += `<mapping-item value="${encode(mappingItem.value)}" label="${encode(mappingItem.label)}"/>`
+              }
+            }
           }
+
+          cellXml += `</dataset-value>`
+
+          break
+        }
+
+        case 'expression': {
+          if (!value.value || value.value === '') {
+            const msg = `${cellName}单元格表达式不能为空`
+            MessageBox.alert(msg)
+            throw msg
+          }
+
+          cellXml += `<expression-value>`
+          cellXml += `<![CDATA[${value.value}]]>`
+          cellXml += `</expression-value>`
+
+          break
+        }
+
+        case 'simple': {
+          cellXml += `<simple-value>`
+          cellXml += `<![CDATA[${value.value || ''}]]>`
+          cellXml += `</simple-value>`
+
+          break
+        }
+
+        case 'image': {
+          cellXml += `<image-value source="${value.source}"`
+          if (value.width) {
+            cellXml += ` width="${value.width}"`
+          }
+
+          if (value.height) {
+            cellXml += ` height="${value.height}"`
+          }
+
           cellXml += `>`
-          const scaleLabel = xaxes.scaleLabel
-          if (scaleLabel) {
-            cellXml += `<scale-label display="${scaleLabel.display}"`
-            if (scaleLabel.labelString) {
-              cellXml += ` label-string="${scaleLabel.labelString}"`
-            }
-            cellXml += `/>`
-          }
-          cellXml += `</xaxes>`
+          cellXml += `<text>`
+          cellXml += `<![CDATA[${value.value}]]>`
+          cellXml += `</text>`
+          cellXml += `</image-value>`
+
+          break
         }
-        const yaxes = chart.yaxes
-        if (yaxes) {
-          cellXml += `<yaxes`
-          if (yaxes.rotation) {
-            cellXml += ` rotation="${yaxes.rotation}"`
+
+        case 'zxing': {
+          cellXml += `<zxing-value source="${value.source}" category="${value.category}" width="${value.width}" height="${value.height}"`
+          if (value.format) {
+            cellXml += ` format="${value.format}"`
           }
+
           cellXml += `>`
-          const scaleLabel = yaxes.scaleLabel
-          if (scaleLabel) {
-            cellXml += `<scale-label display="${scaleLabel.display}"`
-            if (scaleLabel.labelString) {
-              cellXml += ` label-string="${scaleLabel.labelString}"`
-            }
-            cellXml += `/>`
+          cellXml += `<text>`
+          cellXml += `<![CDATA[${value.value}]]>`
+          cellXml += `</text>`
+          cellXml += `</zxing-value>`
+
+          break
+        }
+
+        case 'slash': {
+          cellXml += `<slash-value>`
+          const slashes = value.slashes
+          for (const slash of slashes) {
+            cellXml += `<slash text="${slash.text}" x="${slash.x}" y="${slash.y}" degree="${slash.degree}"/>`
           }
-          cellXml += `</yaxes>`
+
+          cellXml += `<base64-data>`
+          cellXml += `<![CDATA[${value.base64Data}]]>`
+          cellXml += `</base64-data>`
+          cellXml += `</slash-value>`
+
+          break
         }
-        const options = chart.options
-        if (options) {
-          for (const option of options) {
-            cellXml += `<option type="${option.type}"`
-            if (option.position) {
-              cellXml += ` position="${option.position}"`
-            }
-            if (option.display !== undefined && option.display !== null) {
-              cellXml += ` display="${option.display}"`
-            }
-            if (option.duration) {
-              cellXml += ` duration="${option.duration}"`
-            }
-            if (option.easing) {
-              cellXml += ` easing="${option.easing}"`
-            }
-            if (option.text) {
-              cellXml += ` text="${option.text}"`
-            }
-            cellXml += `/>`
+
+        case 'chart': {
+          cellXml += `<chart-value>`
+          const chart = value.chart
+          const dataset = chart.dataset
+          cellXml += `<dataset dataset-name="${dataset.datasetName}" type="${dataset.type}"`
+          if (dataset.categoryProperty) {
+            cellXml += ` category-property="${dataset.categoryProperty}"`
           }
+
+          if (dataset.seriesProperty) {
+            cellXml += ` series-property="${dataset.seriesProperty}"`
+          }
+
+          if (dataset.seriesType) {
+            cellXml += ` series-type="${dataset.seriesType}"`
+          }
+
+          if (dataset.seriesText) {
+            cellXml += ` series-text="${dataset.seriesText}"`
+          }
+
+          if (dataset.valueProperty) {
+            cellXml += ` value-property="${dataset.valueProperty}"`
+          }
+
+          if ((dataset as any).rProperty) {
+            cellXml += ` r-property="${(dataset as any).rProperty}"`
+          }
+
+          if ((dataset as any).xProperty) {
+            cellXml += ` x-property="${(dataset as any).xProperty}"`
+          }
+
+          if ((dataset as any).yProperty) {
+            cellXml += ` y-property="${(dataset as any).yProperty}"`
+          }
+
+          if ((dataset as any).collectType) {
+            cellXml += ` collect-type="${(dataset as any).collectType}"`
+          }
+
+          cellXml += `/>`
+          const xaxes = chart.xaxes
+          if (xaxes) {
+            cellXml += `<xaxes`
+            if (xaxes.rotation) {
+              cellXml += ` rotation="${xaxes.rotation}"`
+            }
+
+            cellXml += `>`
+            const scaleLabel = xaxes.scaleLabel
+            if (scaleLabel) {
+              cellXml += `<scale-label display="${scaleLabel.display}"`
+              if (scaleLabel.labelString) {
+                cellXml += ` label-string="${scaleLabel.labelString}"`
+              }
+
+              cellXml += `/>`
+            }
+
+            cellXml += `</xaxes>`
+          }
+
+          const yaxes = chart.yaxes
+          if (yaxes) {
+            cellXml += `<yaxes`
+            if (yaxes.rotation) {
+              cellXml += ` rotation="${yaxes.rotation}"`
+            }
+
+            cellXml += `>`
+            const scaleLabel = yaxes.scaleLabel
+            if (scaleLabel) {
+              cellXml += `<scale-label display="${scaleLabel.display}"`
+              if (scaleLabel.labelString) {
+                cellXml += ` label-string="${scaleLabel.labelString}"`
+              }
+
+              cellXml += `/>`
+            }
+
+            cellXml += `</yaxes>`
+          }
+
+          const options = chart.options
+          if (options) {
+            for (const option of options) {
+              cellXml += `<option type="${option.type}"`
+              if (option.position) {
+                cellXml += ` position="${option.position}"`
+              }
+
+              if (option.display !== undefined && option.display !== null) {
+                cellXml += ` display="${option.display}"`
+              }
+
+              if (option.duration) {
+                cellXml += ` duration="${option.duration}"`
+              }
+
+              if (option.easing) {
+                cellXml += ` easing="${option.easing}"`
+              }
+
+              if (option.text) {
+                cellXml += ` text="${option.text}"`
+              }
+
+              cellXml += `/>`
+            }
+          }
+
+          const plugins = chart.plugins || []
+          for (const plugin of plugins) {
+            cellXml += `<plugin name="${plugin.name}" display="${plugin.display}"/>`
+          }
+
+          cellXml += `</chart-value>`
+
+          break
         }
-        const plugins = chart.plugins || []
-        for (const plugin of plugins) {
-          cellXml += `<plugin name="${plugin.name}" display="${plugin.display}"/>`
-        }
-        cellXml += `</chart-value>`
+      // No default
       }
+
       const propertyConditions = (cellDef as any).conditionPropertyItems || []
       for (const pc of propertyConditions) {
         cellXml += `<condition-property-item name="${pc.name}"`
@@ -657,26 +738,32 @@ export function tableToXml(context: ReportContext): string {
         if (rowHeight !== null && rowHeight !== undefined && rowHeight !== -1) {
           cellXml += ` row-height="${rowHeight}"`
         }
+
         const colWidth = pc.colWidth
         if (colWidth !== null && colWidth !== undefined && colWidth !== -1) {
           cellXml += ` col-width="${colWidth}"`
         }
+
         if (pc.newValue && pc.newValue !== '') {
           cellXml += ` new-value="${pc.newValue}"`
         }
+
         if (pc.linkUrl && pc.linkUrl !== '') {
           cellXml += ` link-url="${pc.linkUrl}"`
           let targetWindow = pc.linkTargetWindow
           if (!targetWindow || targetWindow === '') {
             targetWindow = '_self'
           }
+
           cellXml += ` link-target-window="${pc.linkTargetWindow}"`
         }
+
         cellXml += `>`
         const paging = pc.paging
         if (paging) {
           cellXml += `<paging position="${paging.position}" line="${paging.line}"/>`
         }
+
         if (pc.linkParameters && pc.linkParameters.length > 0) {
           for (const param of pc.linkParameters) {
             cellXml += `<link-parameter name="${param.name}">`
@@ -684,16 +771,20 @@ export function tableToXml(context: ReportContext): string {
             cellXml += `</link-parameter>`
           }
         }
+
         const style = pc.cellStyle
         if (style) {
           cellXml += buildCellStyle(style, true)
         }
+
         cellXml += buildConditions(pc.conditions)
         cellXml += `</condition-property-item>`
       }
+
       cellXml += '</cell>'
     }
   }
+
   xml += cellXml
   xml += rowsXml
   xml += columnXml
@@ -704,34 +795,44 @@ export function tableToXml(context: ReportContext): string {
     if (header.fontFamily) {
       xml += ` font-family="${header.fontFamily}"`
     }
+
     if (header.fontSize) {
       xml += ` font-size="${header.fontSize}"`
     }
+
     if (header.forecolor) {
       xml += ` forecolor="${header.forecolor}"`
     }
+
     if (header.bold) {
       xml += ` bold="${header.bold}"`
     }
+
     if (header.italic) {
       xml += ` italic="${header.italic}"`
     }
+
     if (header.underline) {
       xml += ` underline="${header.underline}"`
     }
+
     if (header.margin) {
       xml += ` margin="${header.margin}"`
     }
+
     xml += '>'
     if (header.left) {
       xml += `<left><![CDATA[${header.left}]]></left>`
     }
+
     if (header.center) {
       xml += `<center><![CDATA[${header.center}]]></center>`
     }
+
     if (header.right) {
       xml += `<right><![CDATA[${header.right}]]></right>`
     }
+
     xml += '</header>'
   }
 
@@ -741,34 +842,44 @@ export function tableToXml(context: ReportContext): string {
     if (footer.fontFamily) {
       xml += ` font-family="${footer.fontFamily}"`
     }
+
     if (footer.fontSize) {
       xml += ` font-size="${footer.fontSize}"`
     }
+
     if (footer.forecolor) {
       xml += ` forecolor="${footer.forecolor}"`
     }
+
     if (footer.bold) {
       xml += ` bold="${footer.bold}"`
     }
+
     if (footer.italic) {
       xml += ` italic="${footer.italic}"`
     }
+
     if (footer.underline) {
       xml += ` underline="${footer.underline}"`
     }
+
     if (footer.margin) {
       xml += ` margin="${footer.margin}"`
     }
+
     xml += '>'
     if (footer.left) {
       xml += `<left><![CDATA[${footer.left}]]></left>`
     }
+
     if (footer.center) {
       xml += `<center><![CDATA[${footer.center}]]></center>`
     }
+
     if (footer.right) {
       xml += `<right><![CDATA[${footer.right}]]></right>`
     }
+
     xml += '</footer>'
   }
 
@@ -777,49 +888,69 @@ export function tableToXml(context: ReportContext): string {
   for (const datasource of datasources) {
     let ds = `<datasource name="${encode(datasource.name)}" type="${datasource.type}"`
     const type = datasource.type
-    if (type === 'jdbc') {
-      ds += ` username="${encode(datasource.username)}"`
-      ds += ` password="${encode(datasource.password)}"`
-      ds += ` url="${encode(datasource.url)}"`
-      ds += ` driver="${datasource.driver}"`
-      ds += '>'
-      for (const dataset of datasource.datasets) {
-        ds += `<dataset name="${encode(dataset.name)}" type="sql">`
-        ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
-        for (const field of dataset.fields) {
-          ds += `<field name="${field.name}"/>`
+    switch (type) {
+      case 'jdbc': {
+        ds += ` username="${encode(datasource.username)}"`
+        ds += ` password="${encode(datasource.password)}"`
+        ds += ` url="${encode(datasource.url)}"`
+        ds += ` driver="${datasource.driver}"`
+        ds += '>'
+        for (const dataset of datasource.datasets) {
+          ds += `<dataset name="${encode(dataset.name)}" type="sql">`
+          ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
+          for (const field of dataset.fields) {
+            ds += `<field name="${field.name}"/>`
+          }
+
+          for (const parameter of dataset.parameters) {
+            ds += `<parameter name="${encode(parameter.name)}" type="${parameter.type}" default-value="${encode(parameter.defaultValue)}"/>`
+          }
+
+          ds += `</dataset>`
         }
-        for (const parameter of dataset.parameters) {
-          ds += `<parameter name="${encode(parameter.name)}" type="${parameter.type}" default-value="${encode(parameter.defaultValue)}"/>`
-        }
-        ds += `</dataset>`
+
+        break
       }
-    } else if (type === 'spring') {
-      ds += ` bean="${datasource.beanId}">`
-      for (const dataset of datasource.datasets) {
-        ds += `<dataset name="${encode(dataset.name)}" type="bean" method="${dataset.method}" clazz="${dataset.clazz}">`
-        for (const field of dataset.fields) {
-          ds += `<field name="${field.name}"/>`
+
+      case 'spring': {
+        ds += ` bean="${datasource.beanId}">`
+        for (const dataset of datasource.datasets) {
+          ds += `<dataset name="${encode(dataset.name)}" type="bean" method="${dataset.method}" clazz="${dataset.clazz}">`
+          for (const field of dataset.fields) {
+            ds += `<field name="${field.name}"/>`
+          }
+
+          ds += `</dataset>`
         }
-        ds += `</dataset>`
+
+        break
       }
-    } else if (type === 'buildin') {
-      ds += '>'
-      for (const dataset of datasource.datasets) {
-        ds += `<dataset name="${encode(dataset.name)}" type="sql">`
-        ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
-        for (const field of dataset.fields) {
-          ds += `<field name="${field.name}"/>`
+
+      case 'buildin': {
+        ds += '>'
+        for (const dataset of datasource.datasets) {
+          ds += `<dataset name="${encode(dataset.name)}" type="sql">`
+          ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
+          for (const field of dataset.fields) {
+            ds += `<field name="${field.name}"/>`
+          }
+
+          for (const parameter of dataset.parameters) {
+            ds += `<parameter name="${parameter.name}" type="${parameter.type}" default-value="${parameter.defaultValue}"/>`
+          }
+
+          ds += `</dataset>`
         }
-        for (const parameter of dataset.parameters) {
-          ds += `<parameter name="${parameter.name}" type="${parameter.type}" default-value="${parameter.defaultValue}"/>`
-        }
-        ds += `</dataset>`
+
+        break
       }
+    // No default
     }
+
     ds += '</datasource>'
     datasourceXml += ds
   }
+
   xml += datasourceXml
 
   const paper = context.reportDef.paper
@@ -827,17 +958,20 @@ export function tableToXml(context: ReportContext): string {
   if (paper.htmlIntervalRefreshValue !== null && paper.htmlIntervalRefreshValue !== undefined) {
     htmlIntervalRefreshValue = paper.htmlIntervalRefreshValue
   }
+
   xml += `<paper type="${paper.paperType}" left-margin="${paper.leftMargin}" right-margin="${paper.rightMargin}"
     top-margin="${paper.topMargin}" bottom-margin="${paper.bottomMargin}" paging-mode="${paper.pagingMode}" fixrows="${paper.fixRows}"
     width="${paper.width}" height="${paper.height}" orientation="${paper.orientation}" html-report-align="${paper.htmlReportAlign}" bg-image="${paper.bgImage || ''}" html-interval-refresh-value="${htmlIntervalRefreshValue}" column-enabled="${paper.columnEnabled}"`
   if (paper.columnEnabled) {
     xml += ` column-count="${paper.columnCount}" column-margin="${paper.columnMargin}"`
   }
+
   xml += `></paper>`
   if (context.reportDef.searchForm) {
     const searchFormXml = objToXml(context.reportDef.searchForm as Record<string, unknown>)
     xml += searchFormXml
   }
+
   xml += '</ureport>'
   xml = encodeURIComponent(xml)
   return xml

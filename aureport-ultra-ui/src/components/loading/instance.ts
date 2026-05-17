@@ -1,4 +1,5 @@
-import { createApp, reactive, type App } from 'vue'
+import type { App } from 'vue'
+import { createApp, reactive } from 'vue'
 import LoadingComponent from './index.vue'
 
 const LoadingDirective = {
@@ -26,13 +27,14 @@ const LoadingDirective = {
 
     if (binding.value) {
       ;(el as any)._loadingParentDom.classList.add('u-loading-parent')
-      ;(el as any)._loadingParentDom.appendChild(vm.$el as HTMLElement)
+      ;(el as any)._loadingParentDom.append(vm.$el as HTMLElement)
     }
   },
 
   updated(el: HTMLElement, binding: any) {
     const props = (el as any)._loadingProps
-    if (!props) return
+    if (!props)
+      return
 
     props.text = el.getAttribute('os-loading-text') || ''
     props.bgColor = el.getAttribute('os-loading-background') || ''
@@ -42,8 +44,9 @@ const LoadingDirective = {
 
     if (binding.value) {
       parentDom.classList.add('u-loading-parent')
-      parentDom.appendChild(vm.$el)
-    } else {
+      parentDom.append(vm.$el)
+    }
+    else {
       parentDom.classList.remove('u-loading-parent')
       vm.$el.remove()
     }
@@ -55,13 +58,14 @@ const LoadingDirective = {
     if (vm && vm.$el) {
       ;(vm.$el as HTMLElement).remove()
     }
+
     if (app) {
       app.unmount()
     }
   },
 }
 
-const showLoading = (options?: Record<string, any>) => {
+function showLoading(options?: Record<string, any>) {
   const div = document.createElement('div')
   const app = createApp(LoadingComponent, {
     text: options?.text || '',
@@ -71,7 +75,7 @@ const showLoading = (options?: Record<string, any>) => {
   const vm = app.mount(div)
 
   document.body.classList.add('u-loading-parent')
-  document.body.appendChild(vm.$el as HTMLElement)
+  document.body.append(vm.$el as HTMLElement)
 
   return {
     close: () => {

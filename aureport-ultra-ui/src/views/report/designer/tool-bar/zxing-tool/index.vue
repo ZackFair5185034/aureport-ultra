@@ -1,24 +1,13 @@
-<template>
-  <div class="u-inline">
-    <ButtonGroup
-      iconClass="iconfont icon-qrcode"
-      :title="$t('tools.zxing.title')"
-      :customClass="'zxing-tool-dropdown'"
-      :menuItems="menuItems"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-// @ts-nocheck
-import { ref, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
 import Handsontable from 'handsontable'
+// @ts-nocheck
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
+import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'ZxingTool' })
@@ -29,13 +18,13 @@ const menuItems = computed(() => [
   {
     text: t('tools.zxing.qrcode'),
     icon: 'iconfont icon-qrcode',
-    action: () => insertQRCode()
+    action: () => insertQRCode(),
   },
   {
     text: t('tools.zxing.barcode'),
     icon: 'iconfont icon-barcode',
-    action: () => insertBarCode()
-  }
+    action: () => insertBarCode(),
+  },
 ])
 
 function checkSelection() {
@@ -45,21 +34,23 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
 function insertQRCode() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const hot = TableManager.get()
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
   let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value), oldCellData = hot.getDataAtCell(startRow, startCol)
+  let oldValue = deepCopy(cellDef.value); let oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
   let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot), height = _buildHeight(startRow, td.rowSpan, hot)
+  let width = _buildWidth(startCol, td.colSpan, hot); let height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
@@ -92,22 +83,23 @@ function insertQRCode() {
       hot.render()
       setDirty()
       Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    }
+    },
   })
 }
 
 function insertBarCode() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const hot = TableManager.get()
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
   let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value), oldCellData = hot.getDataAtCell(startRow, startCol)
+  let oldValue = deepCopy(cellDef.value); let oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
   let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot), height = _buildHeight(startRow, td.rowSpan, hot)
+  let width = _buildWidth(startCol, td.colSpan, hot); let height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
@@ -140,30 +132,45 @@ function insertBarCode() {
       hot.render()
       setDirty()
       Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    }
+    },
   })
 }
 
 function _buildWidth(colIndex: number, colspan: number, hot: any) {
   let width = hot.getColWidth(colIndex) - 3
-  if (!colspan || colspan < 2) return width
-  let start = colIndex + 1, end = colIndex + colspan
+  if (!colspan || colspan < 2)
+    return width
+  const start = colIndex + 1; const end = colIndex + colspan
   for (let i = start; i < end; i++) {
     width += hot.getColWidth(i)
   }
+
   return width
 }
 
 function _buildHeight(rowIndex: number, rowspan: number, hot: any) {
   let height = hot.getRowHeight(rowIndex) - 3
-  if (!rowspan || rowspan < 2) return height
-  let start = rowIndex + 1, end = rowIndex + rowspan
+  if (!rowspan || rowspan < 2)
+    return height
+  const start = rowIndex + 1; const end = rowIndex + rowspan
   for (let i = start; i < end; i++) {
     height += hot.getRowHeight(i)
   }
+
   return height
 }
 </script>
+
+<template>
+  <div class="u-inline">
+    <ButtonGroup
+      iconClass="iconfont icon-qrcode"
+      :title="$t('tools.zxing.title')"
+      customClass="zxing-tool-dropdown"
+      :menuItems="menuItems"
+    />
+  </div>
+</template>
 
 <style scoped>
 </style>

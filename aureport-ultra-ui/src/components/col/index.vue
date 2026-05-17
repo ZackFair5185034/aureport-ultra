@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
 import type { RowContext } from '../row/index.vue'
+import { computed, inject } from 'vue'
 import './style/index.css'
 
 defineOptions({ name: 'UCol' })
@@ -37,21 +37,22 @@ const classes = computed(() => {
     },
   ]
 
-  ;(['xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const).forEach(size => {
+  for (const size of (['xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const)) {
     const val = props[size]
     if (typeof val === 'number') {
       classList.push(`${prefixCls}-span-${size}-${val}`)
-    } else if (typeof val === 'object' && val !== null) {
-      const sizeProps = val as Record<string, number | string>
-      Object.keys(sizeProps).forEach(prop => {
-        classList.push(
-          prop !== 'span'
-            ? `${prefixCls}-${size}-${prop}-${sizeProps[prop]}`
-            : `${prefixCls}-span-${size}-${sizeProps[prop]}`
-        )
-      })
     }
-  })
+    else if (typeof val === 'object' && val !== null) {
+      const sizeProps = val as Record<string, number | string>
+      for (const prop of Object.keys(sizeProps)) {
+        classList.push(
+          prop === 'span'
+            ? `${prefixCls}-span-${size}-${sizeProps[prop]}`
+            : `${prefixCls}-${size}-${prop}-${sizeProps[prop]}`,
+        )
+      }
+    }
+  }
 
   return classList
 })
@@ -63,6 +64,7 @@ const styles = computed(() => {
       paddingRight: `${rowContext.gutter / 2}px`,
     }
   }
+
   return {}
 })
 </script>
@@ -76,60 +78,62 @@ const styles = computed(() => {
 <style scoped>
 .u-row {
   position: relative;
-  display: block
+  display: block;
 }
 
 .u-row-flex {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap
+  flex-wrap: wrap;
 }
 
-.u-row-flex:before,.u-row-flex:after {
-  display: flex
+.u-row-flex:before,
+.u-row-flex:after {
+  display: flex;
 }
 
 .u-row-flex-start {
-  justify-content: flex-start
+  justify-content: flex-start;
 }
 
 .u-row-flex-center {
-  justify-content: center
+  justify-content: center;
 }
 
 .u-row-flex-end {
-  justify-content: flex-end
+  justify-content: flex-end;
 }
 
 .u-row-flex-space-between {
-  justify-content: space-between
+  justify-content: space-between;
 }
 
 .u-row-flex-space-around {
-  justify-content: space-around
+  justify-content: space-around;
 }
 
 .u-row-flex-top {
-  align-items: flex-start
+  align-items: flex-start;
 }
 
 .u-row-flex-middle {
-  align-items: center
+  align-items: center;
 }
 
 .u-row-flex-bottom {
-  align-items: flex-end
+  align-items: flex-end;
 }
 
-.u-row:before,.u-row:after {
-  content: "";
-  display: table
+.u-row:before,
+.u-row:after {
+  content: '';
+  display: table;
 }
 
 .u-row:after {
   clear: both;
   visibility: hidden;
   font-size: 0;
-  height: 0
+  height: 0;
 }
 </style>

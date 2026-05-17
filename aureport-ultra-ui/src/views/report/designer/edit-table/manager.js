@@ -1,24 +1,25 @@
 const TableManager = {
-    table: null,
+  table: null,
 
-    get() {
-        return this.table;
-    },
+  get() {
+    return this.table
+  },
 
-    set(table) {
-        this.table = table;
-    },
+  set(table) {
+    this.table = table
+  },
 
-    has() {
-        return this.table !== null;
-    },
+  has() {
+    return this.table !== null
+  },
 
-    clear() {
-        if (this.table && this.table.destroy) {
-            this.table.destroy();
-        }
-        this.table = null;
+  clear() {
+    if (this.table && this.table.destroy) {
+      this.table.destroy()
     }
-};
 
-export default TableManager;
+    this.table = null
+  },
+}
+
+export default TableManager

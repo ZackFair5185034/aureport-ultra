@@ -1,4 +1,3 @@
-
 /**
  * 通用js方法封装处理
  * Copyright (c) 2019 ruoyi
@@ -9,21 +8,27 @@ export function parseTime(time, pattern) {
   if (arguments.length === 0 || !time) {
     return null
   }
+
   const format = pattern || '{y}-{m}-{d} {h}:{i}:{s}'
   let date
   if (typeof time === 'object') {
     date = time
-  } else {
-    if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
+  }
+  else {
+    if ((typeof time === 'string') && (/^\d+$/.test(time))) {
       time = parseInt(time)
-    } else if (typeof time === 'string') {
-      time = time.replace(new RegExp(/-/gm), '/').replace('T', ' ').replace(new RegExp(/\.[\d]{3}/gm), '')
     }
+    else if (typeof time === 'string') {
+      time = time.replaceAll(new RegExp(/-/g), '/').replace('T', ' ').replaceAll(new RegExp(/\.\d{3}/g), '')
+    }
+
     if ((typeof time === 'number') && (time.toString().length === 10)) {
       time = time * 1000
     }
+
     date = new Date(time)
   }
+
   const formatObj = {
     y: date.getFullYear(),
     m: date.getMonth() + 1,
@@ -31,15 +36,17 @@ export function parseTime(time, pattern) {
     h: date.getHours(),
     i: date.getMinutes(),
     s: date.getSeconds(),
-    a: date.getDay()
+    a: date.getDay(),
   }
-  const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
+  const time_str = format.replaceAll(/\{([ymdhisa])+\}/g, (result, key) => {
     let value = formatObj[key]
     // Note: getDay() returns 0 on Sunday
     if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value] }
+
     if (result.length > 0 && value < 10) {
-      value = '0' + value
+      value = `0${value}`
     }
+
     return value || 0
   })
   return time_str
@@ -49,15 +56,16 @@ export function parseTime(time, pattern) {
  * 表格时间格式化
  */
 export function formatDate(cellValue) {
-  if (cellValue == null || cellValue == "") return ""
-  var date = new Date(cellValue)
-  var year = date.getFullYear()
-  var month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
-  var day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
-  var hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours()
-  var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
-  var seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
-  return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds
+  if (cellValue == null || cellValue == '')
+    return ''
+  const date = new Date(cellValue)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1 < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1
+  const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()
+  const hours = date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()
+  const minutes = date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()
+  const seconds = date.getSeconds() < 10 ? `0${date.getSeconds()}` : date.getSeconds()
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
 /**
@@ -66,11 +74,7 @@ export function formatDate(cellValue) {
  * @returns {string}
  */
 export function formatTime(time, option) {
-  if (('' + time).length === 10) {
-    time = parseInt(time) * 1000
-  } else {
-    time = +time
-  }
+  time = (`${time}`).length === 10 ? parseInt(time) * 1000 : +time
   const d = new Date(time)
   const now = Date.now()
 
@@ -78,41 +82,43 @@ export function formatTime(time, option) {
 
   if (diff < 30) {
     return '刚刚'
-  } else if (diff < 3600) {
+  }
+  else if (diff < 3600) {
     // less 1 hour
-    return Math.ceil(diff / 60) + '分钟前'
-  } else if (diff < 3600 * 24) {
-    return Math.ceil(diff / 3600) + '小时前'
-  } else if (diff < 3600 * 24 * 2) {
+    return `${Math.ceil(diff / 60)}分钟前`
+  }
+  else if (diff < 3600 * 24) {
+    return `${Math.ceil(diff / 3600)}小时前`
+  }
+  else if (diff < 3600 * 24 * 2) {
     return '1天前'
   }
-  if (option) {
-    return parseTime(time, option)
-  } else {
-    return (
-      d.getMonth() +
-      1 +
-      '月' +
-      d.getDate() +
-      '日' +
-      d.getHours() +
-      '时' +
-      d.getMinutes() +
-      '分'
-    )
-  }
+
+  return option
+    ? parseTime(time, option)
+    : (
+        `${d.getMonth()
+        + 1
+        }月${
+          d.getDate()
+        }日${
+          d.getHours()
+        }时${
+          d.getMinutes()
+        }分`
+      )
 }
 
 /**
  * @param {string} url
- * @returns {Object}
+ * @returns {object}
  */
 export function getQueryObject(url) {
-  url = url == null ? window.location.href : url
-  const search = url.substring(url.lastIndexOf('?') + 1)
+  url = url ?? window.location.href
+  const search = url.slice(Math.max(0, url.lastIndexOf('?') + 1))
   const obj = {}
   const reg = /([^?&=]+)=([^?&=]*)/g
-  search.replace(reg, (rs, $1, $2) => {
+  search.replaceAll(reg, (rs, $1, $2) => {
     const name = decodeURIComponent($1)
     let val = decodeURIComponent($2)
     val = String(val)
@@ -129,12 +135,16 @@ export function getQueryObject(url) {
 export function byteLength(str) {
   // returns the byte length of an utf8 string
   let s = str.length
-  for (var i = str.length - 1; i >= 0; i--) {
+  for (let i = str.length - 1; i >= 0; i--) {
     const code = str.charCodeAt(i)
-    if (code > 0x7f && code <= 0x7ff) s++
-    else if (code > 0x7ff && code <= 0xffff) s += 2
-    if (code >= 0xDC00 && code <= 0xDFFF) i--
+    if (code > 0x7F && code <= 0x7FF)
+      s++
+    else if (code > 0x7FF && code <= 0xFFFF)
+      s += 2
+    if (code >= 0xDC00 && code <= 0xDFFF)
+      i--
   }
+
   return s
 }
 
@@ -144,47 +154,52 @@ export function byteLength(str) {
  */
 export function cleanArray(actual) {
   const newArray = []
-  for (let i = 0; i < actual.length; i++) {
-    if (actual[i]) {
-      newArray.push(actual[i])
+  for (const element of actual) {
+    if (element) {
+      newArray.push(element)
     }
   }
+
   return newArray
 }
 
 /**
- * @param {Object} json
+ * @param {object} json
  * @returns {Array}
  */
 export function param(json) {
-  if (!json) return ''
+  if (!json)
+    return ''
   return cleanArray(
-    Object.keys(json).map(key => {
-      if (json[key] === undefined) return ''
-      return encodeURIComponent(key) + '=' + encodeURIComponent(json[key])
-    })
+    Object.keys(json).map((key) => {
+      if (json[key] === undefined)
+        return ''
+      return `${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`
+    }),
   ).join('&')
 }
 
 /**
  * @param {string} url
- * @returns {Object}
+ * @returns {object}
  */
 export function param2Obj(url) {
-  const search = decodeURIComponent(url.split('?')[1]).replace(/\+/g, ' ')
+  const search = decodeURIComponent(url.split('?')[1]).replaceAll('+', ' ')
   if (!search) {
     return {}
   }
+
   const obj = {}
   const searchArr = search.split('&')
-  searchArr.forEach(v => {
+  for (const v of searchArr) {
     const index = v.indexOf('=')
     if (index !== -1) {
-      const name = v.substring(0, index)
+      const name = v.slice(0, Math.max(0, index))
       const val = v.substring(index + 1, v.length)
       obj[name] = val
     }
-  })
+  }
+
   return obj
 }
 
@@ -200,25 +215,24 @@ export function html2Text(val) {
 
 /**
  * Merges two objects, giving the last one precedence
- * @param {Object} target
- * @param {(Object|Array)} source
- * @returns {Object}
+ * @param {object} target
+ * @param {(object | Array)} source
+ * @returns {object}
  */
 export function objectMerge(target, source) {
   if (typeof target !== 'object') {
     target = {}
   }
+
   if (Array.isArray(source)) {
     return source.slice()
   }
-  Object.keys(source).forEach(property => {
+
+  for (const property of Object.keys(source)) {
     const sourceProperty = source[property]
-    if (typeof sourceProperty === 'object') {
-      target[property] = objectMerge(target[property], sourceProperty)
-    } else {
-      target[property] = sourceProperty
-    }
-  })
+    target[property] = typeof sourceProperty === 'object' ? objectMerge(target[property], sourceProperty) : sourceProperty
+  }
+
   return target
 }
 
@@ -230,15 +244,18 @@ export function toggleClass(element, className) {
   if (!element || !className) {
     return
   }
+
   let classString = element.className
   const nameIndex = classString.indexOf(className)
   if (nameIndex === -1) {
-    classString += '' + className
-  } else {
-    classString =
-      classString.substr(0, nameIndex) +
-      classString.substr(nameIndex + className.length)
+    classString += `${className}`
   }
+  else {
+    classString
+      = classString.slice(0, Math.max(0, nameIndex))
+        + classString.slice(nameIndex + className.length)
+  }
+
   element.className = classString
 }
 
@@ -247,11 +264,7 @@ export function toggleClass(element, className) {
  * @returns {Date}
  */
 export function getTime(type) {
-  if (type === 'start') {
-    return new Date().getTime() - 3600 * 1000 * 24 * 90
-  } else {
-    return new Date(new Date().toDateString())
-  }
+  return type === 'start' ? Date.now() - 3600 * 1000 * 24 * 90 : new Date(new Date().toDateString())
 }
 
 /**
@@ -263,29 +276,32 @@ export function getTime(type) {
 export function debounce(func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function() {
+  const later = function () {
     // 据上一次触发时间间隔
-    const last = +new Date() - timestamp
+    const last = Date.now() - timestamp
 
     // 上次被包装函数被调用时间间隔 last 小于设定时间间隔 wait
     if (last < wait && last > 0) {
       timeout = setTimeout(later, wait - last)
-    } else {
+    }
+    else {
       timeout = null
       // 如果设定为immediate===true，因为开始边界已经调用过了此处无需调用
       if (!immediate) {
         result = func.apply(context, args)
-        if (!timeout) context = args = null
+        if (!timeout)
+          context = args = null
       }
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     context = this
-    timestamp = +new Date()
+    timestamp = Date.now()
     const callNow = immediate && !timeout
     // 如果延时不存在，重新设定延时
-    if (!timeout) timeout = setTimeout(later, wait)
+    if (!timeout)
+      timeout = setTimeout(later, wait)
     if (callNow) {
       result = func.apply(context, args)
       context = args = null
@@ -299,21 +315,19 @@ export function debounce(func, wait, immediate) {
  * This is just a simple version of deep copy
  * Has a lot of edge cases bug
  * If you want to use a perfect deep copy, use lodash's _.cloneDeep
- * @param {Object} source
- * @returns {Object}
+ * @param {object} source
+ * @returns {object}
  */
 export function deepClone(source) {
   if (!source && typeof source !== 'object') {
     throw new Error('error arguments', 'deepClone')
   }
+
   const targetObj = source.constructor === Array ? [] : {}
-  Object.keys(source).forEach(keys => {
-    if (source[keys] && typeof source[keys] === 'object') {
-      targetObj[keys] = deepClone(source[keys])
-    } else {
-      targetObj[keys] = source[keys]
-    }
-  })
+  for (const keys of Object.keys(source)) {
+    targetObj[keys] = source[keys] && typeof source[keys] === 'object' ? deepClone(source[keys]) : source[keys]
+  }
+
   return targetObj
 }
 
@@ -329,8 +343,8 @@ export function uniqueArr(arr) {
  * @returns {string}
  */
 export function createUniqueString() {
-  const timestamp = +new Date() + ''
-  const randomNum = parseInt((1 + Math.random()) * 65536) + ''
+  const timestamp = `${Date.now()}`
+  const randomNum = `${parseInt((1 + Math.random()) * 65536)}`
   return (+(randomNum + timestamp)).toString(32)
 }
 
@@ -341,7 +355,7 @@ export function createUniqueString() {
  * @returns {boolean}
  */
 export function hasClass(ele, cls) {
-  return !!ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'))
+  return !!new RegExp(String.raw`(\s|^)` + cls + String.raw`(\s|$)`).test(ele.className)
 }
 
 /**
@@ -350,7 +364,8 @@ export function hasClass(ele, cls) {
  * @param {string} cls
  */
 export function addClass(ele, cls) {
-  if (!hasClass(ele, cls)) ele.className += ' ' + cls
+  if (!hasClass(ele, cls))
+    ele.className += ` ${cls}`
 }
 
 /**
@@ -360,7 +375,7 @@ export function addClass(ele, cls) {
  */
 export function removeClass(ele, cls) {
   if (hasClass(ele, cls)) {
-    const reg = new RegExp('(\\s|^)' + cls + '(\\s|$)')
+    const reg = new RegExp(String.raw`(\s|^)` + cls + String.raw`(\s|$)`)
     ele.className = ele.className.replace(reg, ' ')
   }
 }
@@ -368,9 +383,10 @@ export function removeClass(ele, cls) {
 export function makeMap(str, expectsLowerCase) {
   const map = Object.create(null)
   const list = str.split(',')
-  for (let i = 0; i < list.length; i++) {
-    map[list[i]] = true
+  for (const element of list) {
+    map[element] = true
   }
+
   return expectsLowerCase
     ? val => map[val.toLowerCase()]
     : val => map[val]
@@ -396,7 +412,7 @@ export const beautifierConf = {
     indent_inner_html: true,
     comma_first: false,
     e4x: true,
-    indent_empty_lines: true
+    indent_empty_lines: true,
   },
   js: {
     indent_size: '2',
@@ -415,21 +431,20 @@ export const beautifierConf = {
     indent_inner_html: true,
     comma_first: false,
     e4x: true,
-    indent_empty_lines: true
-  }
+    indent_empty_lines: true,
+  },
 }
 
 // 首字母大小
 export function titleCase(str) {
-  return str.replace(/( |^)[a-z]/g, L => L.toUpperCase())
+  return str.replaceAll(/( |^)[a-z]/g, L => L.toUpperCase())
 }
 
 // 下划转驼峰
 export function camelCase(str) {
-  return str.replace(/_[a-z]/g, str1 => str1.substr(-1).toUpperCase())
+  return str.replaceAll(/_[a-z]/g, str1 => str1.slice(-1).toUpperCase())
 }
 
 export function isNumberStr(str) {
-  return /^[+-]?(0|([1-9]\d*))(\.\d+)?$/g.test(str)
+  return /^[+-]?(0|([1-9]\d*))(\.\d+)?$/.test(str)
 }
-

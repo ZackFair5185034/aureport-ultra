@@ -38,6 +38,7 @@ function buildFormTemplate(conf, child, type) {
   if (conf.labelPosition !== 'right') {
     labelPosition = `labelPosition="${conf.labelPosition}"`
   }
+
   const disabled = conf.disabled ? `:disabled="${conf.disabled}"` : ''
   let str = `<u-form ref="${conf.formRef}" :model="${conf.formModel}" :rules="${conf.formRules}" size="${conf.size}" ${disabled} :label-width="${conf.labelWidth}" ${labelPosition}>
       ${child}
@@ -48,6 +49,7 @@ function buildFormTemplate(conf, child, type) {
         ${str}
       </u-row>`
   }
+
   return str
 }
 
@@ -68,6 +70,7 @@ function buildFromBtns(conf, type) {
         </u-col>`
     }
   }
+
   return str
 }
 
@@ -78,6 +81,7 @@ function colWrapper(element, str) {
       ${str}
     </u-col>`
   }
+
   return str
 }
 
@@ -87,6 +91,7 @@ const layouts = {
     if (element.labelWidth && element.labelWidth !== confGlobal.labelWidth) {
       labelWidth = `:label-width="${element.labelWidth}"`
     }
+
     const required = !trigger[element.tag] && element.required ? 'required' : ''
     const tagDom = tags[element.tag] ? tags[element.tag](element) : null
     let str = `<u-form-item ${labelWidth} label="${element.label}" prop="${element.vModel}" ${required}>
@@ -106,91 +111,109 @@ const layouts = {
     </u-row>`
     str = colWrapper(element, str)
     return str
-  }
+  },
 }
 
 const tags = {
-  'u-button': el => {
+  'u-button': (el) => {
     const {
-      tag, disabled
+      tag,
+      disabled,
     } = attrBuilder(el)
     const type = el.type ? `type="${el.type}"` : ''
     const icon = el.icon ? `icon="${el.icon}"` : ''
     const size = el.size ? `size="${el.size}"` : ''
     let child = buildElButtonChild(el)
 
-    if (child) child = `\n${child}\n` // 换行
+    if (child)
+      child = `\n${child}\n` // 换行
     return `<${el.tag} ${type} ${icon} ${size} ${disabled}>${child}</${el.tag}>`
   },
-  'u-input': el => {
+  'u-input': (el) => {
     const {
-      disabled, vModel, clearable, placeholder, width
+      disabled,
+      vModel,
+      clearable,
+      placeholder,
+      width,
     } = attrBuilder(el)
     const maxlength = el.maxlength ? `:maxlength="${el.maxlength}"` : ''
-    const showWordLimit = el['showWordLimit'] ? 'showWordLimit' : ''
+    const showWordLimit = el.showWordLimit ? 'showWordLimit' : ''
     const readonly = el.readonly ? 'readonly' : ''
-    const prefixIcon = el['prefixIcon'] ? `prefixIcon='${el['prefixIcon']}'` : ''
-    const suffixIcon = el['suffixIcon'] ? `suffixIcon='${el['suffixIcon']}'` : ''
+    const prefixIcon = el.prefixIcon ? `prefixIcon='${el.prefixIcon}'` : ''
+    const suffixIcon = el.suffixIcon ? `suffixIcon='${el.suffixIcon}'` : ''
     const type = el.type ? `type="${el.type}"` : ''
     let child = buildElInputChild(el)
 
-    if (child) child = `\n${child}\n` // 换行
+    if (child)
+      child = `\n${child}\n` // 换行
     return `<${el.tag} ${vModel} ${type} ${placeholder} ${maxlength} ${showWordLimit} ${readonly} ${disabled} ${clearable} ${prefixIcon} ${suffixIcon} ${width}>${child}</${el.tag}>`
   },
-  'u-input-number': el => {
+  'u-input-number': (el) => {
     const { disabled, vModel, placeholder } = attrBuilder(el)
-    const controlsPosition = el['controlsPosition'] ? `controlsPosition=${el['controlsPosition']}` : ''
+    const controlsPosition = el.controlsPosition ? `controlsPosition=${el.controlsPosition}` : ''
     const min = el.min ? `:min='${el.min}'` : ''
     const max = el.max ? `:max='${el.max}'` : ''
     const step = el.step ? `:step='${el.step}'` : ''
-    const stepStrictly = el['stepStrictly'] ? 'stepStrictly' : ''
+    const stepStrictly = el.stepStrictly ? 'stepStrictly' : ''
     const precision = el.precision ? `:precision='${el.precision}'` : ''
 
     return `<${el.tag} ${vModel} ${placeholder} ${step} ${stepStrictly} ${precision} ${controlsPosition} ${min} ${max} ${disabled}></${el.tag}>`
   },
-  'u-select': el => {
+  'u-select': (el) => {
     const {
-      disabled, vModel, clearable, placeholder, width
+      disabled,
+      vModel,
+      clearable,
+      placeholder,
+      width,
     } = attrBuilder(el)
     const filterable = el.filterable ? 'filterable' : ''
     const multiple = el.multiple ? 'multiple' : ''
     let child = buildElSelectChild(el)
 
-    if (child) child = `\n${child}\n` // 换行
+    if (child)
+      child = `\n${child}\n` // 换行
     return `<${el.tag} ${vModel} ${placeholder} ${disabled} ${multiple} ${filterable} ${clearable} ${width}>${child}</${el.tag}>`
   },
-  'u-radio-group': el => {
+  'u-radio-group': (el) => {
     const { disabled, vModel } = attrBuilder(el)
     const size = `size="${el.size}"`
     let child = buildElRadioGroupChild(el)
 
-    if (child) child = `\n${child}\n` // 换行
+    if (child)
+      child = `\n${child}\n` // 换行
     return `<${el.tag} ${vModel} ${size} ${disabled}>${child}</${el.tag}>`
   },
-  'u-checkbox-group': el => {
+  'u-checkbox-group': (el) => {
     const { disabled, vModel } = attrBuilder(el)
     const size = `size="${el.size}"`
     const min = el.min ? `:min="${el.min}"` : ''
     const max = el.max ? `:max="${el.max}"` : ''
     let child = buildElCheckboxGroupChild(el)
 
-    if (child) child = `\n${child}\n` // 换行
+    if (child)
+      child = `\n${child}\n` // 换行
     return `<${el.tag} ${vModel} ${min} ${max} ${size} ${disabled}>${child}</${el.tag}>`
   },
-  'u-switch': el => {
+  'u-switch': (el) => {
     const { disabled, vModel } = attrBuilder(el)
-    const activeText = el['activeText'] ? `activeText="${el['activeText']}"` : ''
-    const inactiveText = el['inactiveText'] ? `inactiveText="${el['inactiveText']}"` : ''
-    const activeColor = el['activeColor'] ? `activeColor="${el['activeColor']}"` : ''
-    const inactiveColor = el['inactiveColor'] ? `inactiveColor="${el['inactiveColor']}"` : ''
-    const activeValue = el['activeValue'] !== true ? `:activeValue='${JSON.stringify(el['activeValue'])}'` : ''
-    const inactiveValue = el['inactiveValue'] !== false ? `:inactiveValue='${JSON.stringify(el['inactiveValue'])}'` : ''
+    const activeText = el.activeText ? `activeText="${el.activeText}"` : ''
+    const inactiveText = el.inactiveText ? `inactiveText="${el.inactiveText}"` : ''
+    const activeColor = el.activeColor ? `activeColor="${el.activeColor}"` : ''
+    const inactiveColor = el.inactiveColor ? `inactiveColor="${el.inactiveColor}"` : ''
+    const activeValue = el.activeValue === true ? '' : `:activeValue='${JSON.stringify(el.activeValue)}'`
+    const inactiveValue = el.inactiveValue === false ? '' : `:inactiveValue='${JSON.stringify(el.inactiveValue)}'`
 
     return `<${el.tag} ${vModel} ${activeText} ${inactiveText} ${activeColor} ${inactiveColor} ${activeValue} ${inactiveValue} ${disabled}></${el.tag}>`
   },
-  'u-cascader': el => {
+  'u-cascader': (el) => {
     const {
-      disabled, vModel, clearable, placeholder, width
+      disabled,
+      vModel,
+      clearable,
+      placeholder,
+      width,
     } = attrBuilder(el)
     const options = el.options ? `:options="${el.vModel}Options"` : ''
     const props = el.props ? `:props="${el.vModel}Props"` : ''
@@ -201,21 +224,24 @@ const tags = {
     return `<${el.tag} ${vModel} ${options} ${props} ${width} ${showAllLevels} ${placeholder} ${separator} ${filterable} ${clearable} ${disabled}></${el.tag}>`
   },
 
-  'u-date-picker': el => {
+  'u-date-picker': (el) => {
     const {
-      disabled, vModel, clearable, placeholder, width
+      disabled,
+      vModel,
+      clearable,
+      placeholder,
+      width,
     } = attrBuilder(el)
     const startPlaceholder = el['start-placeholder'] ? `start-placeholder="${el['start-placeholder']}"` : ''
     const endPlaceholder = el['end-placeholder'] ? `end-placeholder="${el['end-placeholder']}"` : ''
     const rangeSeparator = el['range-separator'] ? `range-separator="${el['range-separator']}"` : ''
     const format = el.format ? `format="${el.format}"` : ''
-    const valueFormat = el['valueFormat'] ? `valueFormat="${el['valueFormat']}"` : ''
+    const valueFormat = el.valueFormat ? `valueFormat="${el.valueFormat}"` : ''
     const type = el.type === 'date' ? '' : `type="${el.type}"`
     const readonly = el.readonly ? 'readonly' : ''
 
     return `<${el.tag} ${type} ${vModel} ${format} ${valueFormat} ${width} ${placeholder} ${startPlaceholder} ${endPlaceholder} ${rangeSeparator} ${clearable} ${readonly} ${disabled}></${el.tag}>`
   },
-
 
 }
 
@@ -225,7 +251,7 @@ function attrBuilder(el) {
     clearable: el.clearable ? 'clearable' : '',
     placeholder: el.placeholder ? `placeholder="${el.placeholder}"` : '',
     width: el.style && el.style.width ? ':style="{width: \'100%\'}"' : '',
-    disabled: el.disabled ? ':disabled=\'true\'' : ''
+    disabled: el.disabled ? ':disabled=\'true\'' : '',
   }
 }
 
@@ -235,6 +261,7 @@ function buildElButtonChild(conf) {
   if (conf.default) {
     children.push(conf.default)
   }
+
   return children.join('\n')
 }
 
@@ -244,9 +271,11 @@ function buildElInputChild(conf) {
   if (conf.prepend) {
     children.push(`<span slot="prepend">${conf.prepend}</span>`)
   }
+
   if (conf.append) {
     children.push(`<span slot="append">${conf.append}</span>`)
   }
+
   return children.join('\n')
 }
 
@@ -255,6 +284,7 @@ function buildElSelectChild(conf) {
   if (conf.options && conf.options.length) {
     children.push(`<u-option v-for="(item, index) in ${conf.vModel}Options" :key="index" :label="item.label" :value="item.value" :disabled="item.disabled"></u-option>`)
   }
+
   return children.join('\n')
 }
 
@@ -265,6 +295,7 @@ function buildElRadioGroupChild(conf) {
     const border = conf.border ? 'border' : ''
     children.push(`<${tag} v-for="(item, index) in ${conf.vModel}Options" :key="index" :label="item.value" :disabled="item.disabled" ${border}>{{item.label}}</${tag}>`)
   }
+
   return children.join('\n')
 }
 
@@ -275,26 +306,27 @@ function buildElCheckboxGroupChild(conf) {
     const border = conf.border ? 'border' : ''
     children.push(`<${tag} v-for="(item, index) in ${conf.vModel}Options" :key="index" :label="item.value" :disabled="item.disabled" ${border}>{{item.label}}</${tag}>`)
   }
+
   return children.join('\n')
 }
-
-
 
 export function makeUpHtml(conf, type) {
   const htmlList = []
   confGlobal = conf
   someSpanIsNot24 = conf.fields && Array.isArray(conf.fields) ? conf.fields.some(item => item.span !== 24) : false
   if (conf.fields && Array.isArray(conf.fields)) {
-    conf.fields.forEach(el => {
+    for (const el of conf.fields) {
       htmlList.push(layouts[el.layout](el))
-    })
+    }
   }
+
   const htmlStr = htmlList.join('\n')
 
   let temp = buildFormTemplate(conf, htmlStr, type)
   if (type === 'dialog') {
     temp = dialogWrapper(temp)
   }
+
   confGlobal = null
   return temp
 }

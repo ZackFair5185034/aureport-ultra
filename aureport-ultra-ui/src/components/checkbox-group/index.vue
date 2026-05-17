@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { reactive, provide, inject } from 'vue'
 import type { FormItemContext } from '../form-item/index.vue'
+import { inject, provide, reactive } from 'vue'
 
 defineOptions({ name: 'UCheckboxGroup' })
-
-export interface CheckboxGroupContext {
-  modelValue?: unknown[]
-  disabled?: boolean
-  max?: number
-  min?: number
-  button?: boolean
-  onSelect: (label: unknown) => void
-}
 
 const props = withDefaults(defineProps<{
   modelValue?: unknown[]
@@ -29,10 +20,19 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: unknown[]]
-  change: [value: unknown[]]
+  'change': [value: unknown[]]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+export interface CheckboxGroupContext {
+  modelValue?: unknown[]
+  disabled?: boolean
+  max?: number
+  min?: number
+  button?: boolean
+  onSelect: (label: unknown) => void
+}
+
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
 const checkboxGroupContext: CheckboxGroupContext = reactive({
   get modelValue() { return props.modelValue },
@@ -43,12 +43,15 @@ const checkboxGroupContext: CheckboxGroupContext = reactive({
   onSelect(label: unknown) {
     const newValue = [...(props.modelValue || [])]
     const index = newValue.indexOf(label)
-    if (index !== -1) {
-      newValue.splice(index, 1)
-    } else {
-      if (props.max > -1 && newValue.length >= props.max) return
+    if (index === -1) {
+      if (props.max > -1 && newValue.length >= props.max)
+        return
       newValue.push(label)
     }
+    else {
+      newValue.splice(index, 1)
+    }
+
     emit('update:modelValue', newValue)
     emit('change', newValue)
     formItemContext?.onFieldChange()

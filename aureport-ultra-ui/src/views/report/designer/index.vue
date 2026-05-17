@@ -1,50 +1,27 @@
-<template>
-    <div ref="container" id='container'>
-      <div class="u-designer" >
-        <div class="left-part">
-          <TopToolBar v-if="contextCreated" ref="topToolBar" :selectedCells="selectedCells" />
-          <ContentTable
-            ref="contentTable"
-            :reportPath="internalReportPath"
-            @cell-selected="handleCellSelected"
-            @context-created="handleContextCreated"
-            @navigate="handleNavigate"
-            @save="handleSave"
-            @error="handleError"
-          />
-        </div>
-        <div class="right-part">
-          <ResourcePanel v-if="contextCreated" ref="sidePanel" :selectedCells="selectedCells" />
-        </div>
-      </div>
-      <PrintLine v-if="false" ref="printLine" />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { createNavigator, getLibMode } from '@/lib/navigator'
 import { useReportStore } from '@/stores/report'
+import ContentTable from '@/views/report/designer/edit-table/index.vue'
+import ResourcePanel from '@/views/report/designer/resource-panel/index.vue'
+import TopToolBar from '@/views/report/designer/tool-bar/index.vue'
+import PrintLine from './print-line/index.vue'
 import 'handsontable/dist/handsontable.min.css'
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/addon/hint/show-hint.css';
-import 'codemirror/addon/lint/lint.css';
-import '@/assets/css/designer/tree.css';
-import 'codemirror/mode/javascript/javascript.js';
 
-import ResourcePanel from '@/views/report/designer/resource-panel/index.vue';
-import PrintLine from './print-line/index.vue';
-import TopToolBar from '@/views/report/designer/tool-bar/index.vue';
-import ContentTable from '@/views/report/designer/edit-table/index.vue';
-import { createNavigator, getLibMode } from '@/lib/navigator';
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/addon/hint/show-hint.css'
+import 'codemirror/addon/lint/lint.css'
+import '@/assets/css/designer/tree.css'
+import 'codemirror/mode/javascript/javascript.js'
 
 defineOptions({ name: 'DesignerPage' })
 
 const props = withDefaults(defineProps<{
   reportPath?: string
 }>(), {
-  reportPath: ''
+  reportPath: '',
 })
 
 const emit = defineEmits<{
@@ -64,11 +41,11 @@ const sidePanel = ref(null)
 const printLine = ref(null)
 
 const contextCreated = ref(false)
-const selectedCells = ref<{ rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }>({
+const selectedCells = ref<{ rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }>({
   rowIndex: null,
   colIndex: null,
   row2Index: null,
-  col2Index: null
+  col2Index: null,
 })
 const internalReportPath = ref(props.reportPath)
 
@@ -83,7 +60,7 @@ function handleContextCreated() {
   contextCreated.value = true
 }
 
-function handleCellSelected({ rowIndex, colIndex, row2Index, col2Index }: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }) {
+function handleCellSelected({ rowIndex, colIndex, row2Index, col2Index }: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }) {
   selectedCells.value = { rowIndex, colIndex, row2Index, col2Index }
 }
 
@@ -118,8 +95,32 @@ function setReportPath(path: string) {
 function setLocale(newLocale: string) {
   locale.value = newLocale
 }
+
 defineExpose({ getReportData, saveReport })
 </script>
+
+<template>
+  <div id="container" ref="container">
+    <div class="u-designer">
+      <div class="left-part">
+        <TopToolBar v-if="contextCreated" ref="topToolBar" :selectedCells="selectedCells" />
+        <ContentTable
+          ref="contentTable"
+          :reportPath="internalReportPath"
+          @cell-selected="handleCellSelected"
+          @context-created="handleContextCreated"
+          @navigate="handleNavigate"
+          @save="handleSave"
+          @error="handleError"
+        />
+      </div>
+      <div class="right-part">
+        <ResourcePanel v-if="contextCreated" ref="sidePanel" :selectedCells="selectedCells" />
+      </div>
+    </div>
+    <PrintLine v-if="false" ref="printLine" />
+  </div>
+</template>
 
 <style scoped>
 #container {
@@ -128,7 +129,7 @@ defineExpose({ getReportData, saveReport })
   overflow: hidden;
 }
 
-.u-designer{
+.u-designer {
   height: 100%;
   display: flex;
   flex-direction: row;

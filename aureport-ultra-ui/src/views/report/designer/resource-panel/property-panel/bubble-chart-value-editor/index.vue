@@ -1,58 +1,17 @@
-<template>
-  <div class="bubble-chart-value-editor" ref="container">
-    <!-- 选项卡导航 -->
-    <u-tabs v-model="activeTab" type="button">
-      <u-tab-pane :label="t('chart.datasetBind')" index="dataset">
-        <!-- 数据集绑定选项卡 -->
-        <ChartDataConfig
-            ref="datasetTab"
-            :selectedDataset="datasetValues.selectedDataset"
-            :selectedCategoryProperty="datasetValues.selectedCategoryProperty"
-            :selectedXProperty="datasetValues.selectedXProperty"
-            :selectedYProperty="datasetValues.selectedYProperty"
-            :selectedRProperty="datasetValues.selectedRProperty"
-            @update-dataset="handleDatasetUpdate"
-        />
-      </u-tab-pane>
-      <u-tab-pane :label="t('chart.option')" index="option">
-        <ChartOption
-            :chartConfig="chartConfig"
-            :showDataLabel="false"
-            @chart-option-change="handleChartOptionChange"
-            @data-labels-change="handleDataLabelsChange"
-        />
-      </u-tab-pane>
-      <u-tab-pane :label="t('chart.axisConfig')" index="axis">
-        <!-- 使用ChartAxis组件 -->
-        <ChartAxis
-            v-model:xAxesConfig="xAxesConfig"
-            v-model:yAxesConfig="yAxesConfig"
-            v-model:format="xAxisFormat"
-            @axis-change="handleAxisChange"
-        />
-      </u-tab-pane>
-    </u-tabs>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, watch, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
-import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils/index'
+import { useReportStore } from '@/stores/report'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty } from '@/utils/table'
 import chartWidgetManager from '@/views/report/designer/edit-table/chart-widget/manager'
 import ChartAxis from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-axis/index.vue'
-import ChartOption from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-option/index.vue'
 import ChartDataConfig from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-dataset-bob/index.vue'
+import ChartOption from '@/views/report/designer/resource-panel/property-panel/chart-value-editor/chart-option/index.vue'
 
 defineOptions({ name: 'BubbleChartValueEditor' })
-
-const { t } = useI18n()
-const store = useReportStore()
-const context = computed(() => store.context)
 
 const props = withDefaults(defineProps<{
   rowIndex?: number
@@ -63,8 +22,11 @@ const props = withDefaults(defineProps<{
   rowIndex: 0,
   colIndex: 0,
   row2Index: 0,
-  col2Index: 0
+  col2Index: 0,
 })
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context)
 
 const container = ref<HTMLDivElement | null>(null)
 const datasetTab = ref<any>(null)
@@ -75,23 +37,23 @@ const datasetValues = ref({
   selectedCategoryProperty: '',
   selectedXProperty: '',
   selectedYProperty: '',
-  selectedRProperty: ''
+  selectedRProperty: '',
 })
 
 const xAxesConfig = ref({
   rotation: 0,
   scaleLabel: {
     display: false,
-    labelString: ''
-  }
+    labelString: '',
+  },
 })
 
 const yAxesConfig = ref({
   rotation: 0,
   scaleLabel: {
     display: false,
-    labelString: ''
-  }
+    labelString: '',
+  },
 })
 
 const xAxisFormat = ref('')
@@ -100,25 +62,25 @@ const chartConfig = ref({
   title: {
     display: false,
     position: 'top',
-    text: ''
+    text: '',
   },
   legend: {
     display: false,
-    position: 'top'
+    position: 'top',
   },
   dataLabels: {
-    display: false
+    display: false,
   },
   animation: {
     duration: 1000,
-    easing: 'easeOutQuart'
+    easing: 'easeOutQuart',
   },
   layout: {
     top: 10,
     bottom: 10,
     left: 10,
-    right: 10
-  }
+    right: 10,
+  },
 })
 
 watch(() => [props.rowIndex, props.colIndex], () => {
@@ -127,7 +89,8 @@ watch(() => [props.rowIndex, props.colIndex], () => {
 
 function loadChartConfig() {
   const cellDef = getCell(props.rowIndex, props.colIndex)
-  if (!cellDef || !cellDef.value || !cellDef.value.chart) return
+  if (!cellDef || !cellDef.value || !cellDef.value.chart)
+    return
 
   const chart = cellDef.value.chart
   const dataset = chart.dataset || {}
@@ -136,7 +99,7 @@ function loadChartConfig() {
     selectedCategoryProperty: dataset.categoryProperty || '',
     selectedXProperty: dataset.xProperty || '',
     selectedYProperty: dataset.yProperty || '',
-    selectedRProperty: dataset.rProperty || ''
+    selectedRProperty: dataset.rProperty || '',
   }
   xAxisFormat.value = dataset.format || ''
 
@@ -145,8 +108,8 @@ function loadChartConfig() {
     rotation: xaxes.rotation || 0,
     scaleLabel: {
       display: xaxes.scaleLabel?.display || false,
-      labelString: xaxes.scaleLabel?.labelString || ''
-    }
+      labelString: xaxes.scaleLabel?.labelString || '',
+    },
   }
 
   const yaxes = chart.yaxes || {}
@@ -154,8 +117,8 @@ function loadChartConfig() {
     rotation: yaxes.rotation || 0,
     scaleLabel: {
       display: yaxes.scaleLabel?.display || false,
-      labelString: yaxes.scaleLabel?.labelString || ''
-    }
+      labelString: yaxes.scaleLabel?.labelString || '',
+    },
   }
 
   const options = chart.options || []
@@ -187,7 +150,8 @@ function loadChartConfig() {
 
 function handleDatasetUpdate(config: any) {
   const cell = deepCopy(getCell(props.rowIndex, props.colIndex))
-  if (!cell || !cell.value || !cell.value.chart) return
+  if (!cell || !cell.value || !cell.value.chart)
+    return
 
   if (!cell.value.chart.dataset) {
     cell.value.chart.dataset = {}
@@ -202,17 +166,19 @@ function handleDatasetUpdate(config: any) {
 
 function handleChartOptionChange({ type, option }: { type: string, option: any }) {
   const cell = deepCopy(getCell(props.rowIndex, props.colIndex))
-  if (!cell || !cell.value || !cell.value.chart) return
+  if (!cell || !cell.value || !cell.value.chart)
+    return
 
   const chart = cell.value.chart
   if (!chart.options) {
     chart.options = []
   }
 
-  let existingOption = chart.options.find((opt: any) => opt.type === type)
+  const existingOption = chart.options.find((opt: any) => opt.type === type)
   if (existingOption) {
     Object.assign(existingOption, option)
-  } else {
+  }
+  else {
     chart.options.push({ type, ...option })
   }
 
@@ -223,20 +189,22 @@ function handleChartOptionChange({ type, option }: { type: string, option: any }
 
 function handleDataLabelsChange(dataLabels: any) {
   const cell = deepCopy(getCell(props.rowIndex, props.colIndex))
-  if (!cell || !cell.value || !cell.value.chart) return
+  if (!cell || !cell.value || !cell.value.chart)
+    return
 
   const chart = cell.value.chart
   if (!chart.plugins) {
     chart.plugins = []
   }
 
-  let dataLabelPlugin = chart.plugins.find((p: any) => p.name === 'data-labels')
+  const dataLabelPlugin = chart.plugins.find((p: any) => p.name === 'data-labels')
   if (dataLabelPlugin) {
     dataLabelPlugin.display = dataLabels.display
-  } else {
+  }
+  else {
     chart.plugins.push({
       name: 'data-labels',
-      display: dataLabels.display
+      display: dataLabels.display,
     })
   }
 
@@ -255,41 +223,53 @@ function updateChart() {
 
 function handleAxisChange({ type, value }: { type: string, value: any }) {
   const cell = deepCopy(getCell(props.rowIndex, props.colIndex))
-  if (!cell || !cell.value || !cell.value.chart) return
+  if (!cell || !cell.value || !cell.value.chart)
+    return
 
   const chart = cell.value.chart
 
   switch (type) {
     case 'x-rotation':
-      if (!chart.xaxes) chart.xaxes = {}
+      if (!chart.xaxes)
+        chart.xaxes = {}
       chart.xaxes.rotation = value
       break
     case 'x-title-display':
-      if (!chart.xaxes) chart.xaxes = {}
-      if (!chart.xaxes.scaleLabel) chart.xaxes.scaleLabel = {}
+      if (!chart.xaxes)
+        chart.xaxes = {}
+      if (!chart.xaxes.scaleLabel)
+        chart.xaxes.scaleLabel = {}
       chart.xaxes.scaleLabel.display = value
       break
     case 'x-title-text':
-      if (!chart.xaxes) chart.xaxes = {}
-      if (!chart.xaxes.scaleLabel) chart.xaxes.scaleLabel = {}
+      if (!chart.xaxes)
+        chart.xaxes = {}
+      if (!chart.xaxes.scaleLabel)
+        chart.xaxes.scaleLabel = {}
       chart.xaxes.scaleLabel.labelString = value
       break
     case 'y-rotation':
-      if (!chart.yaxes) chart.yaxes = {}
+      if (!chart.yaxes)
+        chart.yaxes = {}
       chart.yaxes.rotation = value
       break
     case 'y-title-display':
-      if (!chart.yaxes) chart.yaxes = {}
-      if (!chart.yaxes.scaleLabel) chart.yaxes.scaleLabel = {}
+      if (!chart.yaxes)
+        chart.yaxes = {}
+      if (!chart.yaxes.scaleLabel)
+        chart.yaxes.scaleLabel = {}
       chart.yaxes.scaleLabel.display = value
       break
     case 'y-title-text':
-      if (!chart.yaxes) chart.yaxes = {}
-      if (!chart.yaxes.scaleLabel) chart.yaxes.scaleLabel = {}
+      if (!chart.yaxes)
+        chart.yaxes = {}
+      if (!chart.yaxes.scaleLabel)
+        chart.yaxes.scaleLabel = {}
       chart.yaxes.scaleLabel.labelString = value
       break
     case 'format':
-      if (!chart.dataset) chart.dataset = {}
+      if (!chart.dataset)
+        chart.dataset = {}
       chart.dataset.format = value
       break
   }
@@ -299,6 +279,43 @@ function handleAxisChange({ type, value }: { type: string, value: any }) {
   setDirty()
 }
 </script>
+
+<template>
+  <div ref="container" class="bubble-chart-value-editor">
+    <!-- 选项卡导航 -->
+    <u-tabs v-model="activeTab" type="button">
+      <u-tab-pane :label="t('chart.datasetBind')" index="dataset">
+        <!-- 数据集绑定选项卡 -->
+        <ChartDataConfig
+          ref="datasetTab"
+          :selectedDataset="datasetValues.selectedDataset"
+          :selectedCategoryProperty="datasetValues.selectedCategoryProperty"
+          :selectedXProperty="datasetValues.selectedXProperty"
+          :selectedYProperty="datasetValues.selectedYProperty"
+          :selectedRProperty="datasetValues.selectedRProperty"
+          @update-dataset="handleDatasetUpdate"
+        />
+      </u-tab-pane>
+      <u-tab-pane :label="t('chart.option')" index="option">
+        <ChartOption
+          :chartConfig="chartConfig"
+          :showDataLabel="false"
+          @chart-option-change="handleChartOptionChange"
+          @data-labels-change="handleDataLabelsChange"
+        />
+      </u-tab-pane>
+      <u-tab-pane :label="t('chart.axisConfig')" index="axis">
+        <!-- 使用ChartAxis组件 -->
+        <ChartAxis
+          v-model:xAxesConfig="xAxesConfig"
+          v-model:yAxesConfig="yAxesConfig"
+          v-model:format="xAxisFormat"
+          @axis-change="handleAxisChange"
+        />
+      </u-tab-pane>
+    </u-tabs>
+  </div>
+</template>
 
 <style scoped>
 .tab-content {

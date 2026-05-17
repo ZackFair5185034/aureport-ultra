@@ -1,132 +1,17 @@
-<template>
-  <div class="chart-dataset">
-
-    <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="t('chart.dataset')">
-        <u-select
-            v-model="localDatasetConfig.datasetName"
-            :clearable="true"
-            @change="handleDatasetChange"
-            style="width: 250px"
-        >
-          <u-option
-            v-for="option in datasetOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('chart.categoryProperty')">
-        <u-select
-            v-model="localDatasetConfig.categoryProperty"
-            :clearable="true"
-            style="width: 250px"
-            @change="handleCategoryPropertyChange"
-        >
-          <u-option
-            v-for="option in fieldOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('chart.valueProperty')">
-        <u-select
-            v-model="localDatasetConfig.valueProperty"
-            :clearable="true"
-            style="width: 250px"
-            @change="handleValuePropertyChange"
-        >
-          <u-option
-            v-for="option in fieldOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('chart.seriesProperty')">
-        <u-radio-group v-model="localDatasetConfig.seriesType" @change="handleSeriesTypeChange">
-          <u-radio
-            v-for="option in [
-              { label: t('chart.property'), value: 'property' },
-              { label: t('chart.static'), value: 'text' }
-            ]"
-            :key="option.value"
-            :label="option.value"
-          >
-            {{ option.label }}
-          </u-radio>
-        </u-radio-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'property'" :label="t('chart.prop')">
-        <u-select
-            v-model="localDatasetConfig.seriesProperty"
-            :clearable="true"
-            style="width: 250px"
-            @change="handleSeriesPropertyChange"
-        >
-          <u-option
-            v-for="option in fieldOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" v-show="localDatasetConfig.seriesType === 'text'" :label="t('chart.staticValue')">
-        <u-input
-            style="width: 250px;"
-            v-model="localDatasetConfig.seriesText"
-            @change="handleSeriesTextChange"
-        >
-        </u-input>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('chart.aggregate')">
-        <u-select
-            v-model="localDatasetConfig.collectType"
-            :clearable="true"
-            style="width: 250px"
-            @change="handleAggregateChange"
-        >
-          <u-option
-            v-for="option in aggregateOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-    </u-form>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import { setDirty } from '@/utils/table'
 
 defineOptions({ name: 'ChartDataset' })
 
-const { t } = useI18n()
-const store = useReportStore()
-
 const props = withDefaults(defineProps<{
   datasetConfig?: any
 }>(), {
-  datasetConfig: () => ({})
+  datasetConfig: () => ({}),
 })
-
 const emit = defineEmits<{
   (e: 'dataset-change', value: string): void
   (e: 'category-property-change', value: string): void
@@ -136,6 +21,8 @@ const emit = defineEmits<{
   (e: 'series-text-change', value: string): void
   (e: 'aggregate-change', value: string): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
 
 const availableDatasets = ref<any[]>([])
 const availableFields = ref<any[]>([])
@@ -147,7 +34,7 @@ const localDatasetConfig = reactive({
   seriesProperty: '',
   seriesText: '',
   collectType: '',
-  format: ''
+  format: '',
 })
 
 const context = computed(() => store.context || {})
@@ -155,15 +42,15 @@ const context = computed(() => store.context || {})
 const datasetOptions = computed(() =>
   availableDatasets.value.map((dataset: any) => ({
     value: dataset.name,
-    label: dataset.name
-  }))
+    label: dataset.name,
+  })),
 )
 
 const fieldOptions = computed(() =>
   availableFields.value.map((field: any) => ({
     value: field.name,
-    label: field.name
-  }))
+    label: field.name,
+  })),
 )
 
 const aggregateOptions = computed(() => [
@@ -172,7 +59,7 @@ const aggregateOptions = computed(() => [
   { value: 'count', label: t('chart.count') },
   { value: 'max', label: t('chart.max') },
   { value: 'min', label: t('chart.min') },
-  { value: 'avg', label: t('chart.avg') }
+  { value: 'avg', label: t('chart.avg') },
 ])
 
 watch(() => props.datasetConfig, (newVal) => {
@@ -194,10 +81,11 @@ onMounted(() => {
 function loadAvailableDatasets() {
   availableDatasets.value = []
   const ctx = context.value
-  if (!ctx.reportDef) return
-  for (let ds of ctx.reportDef.datasources) {
-    let datasets = ds.datasets || []
-    for (let dataset of datasets) {
+  if (!ctx.reportDef)
+    return
+  for (const ds of ctx.reportDef.datasources) {
+    const datasets = ds.datasets || []
+    for (const dataset of datasets) {
       availableDatasets.value.push(dataset)
     }
   }
@@ -206,17 +94,20 @@ function loadAvailableDatasets() {
 function loadAvailableFields() {
   availableFields.value = []
   const datasetName = localDatasetConfig.datasetName
-  if (!datasetName) return
+  if (!datasetName)
+    return
   const ctx = context.value
-  if (!ctx.reportDef) return
-  for (let ds of ctx.reportDef.datasources) {
-    let datasets = ds.datasets || []
-    for (let dataset of datasets) {
+  if (!ctx.reportDef)
+    return
+  for (const ds of ctx.reportDef.datasources) {
+    const datasets = ds.datasets || []
+    for (const dataset of datasets) {
       if (dataset.name === datasetName) {
         availableFields.value = dataset.fields || []
         break
       }
     }
+
     if (availableFields.value.length > 0) {
       break
     }
@@ -258,6 +149,115 @@ function handleAggregateChange(value: string) {
   setDirty()
 }
 </script>
+
+<template>
+  <div class="chart-dataset">
+    <u-form :label-width="100" labelPosition="left">
+      <u-form-item class="property-label" :label="t('chart.dataset')">
+        <u-select
+          v-model="localDatasetConfig.datasetName"
+          :clearable="true"
+          style="width: 250px"
+          @change="handleDatasetChange"
+        >
+          <u-option
+            v-for="option in datasetOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('chart.categoryProperty')">
+        <u-select
+          v-model="localDatasetConfig.categoryProperty"
+          :clearable="true"
+          style="width: 250px"
+          @change="handleCategoryPropertyChange"
+        >
+          <u-option
+            v-for="option in fieldOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('chart.valueProperty')">
+        <u-select
+          v-model="localDatasetConfig.valueProperty"
+          :clearable="true"
+          style="width: 250px"
+          @change="handleValuePropertyChange"
+        >
+          <u-option
+            v-for="option in fieldOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('chart.seriesProperty')">
+        <u-radio-group v-model="localDatasetConfig.seriesType" @change="handleSeriesTypeChange">
+          <u-radio
+            v-for="option in [
+              { label: t('chart.property'), value: 'property' },
+              { label: t('chart.static'), value: 'text' },
+            ]"
+            :key="option.value"
+            :label="option.value"
+          >
+            {{ option.label }}
+          </u-radio>
+        </u-radio-group>
+      </u-form-item>
+
+      <u-form-item v-show="localDatasetConfig.seriesType === 'property'" class="property-label" :label="t('chart.prop')">
+        <u-select
+          v-model="localDatasetConfig.seriesProperty"
+          :clearable="true"
+          style="width: 250px"
+          @change="handleSeriesPropertyChange"
+        >
+          <u-option
+            v-for="option in fieldOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item v-show="localDatasetConfig.seriesType === 'text'" class="property-label" :label="t('chart.staticValue')">
+        <u-input
+          v-model="localDatasetConfig.seriesText"
+          style="width: 250px;"
+          @change="handleSeriesTextChange"
+        />
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('chart.aggregate')">
+        <u-select
+          v-model="localDatasetConfig.collectType"
+          :clearable="true"
+          style="width: 250px"
+          @change="handleAggregateChange"
+        >
+          <u-option
+            v-for="option in aggregateOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+    </u-form>
+  </div>
+</template>
 
 <style scoped>
 .chart-dataset {

@@ -1,44 +1,13 @@
-<template>
-  <div class="simple-value-editor">
-
-    <div class="property-quote">
-      {{ t('property.simple.config') }}
-    </div>
-
-    <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="t('property.simple.lineHeight')">
-        <u-input-number
-            v-model="lineHeight"
-            @change="onLineHeightChange"
-            :placeholder="t('property.simple.tip')"
-        />
-      </u-form-item>
-      <u-form-item class="property-label" :label="t('property.simple.content')">
-        <textarea
-          v-model="content"
-          @input="onContentChange"
-          style="width: 220px"
-          class="form-control"
-          rows="3">
-        </textarea>
-      </u-form-item>
-    </u-form>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
-import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils'
-import { setCell, getCell } from '@/utils/contextActions'
+import { useReportStore } from '@/stores/report'
+import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'SimpleValueEditor' })
-
-const { t } = useI18n()
-const store = useReportStore()
 
 const props = withDefaults(defineProps<{
   rowIndex?: number
@@ -49,8 +18,10 @@ const props = withDefaults(defineProps<{
   rowIndex: 0,
   colIndex: 0,
   row2Index: 0,
-  col2Index: 0
+  col2Index: 0,
 })
+const { t } = useI18n()
+const store = useReportStore()
 
 const content = ref('')
 const lineHeight = ref('')
@@ -63,16 +34,13 @@ function loadCellData() {
     return
   }
 
-  if (cellDef && cellDef.value && cellDef.value.value !== undefined) {
-    content.value = cellDef.value.value
-  } else {
-    content.value = ''
-  }
+  content.value = cellDef && cellDef.value && cellDef.value.value !== undefined ? cellDef.value.value : ''
 
   if (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) {
     // @ts-ignore
     lineHeight.value = cellDef.cellStyle.lineHeight
-  } else {
+  }
+  else {
     lineHeight.value = ''
   }
 }
@@ -85,6 +53,7 @@ function onContentChange() {
     if (!newCellDef.value) {
       newCellDef.value = { type: 'simple', value: '' }
     }
+
     newCellDef.value.type = 'simple'
     newCellDef.value.value = content.value
     setCell(props.rowIndex, props.colIndex, newCellDef)
@@ -114,11 +83,7 @@ function onLineHeightChange() {
     if (hot) {
       const td = hot.getCell(props.rowIndex, props.colIndex)
       if (td) {
-        if (lineHeight.value === '') {
-          td.style.lineHeight = ''
-        } else {
-          td.style.lineHeight = lineHeight.value
-        }
+        td.style.lineHeight = lineHeight.value === '' ? '' : lineHeight.value
         hot.render()
       }
     }
@@ -133,6 +98,33 @@ watch(() => props.colIndex, () => { loadCellData() }, { immediate: true })
 
 onMounted(() => { loadCellData() })
 </script>
+
+<template>
+  <div class="simple-value-editor">
+    <div class="property-quote">
+      {{ t('property.simple.config') }}
+    </div>
+
+    <u-form :label-width="100" labelPosition="left">
+      <u-form-item class="property-label" :label="t('property.simple.lineHeight')">
+        <u-input-number
+          v-model="lineHeight"
+          :placeholder="t('property.simple.tip')"
+          @change="onLineHeightChange"
+        />
+      </u-form-item>
+      <u-form-item class="property-label" :label="t('property.simple.content')">
+        <textarea
+          v-model="content"
+          style="width: 220px"
+          class="form-control"
+          rows="3"
+          @input="onContentChange"
+        />
+      </u-form-item>
+    </u-form>
+  </div>
+</template>
 
 <style scoped>
 textarea:focus {

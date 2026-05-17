@@ -1,6 +1,7 @@
-import { createApp, type App } from 'vue'
-import CrossTabWidgetVue from './index.vue'
+import type { App } from 'vue'
+import { createApp } from 'vue'
 import TableManager from '../manager.js'
+import CrossTabWidgetVue from './index.vue'
 
 export default class CrossTabWidget {
   private context: Record<string, unknown>
@@ -29,17 +30,17 @@ export default class CrossTabWidget {
     }
 
     if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container)
+      this.container.remove()
       this.container = null
     }
 
     const td = this.hot.getCell(this.rowIndex, this.colIndex) as HTMLTableCellElement
     while (td.firstChild) {
-      td.removeChild(td.firstChild)
+      td.firstChild.remove()
     }
 
     this.container = document.createElement('div')
-    td.appendChild(this.container)
+    td.append(this.container)
 
     const app = createApp(CrossTabWidgetVue, {
       context: this.context,
@@ -63,8 +64,9 @@ export default class CrossTabWidget {
       this.app = null
       this.vm = null
     }
+
     if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container)
+      this.container.remove()
       this.container = null
     }
   }

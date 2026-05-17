@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
 import type { FormItemContext } from '../form-item/index.vue'
+import { computed, inject } from 'vue'
 
 defineOptions({ name: 'USwitch' })
 
@@ -28,13 +28,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean | string | number]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
 const _activeColor = computed(() =>
-  props.modelValue === props.activeValue && props.activeColor ? props.activeColor : ''
+  props.modelValue === props.activeValue && props.activeColor ? props.activeColor : '',
 )
 const _inactiveColor = computed(() =>
-  props.modelValue === props.inactiveValue && props.inactiveColor ? props.inactiveColor : ''
+  props.modelValue === props.inactiveValue && props.inactiveColor ? props.inactiveColor : '',
 )
 
 function handleClick() {
@@ -56,7 +56,9 @@ function handleClick() {
       class="u-switch-label"
       :class="{ 'u-switch-label-selected': modelValue === inactiveValue }"
       :style="{ color: _inactiveColor }"
-    >{{ inactiveText }}</span>
+    >
+      {{ inactiveText }}
+    </span>
     <span
       class="u-switch-dot"
       :class="{
@@ -72,18 +74,20 @@ function handleClick() {
       class="u-switch-label"
       :class="{ 'u-switch-label-selected': modelValue === activeValue }"
       :style="{ color: _activeColor }"
-    >{{ activeText }}</span>
+    >
+      {{ activeText }}
+    </span>
   </label>
 </template>
 
 <style scoped>
 .u-switch {
   display: inline-block;
-  line-height: 22px
+  line-height: 22px;
 }
 
 .u-switch-input {
-  display: none
+  display: none;
 }
 
 .u-switch-dot {
@@ -97,48 +101,48 @@ function handleClick() {
   border: 1px solid #d8d8d8;
   position: relative;
   cursor: pointer;
-  transition: all .3s
+  transition: all 0.3s;
 }
 
 .u-switch-dot:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 1px;
   left: 1px;
   border-radius: 100%;
-  transition: all .3s;
+  transition: all 0.3s;
   width: 18px;
   height: 18px;
-  background-color: #fff
+  background-color: #fff;
 }
 
 .u-switch-dot-selected {
   background-color: #00554a;
-  border-color: #00554a
+  border-color: #00554a;
 }
 
 .u-switch-dot-selected:after {
   top: 1px;
-  left: 18px
+  left: 18px;
 }
 
 .u-switch-label {
   vertical-align: top;
   display: inline-block;
   line-height: 22px;
-  transition: color .3s
+  transition: color 0.3s;
 }
 
 .u-switch-label-selected {
-  color: #00554a
+  color: #00554a;
 }
 
 .u-switch-disabled {
   cursor: not-allowed;
-  filter: grayscale(70%)
+  filter: grayscale(70%);
 }
 
 .u-switch-dot-disabled {
-  cursor: not-allowed
+  cursor: not-allowed;
 }
 </style>

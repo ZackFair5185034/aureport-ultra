@@ -1,26 +1,29 @@
-<template>
-  <div class="u-tree">
-    <UTreeNode
-      v-for="(item, index) in copyData"
-      :key="index"
-      :node="item"
-      :show-checkbox="showCheckbox"
-      :lazy="lazy"
-      :level="1"
-      :load="load"
-      :node-key="nodeKey"
-    />
-    <div class="u-tree-empty" v-if="!hasData">
-      {{ emptyText }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, provide, nextTick, useSlots, h, type VNode } from 'vue'
+import type { VNode } from 'vue'
+import { computed, h, nextTick, provide, ref, useSlots, watch } from 'vue'
 import { deepCopy } from '../utils'
 
 defineOptions({ name: 'UTree' })
+
+const props = withDefaults(defineProps<{
+  data?: Record<string, unknown>[]
+  showCheckbox?: boolean
+  lazy?: boolean
+  load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
+  defaultExpandedKeys?: unknown[]
+  defaultCheckedKeys?: unknown[]
+  nodeKey?: string
+  renderContent?: (h: Function, context: { node: unknown, data: unknown }) => unknown
+  filterNodeMethod?: (value: string, node: Record<string, unknown>) => boolean
+  emptyText?: string
+}>(), {
+  data: () => [],
+  showCheckbox: false,
+  lazy: false,
+  defaultExpandedKeys: () => [],
+  defaultCheckedKeys: () => [],
+  emptyText: '暂无数据',
+})
 
 export interface TreeNodeData {
   [key: string]: unknown
@@ -47,32 +50,12 @@ export interface TreeContext {
   lazy: boolean
   load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
   nodeKey?: string
-  renderContent?: (h: Function, context: { node: unknown; data: unknown }) => unknown
+  renderContent?: (h: Function, context: { node: unknown, data: unknown }) => unknown
   defaultExpandedKeys: unknown[]
   defaultCheckedKeys: unknown[]
   registerTreeNode: (ref: TreeNodeRef) => void
   renderNodeContent: (treeNode: unknown, node: TreeNodeData) => VNode
 }
-
-const props = withDefaults(defineProps<{
-  data?: Record<string, unknown>[]
-  showCheckbox?: boolean
-  lazy?: boolean
-  load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
-  defaultExpandedKeys?: unknown[]
-  defaultCheckedKeys?: unknown[]
-  nodeKey?: string
-  renderContent?: (h: Function, context: { node: unknown; data: unknown }) => unknown
-  filterNodeMethod?: (value: string, node: Record<string, unknown>) => boolean
-  emptyText?: string
-}>(), {
-  data: () => [],
-  showCheckbox: false,
-  lazy: false,
-  defaultExpandedKeys: () => [],
-  defaultCheckedKeys: () => [],
-  emptyText: '暂无数据',
-})
 
 const slots = useSlots() as Record<string, ((args: Record<string, unknown>) => VNode[]) | undefined>
 
@@ -93,9 +76,11 @@ function renderNodeContent(treeNode: unknown, node: TreeNodeData): VNode {
     const vnodes = defaultSlot({ node: treeNode, data: node })
     return vnodes.length > 1 ? h('span', {}, vnodes) : vnodes[0]
   }
+
   if (props.renderContent) {
     return props.renderContent(h, { node: treeNode, data: node }) as VNode
   }
+
   return h('span', String(node.label ?? ''))
 }
 
@@ -113,7 +98,8 @@ const treeContext: TreeContext = {
 provide('treeContext', treeContext)
 
 function checkUpNodeState(treeNode: TreeNodeRef) {
-  if (!props.nodeKey) return
+  if (!props.nodeKey)
+    return
   if (props.defaultExpandedKeys.length > 0) {
     const key = treeNode.node[props.nodeKey]
     if (key !== undefined && props.defaultExpandedKeys.includes(key)) {
@@ -122,6 +108,7 @@ function checkUpNodeState(treeNode: TreeNodeRef) {
       })
     }
   }
+
   if (props.defaultCheckedKeys.length > 0) {
     const key = treeNode.node[props.nodeKey]
     if (key !== undefined && props.defaultCheckedKeys.includes(key)) {
@@ -140,6 +127,7 @@ function getCheckedNodes(leafOnly?: boolean) {
         label: cell.node.label,
       })
     }
+
     return total
   }, [])
 }
@@ -149,65 +137,90 @@ function getCheckedKeys(leafOnly?: boolean) {
     if (cell.node.checked && (!leafOnly || !cell.node.children || cell.node.isLeaf)) {
       total.push(cell.node[props.nodeKey as string])
     }
+
     return total
   }, [])
 }
 
 function setCheckedNodes(checkedNodes: Record<string, unknown>[]) {
   const nodesMap: Record<string, boolean> = {}
-  checkedNodes.forEach(cell => {
+  for (const cell of checkedNodes) {
     nodesMap[String(cell[props.nodeKey as string])] = true
-  })
-  nodes.value.forEach(cell => {
+  }
+
+  for (const cell of nodes.value) {
     cell.handleCheck(false)
-  })
-  nodes.value.forEach(cell => {
+  }
+
+  for (const cell of nodes.value) {
     const key = String(cell.node[props.nodeKey as string])
     const checked = !!nodesMap[key]
     if (!cell.node.checked) {
       cell.handleCheck(checked)
     }
-  })
+  }
 }
 
 function setCheckedKeys(keys: unknown[], leafOnly?: boolean) {
   const keysMap: Record<string, boolean> = {}
-  keys.forEach(cell => {
+  for (const cell of keys) {
     keysMap[String(cell)] = true
-  })
-  nodes.value.forEach(cell => {
+  }
+
+  for (const cell of nodes.value) {
     cell.handleCheck(false)
-  })
-  nodes.value.forEach(cell => {
+  }
+
+  for (const cell of nodes.value) {
     let checked = !!keysMap[String(cell.node[props.nodeKey as string])]
     if (leafOnly) {
       checked = checked && (!cell.node.children || Boolean(cell.node.isLeaf))
     }
+
     if (!cell.node.checked) {
       cell.handleCheck(checked)
     }
-  })
+  }
 }
 
 function filter(val: string) {
   if (props.filterNodeMethod) {
-    nodes.value.forEach(cell => {
+    for (const cell of nodes.value) {
       cell.node.visible = props.filterNodeMethod!(val, cell.node as Record<string, unknown>)
-    })
+    }
   }
 }
 
 watch(() => props.data, (newVal) => {
   if (props.lazy) {
     if (props.load) {
-      props.load({ level: 0 }, data => {
+      props.load({ level: 0 }, (data) => {
         copyData.value = deepCopy(data) as TreeNodeData[]
       })
     }
-  } else {
+  }
+  else {
     copyData.value = deepCopy(newVal || []) as TreeNodeData[]
   }
 }, { immediate: true, deep: true })
 
 defineExpose({ getCheckedNodes, getCheckedKeys, setCheckedNodes, setCheckedKeys, filter })
 </script>
+
+<template>
+  <div class="u-tree">
+    <UTreeNode
+      v-for="(item, index) in copyData"
+      :key="index"
+      :node="item"
+      :show-checkbox="showCheckbox"
+      :lazy="lazy"
+      :level="1"
+      :load="load"
+      :node-key="nodeKey"
+    />
+    <div v-if="!hasData" class="u-tree-empty">
+      {{ emptyText }}
+    </div>
+  </div>
+</template>

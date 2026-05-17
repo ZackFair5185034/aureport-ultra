@@ -1,34 +1,5 @@
-<template>
-  <UDialog
-    :title="isRow ? t('dialog.rowColNumber.insertRow') : t('dialog.rowColNumber.insertCol')"
-    width="400px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="dialog-content">
-      <u-form :label-width="100">
-        <u-form-item :label="isRow ? t('dialog.rowColNumber.rowCount') : t('dialog.rowColNumber.colCount')">
-          <u-input-number
-            :placeholder="t('dialog.rowColNumber.tip')"
-            v-model="number"
-            :min="1"
-            ref="input"
-            @keyup.enter="handleOk"
-          />
-        </u-form-item>
-      </u-form>
-    </div>
-    <template #footer>
-      <div style="text-align: right">
-        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
-        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
-      </div>
-    </template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 
@@ -54,9 +25,11 @@ function handleOk() {
     showAlert(t('dialog.rowColNumber.numValidate'))
     return
   }
+
   if (typeof callback.value === 'function') {
     callback.value(numValue)
   }
+
   handleClose()
 }
 
@@ -84,6 +57,35 @@ onBeforeUnmount(() => {
 
 defineExpose({ show })
 </script>
+
+<template>
+  <UDialog
+    :title="isRow ? t('dialog.rowColNumber.insertRow') : t('dialog.rowColNumber.insertCol')"
+    width="400px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="dialog-content">
+      <u-form :label-width="100">
+        <u-form-item :label="isRow ? t('dialog.rowColNumber.rowCount') : t('dialog.rowColNumber.colCount')">
+          <u-input-number
+            ref="input"
+            v-model="number"
+            :placeholder="t('dialog.rowColNumber.tip')"
+            :min="1"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+      </u-form>
+    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 </style>

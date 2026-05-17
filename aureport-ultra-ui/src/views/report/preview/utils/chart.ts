@@ -13,6 +13,7 @@ export function convertChartConfig(chartJson: Record<string, any>): Record<strin
       options.scales.x = options.scales.xAxes[0]
       delete options.scales.xAxes
     }
+
     if (options.scales.yAxes && options.scales.yAxes.length > 0) {
       options.scales.y = options.scales.yAxes[0]
       delete options.scales.yAxes
@@ -39,25 +40,29 @@ export function convertChartConfig(chartJson: Record<string, any>): Record<strin
   return chartJson
 }
 
-export function buildChartDatas(chartData: Array<{ id: string; json: string }>): void {
-  if (!chartData) return
+export function buildChartDatas(chartData: Array<{ id: string, json: string }>): void {
+  if (!chartData)
+    return
   for (const d of chartData) {
     let json: any = d.json
     if (json) {
       json = JSON.parse(json, (_k: string, v: any) => {
-        if (v && typeof v === 'string' && v.indexOf('function') > -1) {
-          return eval('(function(){return ' + v + ' })()')
+        if (v && typeof v === 'string' && v.includes('function')) {
+          return eval(`(function(){return ${v} })()`)
         }
+
         return v
       }) as Record<string, any>
     }
+
     buildChart(d.id, json)
   }
 }
 
 export async function buildChart(canvasId: string, chartJson: Record<string, any>): Promise<Chart | undefined> {
   const ctx = document.getElementById(canvasId) as HTMLCanvasElement | null
-  if (!ctx) return
+  if (!ctx)
+    return
 
   chartJson = convertChartConfig(chartJson)
 
@@ -72,7 +77,8 @@ export async function buildChart(canvasId: string, chartJson: Record<string, any
       const base64Image = chart.toBase64Image()
       const urlParameters = window.location.search
       const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null
-      if (!canvas) return
+      if (!canvas)
+        return
 
       const width = parseInt(canvas.style.width) || canvas.width
       const height = parseInt(canvas.style.height) || canvas.height
@@ -83,13 +89,14 @@ export async function buildChart(canvasId: string, chartJson: Record<string, any
       formData.append('_width', String(width))
       formData.append('_height', String(height))
 
-      const params = new URLSearchParams(urlParameters.substring(1))
+      const params = new URLSearchParams(urlParameters.slice(1))
       for (const [key, value] of params.entries()) {
         formData.append(key, value)
       }
 
       await storeChartData(formData)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('存储图表数据失败:', error)
     }
   }

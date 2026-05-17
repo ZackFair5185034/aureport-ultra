@@ -1,213 +1,16 @@
-<template>
-  <div>
-    <u-form :label-width="100" labelPosition="left">
-      <u-form-item class="property-label" :label="t('property.dataset.dataset')" style="margin-top: 10px">
-        <u-select
-            v-model="internalSelectedDataset"
-            :clearable="true"
-            style="width:250px"
-            @change="handleDatasetChange"
-        >
-          <u-option
-              v-for="option in datasetOptions"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.property')">
-        <u-select
-            v-model="internalSelectedProperty"
-            :clearable="true"
-            style="width:250px"
-            @change="handlePropertyChange"
-        >
-          <u-option
-              v-for="option in propertyOptions"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.aggregateType')">
-        <u-select
-            v-model="internalSelectedAggregate"
-            :clearable="true"
-            style="width:250px"
-            @change="handleAggregateChange"
-        >
-          <u-option
-              v-for="option in aggregateOptions"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label"
-          />
-        </u-select>
-        <u-button
-            style="margin-left: 5px"
-            v-show="internalSelectedAggregate === 'customgroup'"
-            @click="handleCustomGroupConfig"
-        >
-          {{ t('property.dataset.configCustomGroup') }}
-        </u-button>
-      </u-form-item>
-
-      <u-form-item class="property-label">
-        <u-checkbox-group>
-          <u-checkbox
-              v-model="internalGroupHead"
-              :disabled="internalSelectedAggregate !== 'grouphead'"
-              @change="handleGroupHeadChange"
-          >
-            {{ t('property.dataset.groupHead') }}
-          </u-checkbox>
-          <u-checkbox
-              v-model="internalGroupFoot"
-              :disabled="internalSelectedAggregate !== 'groupfoot'"
-              style="margin-left: 20px"
-              @change="handleGroupFootChange"
-          >
-            {{ t('property.dataset.groupFoot') }}
-          </u-checkbox>
-        </u-checkbox-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.nestProperty')" v-show="internalSelectedAggregate === 'iterate'">
-        <u-input
-            v-model="internalNestProperty"
-            :clearable="true"
-            style="width:250px"
-            :placeholder="t('property.dataset.nestPropertyTip')"
-            @change="handleNestPropertyChange"
-        />
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.sortType')" v-show="internalShowSortOptions">
-        <u-radio-group v-model="internalSelectedSort" @change="handleSortChange">
-          <u-radio
-              v-for="option in sortOptions"
-              :key="option.value"
-              :label="option.value"
-          >
-            {{ option.label }}
-          </u-radio>
-        </u-radio-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.expand')" v-show="internalShowExpandOptions">
-        <u-radio-group :value="internalSelectedExpand" @change="handleExpandChange">
-          <u-radio
-              v-for="option in expandOptions"
-              :key="option.value"
-              :label="option.value"
-          >
-            {{ option.label }}
-          </u-radio>
-        </u-radio-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.dataset.lineHeight')">
-        <u-input-number
-            :placeholder="t('property.dataset.lineHeightTip')"
-            v-model="internalLineHeight"
-            @change="handleLineHeightChange"
-        />
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.base.newLineCompute')">
-        <u-radio-group v-model="internalWrapCompute" @change="handleWrapComputeChange">
-          <u-radio
-              v-for="option in wrapComputeOptions"
-              :key="option.value"
-              :label="option.value"
-          >
-            {{ option.label }}
-          </u-radio>
-        </u-radio-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.base.format')">
-        <vue-simple-suggest
-            :model-value="internalFormat"
-            :list="suggestionList"
-            :filter-by-query="true"
-            :placeholder="t('property.base.formatTip')"
-            class="simple-suggest"
-            @update:model-value="handleFormatChange"
-        ></vue-simple-suggest>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.base.fillBlank')">
-        <u-radio-group v-model="internalFillBlankRows" @change="handleFillBlankRowsChange">
-          <u-radio
-              v-for="option in fillBlankRowsOptions"
-              :key="option.value"
-              :label="option.value"
-          >
-            {{ option.label }}
-          </u-radio>
-        </u-radio-group>
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.base.rowTimes')" v-show="internalFillBlankRows === 'default'">
-        <u-input-number
-            v-model="internalMultiple"
-            @change="handleMultipleChange"
-        />
-      </u-form-item>
-
-      <u-form-item class="property-label" :label="t('property.base.conditionProp')">
-        <u-button
-            type="info"
-            size="mini"
-            icon="icon-filter"
-            @click="handleConditionPropertyConfig"
-        >
-          {{ t('property.base.configCondition') }}
-        </u-button>
-      </u-form-item>
-    </u-form>
-
-    <!-- 自定义分组对话框组件 -->
-    <CustomGroupDialog
-      v-model:visible="customGroupDialogVisible"
-      :group-items="groupItems"
-      :fields="customGroupDialogFields"
-      @save="handleCustomGroupSave"
-    />
-
-    <!-- 属性条件对话框组件 -->
-    <PropertyConditionDialog
-        v-model:visible="propertyConditionDialogVisible"
-        :dataset-name="propertyConditionDialogDatasetName"
-        :condition-property-items="propertyConditionDialogItems"
-        @saveAfter="handlePropertyConditionSave"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
-import PropertyConditionDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/index.vue'
-import CustomGroupDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-dialog/index.vue'
-import { setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
 import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { deepCopy } from '@/components/utils/index'
+import { useReportStore } from '@/stores/report'
+import { showAlert } from '@/utils/comnon'
+import { setDirty } from '@/utils/table'
+import CustomGroupDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-dialog/index.vue'
+import PropertyConditionDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/index.vue'
 import '@ffrosch/vue-simple-suggest/style.css'
 
 defineOptions({ name: 'DatasetConfigTab' })
-
-const { t } = useI18n()
-const store = useReportStore()
-const context = computed(() => store.context)
-const datasources = computed(() => context.value!.reportDef.datasources || [])
 
 const props = withDefaults(defineProps<{
   datasets?: any[]
@@ -248,9 +51,8 @@ const props = withDefaults(defineProps<{
   conditionPropertyItems: () => [],
   selectedNestProperty: '',
   groupHead: false,
-  groupFoot: false
+  groupFoot: false,
 })
-
 const emit = defineEmits<{
   (e: 'update:selectedDataset', value: string): void
   (e: 'update:selectedProperty', value: string): void
@@ -281,6 +83,10 @@ const emit = defineEmits<{
   (e: 'condition-property-items-change', value: any[]): void
   (e: 'update-custom-group', value: any[]): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context)
+const datasources = computed(() => context.value!.reportDef.datasources || [])
 
 const internalSelectedDataset = ref('')
 const internalSelectedProperty = ref('')
@@ -304,25 +110,39 @@ const propertyConditionDialogItems = ref<any[]>([])
 const customGroupDialogVisible = ref(false)
 const customGroupDialogFields = ref<any[] | null>(null)
 const suggestionList = ref<string[]>([
-  "yyyy/MM/dd", "yyyy/MM", "yyyy-MM", "yyyy",
-  "yyyy-MM-dd HH:mm:ss", "yyyy年MM月dd日 HH:mm:ss",
-  "yyyy-MM-dd", "yyyy年MM月dd日", "HH:mm", "HH:mm:ss",
-  "#.##", "#.00", "##.##%", "##.00%", "##,###.##",
-  "￥##,###.##", "$##,###.##", "0.00E00", "##0.0E0"
+  'yyyy/MM/dd',
+  'yyyy/MM',
+  'yyyy-MM',
+  'yyyy',
+  'yyyy-MM-dd HH:mm:ss',
+  'yyyy年MM月dd日 HH:mm:ss',
+  'yyyy-MM-dd',
+  'yyyy年MM月dd日',
+  'HH:mm',
+  'HH:mm:ss',
+  '#.##',
+  '#.00',
+  '##.##%',
+  '##.00%',
+  '##,###.##',
+  '￥##,###.##',
+  '$##,###.##',
+  '0.00E00',
+  '##0.0E0',
 ])
 
 const datasetOptions = computed(() =>
   props.datasets.map((dataset: any) => ({
     value: dataset.name,
-    label: dataset.name
-  }))
+    label: dataset.name,
+  })),
 )
 
 const propertyOptions = computed(() =>
   props.currentFields.map((field: any) => ({
     value: field.name,
-    label: field.name
-  }))
+    label: field.name,
+  })),
 )
 
 const aggregateOptions = computed(() => [
@@ -336,29 +156,29 @@ const aggregateOptions = computed(() => [
   { value: 'count', label: t('property.dataset.count') },
   { value: 'max', label: t('property.dataset.max') },
   { value: 'min', label: t('property.dataset.min') },
-  { value: 'avg', label: t('property.dataset.avg') }
+  { value: 'avg', label: t('property.dataset.avg') },
 ])
 
 const sortOptions = computed(() => [
   { value: 'none', label: t('property.dataset.notSort') },
   { value: 'asc', label: t('property.dataset.asc') },
-  { value: 'desc', label: t('property.dataset.desc') }
+  { value: 'desc', label: t('property.dataset.desc') },
 ])
 
 const expandOptions = computed(() => [
   { value: 'Down', label: t('property.dataset.down') },
   { value: 'Right', label: t('property.dataset.right') },
-  { value: 'None', label: t('property.dataset.noneExpand') }
+  { value: 'None', label: t('property.dataset.noneExpand') },
 ])
 
 const wrapComputeOptions = computed(() => [
   { value: 'default', label: t('property.base.open') },
-  { value: 'custom', label: t('property.base.close') }
+  { value: 'custom', label: t('property.base.close') },
 ])
 
 const fillBlankRowsOptions = computed(() => [
   { value: 'default', label: t('property.base.open') },
-  { value: 'custom', label: t('property.base.close') }
+  { value: 'custom', label: t('property.base.close') },
 ])
 
 watch(() => props.selectedDataset, (val) => { internalSelectedDataset.value = val })
@@ -415,12 +235,13 @@ function handlePropertyChange() {
 }
 
 function handleAggregateChange() {
-  if (internalSelectedAggregate.value === 'sum' || internalSelectedAggregate.value === 'count' ||
-      internalSelectedAggregate.value === 'max' || internalSelectedAggregate.value === 'min' ||
-      internalSelectedAggregate.value === 'avg') {
+  if (internalSelectedAggregate.value === 'sum' || internalSelectedAggregate.value === 'count'
+    || internalSelectedAggregate.value === 'max' || internalSelectedAggregate.value === 'min'
+    || internalSelectedAggregate.value === 'avg') {
     internalShowSortOptions.value = false
     internalShowExpandOptions.value = false
-  } else {
+  }
+  else {
     internalShowSortOptions.value = true
     internalShowExpandOptions.value = true
   }
@@ -431,7 +252,7 @@ function handleAggregateChange() {
   emit('aggregate-change', {
     aggregate: internalSelectedAggregate.value,
     showSortOptions: internalShowSortOptions.value,
-    showExpandOptions: internalShowExpandOptions.value
+    showExpandOptions: internalShowExpandOptions.value,
   })
 }
 
@@ -459,7 +280,8 @@ function handleWrapComputeChange() {
 }
 
 function handleFormatChange(value: string) {
-  if (!isInitialized.value) return
+  if (!isInitialized.value)
+    return
   internalFormat.value = value
   emit('update:format', internalFormat.value)
   emit('format-change', internalFormat.value)
@@ -471,7 +293,8 @@ function handleFillBlankRowsChange() {
 }
 
 function handleMultipleChange() {
-  if (!isInitialized.value) return
+  if (!isInitialized.value)
+    return
   emit('update:multiple', internalMultiple.value)
   emit('multiple-change', internalMultiple.value)
 }
@@ -504,6 +327,7 @@ function handleCustomGroupConfig() {
     customGroupDialogFields.value = fields
     customGroupDialogVisible.value = true
   }
+
   setDirty()
 }
 
@@ -513,13 +337,15 @@ function handleCustomGroupSave(groupItems: any[]) {
 }
 
 function handleGroupHeadChange() {
-  if (!isInitialized.value) return
+  if (!isInitialized.value)
+    return
   emit('update:groupHead', internalGroupHead.value)
   setDirty()
 }
 
 function handleGroupFootChange() {
-  if (!isInitialized.value) return
+  if (!isInitialized.value)
+    return
   emit('update:groupFoot', internalGroupFoot.value)
   setDirty()
 }
@@ -530,24 +356,219 @@ function _buildFields(): any[] | null {
     showAlert(t('property.dataset.bindDatasetTip'))
     return null
   }
-  for (let ds of datasources.value) {
-    let datasets = ds.datasets || []
-    for (let dataset of datasets) {
+
+  for (const ds of datasources.value) {
+    const datasets = ds.datasets || []
+    for (const dataset of datasets) {
       if (dataset.name === internalSelectedDataset.value) {
         fields = dataset.fields || []
         break
       }
     }
+
     if (fields.length > 0) {
       break
     }
   }
+
   return fields
 }
 </script>
 
+<template>
+  <div>
+    <u-form :label-width="100" labelPosition="left">
+      <u-form-item class="property-label" :label="t('property.dataset.dataset')" style="margin-top: 10px">
+        <u-select
+          v-model="internalSelectedDataset"
+          :clearable="true"
+          style="width:250px"
+          @change="handleDatasetChange"
+        >
+          <u-option
+            v-for="option in datasetOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.dataset.property')">
+        <u-select
+          v-model="internalSelectedProperty"
+          :clearable="true"
+          style="width:250px"
+          @change="handlePropertyChange"
+        >
+          <u-option
+            v-for="option in propertyOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.dataset.aggregateType')">
+        <u-select
+          v-model="internalSelectedAggregate"
+          :clearable="true"
+          style="width:250px"
+          @change="handleAggregateChange"
+        >
+          <u-option
+            v-for="option in aggregateOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
+        <u-button
+          v-show="internalSelectedAggregate === 'customgroup'"
+          style="margin-left: 5px"
+          @click="handleCustomGroupConfig"
+        >
+          {{ t('property.dataset.configCustomGroup') }}
+        </u-button>
+      </u-form-item>
+
+      <u-form-item class="property-label">
+        <u-checkbox-group>
+          <u-checkbox
+            v-model="internalGroupHead"
+            :disabled="internalSelectedAggregate !== 'grouphead'"
+            @change="handleGroupHeadChange"
+          >
+            {{ t('property.dataset.groupHead') }}
+          </u-checkbox>
+          <u-checkbox
+            v-model="internalGroupFoot"
+            :disabled="internalSelectedAggregate !== 'groupfoot'"
+            style="margin-left: 20px"
+            @change="handleGroupFootChange"
+          >
+            {{ t('property.dataset.groupFoot') }}
+          </u-checkbox>
+        </u-checkbox-group>
+      </u-form-item>
+
+      <u-form-item v-show="internalSelectedAggregate === 'iterate'" class="property-label" :label="t('property.dataset.nestProperty')">
+        <u-input
+          v-model="internalNestProperty"
+          :clearable="true"
+          style="width:250px"
+          :placeholder="t('property.dataset.nestPropertyTip')"
+          @change="handleNestPropertyChange"
+        />
+      </u-form-item>
+
+      <u-form-item v-show="internalShowSortOptions" class="property-label" :label="t('property.dataset.sortType')">
+        <u-radio-group v-model="internalSelectedSort" @change="handleSortChange">
+          <u-radio
+            v-for="option in sortOptions"
+            :key="option.value"
+            :label="option.value"
+          >
+            {{ option.label }}
+          </u-radio>
+        </u-radio-group>
+      </u-form-item>
+
+      <u-form-item v-show="internalShowExpandOptions" class="property-label" :label="t('property.dataset.expand')">
+        <u-radio-group :value="internalSelectedExpand" @change="handleExpandChange">
+          <u-radio
+            v-for="option in expandOptions"
+            :key="option.value"
+            :label="option.value"
+          >
+            {{ option.label }}
+          </u-radio>
+        </u-radio-group>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.dataset.lineHeight')">
+        <u-input-number
+          v-model="internalLineHeight"
+          :placeholder="t('property.dataset.lineHeightTip')"
+          @change="handleLineHeightChange"
+        />
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.base.newLineCompute')">
+        <u-radio-group v-model="internalWrapCompute" @change="handleWrapComputeChange">
+          <u-radio
+            v-for="option in wrapComputeOptions"
+            :key="option.value"
+            :label="option.value"
+          >
+            {{ option.label }}
+          </u-radio>
+        </u-radio-group>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.base.format')">
+        <VueSimpleSuggest
+          :model-value="internalFormat"
+          :list="suggestionList"
+          :filter-by-query="true"
+          :placeholder="t('property.base.formatTip')"
+          class="simple-suggest"
+          @update:model-value="handleFormatChange"
+        />
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.base.fillBlank')">
+        <u-radio-group v-model="internalFillBlankRows" @change="handleFillBlankRowsChange">
+          <u-radio
+            v-for="option in fillBlankRowsOptions"
+            :key="option.value"
+            :label="option.value"
+          >
+            {{ option.label }}
+          </u-radio>
+        </u-radio-group>
+      </u-form-item>
+
+      <u-form-item v-show="internalFillBlankRows === 'default'" class="property-label" :label="t('property.base.rowTimes')">
+        <u-input-number
+          v-model="internalMultiple"
+          @change="handleMultipleChange"
+        />
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.base.conditionProp')">
+        <u-button
+          type="info"
+          size="mini"
+          icon="icon-filter"
+          @click="handleConditionPropertyConfig"
+        >
+          {{ t('property.base.configCondition') }}
+        </u-button>
+      </u-form-item>
+    </u-form>
+
+    <!-- 自定义分组对话框组件 -->
+    <CustomGroupDialog
+      v-model:visible="customGroupDialogVisible"
+      :group-items="groupItems"
+      :fields="customGroupDialogFields"
+      @save="handleCustomGroupSave"
+    />
+
+    <!-- 属性条件对话框组件 -->
+    <PropertyConditionDialog
+      v-model:visible="propertyConditionDialogVisible"
+      :dataset-name="propertyConditionDialogDatasetName"
+      :condition-property-items="propertyConditionDialogItems"
+      @saveAfter="handlePropertyConditionSave"
+    />
+  </div>
+</template>
+
 <style scoped>
-.simple-suggest :deep(.default-input){
+.simple-suggest :deep(.default-input) {
   width: 250px !important;
   height: 35px;
   display: inline-block;

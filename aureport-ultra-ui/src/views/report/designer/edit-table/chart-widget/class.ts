@@ -1,4 +1,5 @@
-import { createApp, type App } from 'vue'
+import type { App } from 'vue'
+import { createApp } from 'vue'
 import ChartWidgetVue from './index.vue'
 import chartWidgetManager from './manager.js'
 
@@ -15,7 +16,8 @@ export default class ChartWidget {
   }
 
   renderChart(container?: HTMLElement, context?: Record<string, unknown>, rowIndex?: number, colIndex?: number) {
-    if (container) this.container = container
+    if (container)
+      this.container = container
     if (!this.container) {
       console.error('Container element not provided for Class')
       return
@@ -29,7 +31,7 @@ export default class ChartWidget {
     this.container.innerHTML = ''
     const mountPoint = document.createElement('div')
     mountPoint.className = 'test'
-    this.container.appendChild(mountPoint)
+    this.container.append(mountPoint)
 
     const app = createApp(ChartWidgetVue, {
       context: context || {},
@@ -49,6 +51,7 @@ export default class ChartWidget {
       this.app.unmount()
       this.app = null
     }
+
     const widgetKey = `${this.rowIndex}_${this.colIndex}`
     chartWidgetManager.remove(widgetKey)
   }
@@ -61,5 +64,5 @@ export default class ChartWidget {
   green: 'rgb(75, 192, 192)',
   blue: 'rgb(54, 162, 235)',
   purple: 'rgb(153, 102, 255)',
-  grey: 'rgb(201, 203, 207)'
+  grey: 'rgb(201, 203, 207)',
 }

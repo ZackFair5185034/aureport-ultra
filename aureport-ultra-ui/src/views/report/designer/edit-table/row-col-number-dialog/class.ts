@@ -1,11 +1,12 @@
-import { createApp, type App } from 'vue'
-import RowColNumberDialogVue from './index.vue'
-import i18n from '@/locales'
-import UDialog from '@/components/dialog/index.vue'
-import UForm from '@/components/form/index.vue'
-import UFormItem from '@/components/form-item/index.vue'
-import UInputNumber from '@/components/input-number/index.vue'
+import type { App } from 'vue'
+import { createApp } from 'vue'
 import UButton from '@/components/button/index.vue'
+import UDialog from '@/components/dialog/index.vue'
+import UFormItem from '@/components/form-item/index.vue'
+import UForm from '@/components/form/index.vue'
+import UInputNumber from '@/components/input-number/index.vue'
+import i18n from '@/locales'
+import RowColNumberDialogVue from './index.vue'
 
 export default class RowColNumberDialog {
   private app: App<Element> | null = null
@@ -13,7 +14,7 @@ export default class RowColNumberDialog {
 
   constructor() {
     const mountPoint = document.createElement('div')
-    document.body.appendChild(mountPoint)
+    document.body.append(mountPoint)
 
     const app = createApp(RowColNumberDialogVue)
     app.use(i18n)

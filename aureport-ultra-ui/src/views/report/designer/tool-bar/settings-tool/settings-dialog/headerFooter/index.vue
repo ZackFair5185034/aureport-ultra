@@ -1,107 +1,17 @@
-<template>
-  <div>
-    <div class="form-group form-group-hf-desc">
-      {{ $t('dialog.setting.hfdesc') }}
-    </div>
-
-    <div>
-      <label>{{ $t('dialog.setting.header') }}：</label>
-      <u-button
-          class="btn-hf-setting"
-          @click="handleOpenHeaderFontDialog">
-        {{ $t('dialog.setting.fontStyleSetting') }}
-      </u-button>
-
-      <span class="span-hf-margin">
-        <span>{{ $t('dialog.setting.headerMargin') }}：</span>
-      </span>
-      <div class="u-inline">
-        <u-input-number
-          :value="headerMargin"
-          @change="handleHeaderMarginChange"
-        />
-      </div>
-    </div>
-
-    <div class="form-group" style="margin-top:10px">
-      <label class="label-align-top">{{ $t('dialog.setting.hfLeft') }}：</label>
-      <textarea
-        ref="leftHeader"
-        :value="localHeader.left"
-        class="form-control editor-textarea"
-        @change="handleHeaderLeftChange"
-      ></textarea>
-
-      <span class="span-align-top">{{ $t('dialog.setting.hfCenter') }}：</span>
-      <textarea
-        ref="centerHeader"
-        :value="localHeader.center"
-        class="form-control editor-textarea"
-        @change="handleHeaderCenterChange"
-      ></textarea>
-
-      <span class="span-align-top">{{ $t('dialog.setting.hfRight') }}：</span>
-      <textarea
-        ref="rightHeader"
-        :value="localHeader.right"
-        class="form-control editor-textarea"
-        @change="handleHeaderRightChange"
-      ></textarea>
-    </div>
-
-    <div class="div-footer-section">
-      <label>{{ $t('dialog.setting.footer') }}：</label>
-      <u-button
-          class="btn-hf-setting"
-          @click="handleOpenFooterFontDialog">
-        {{ $t('dialog.setting.fontStyleSetting') }}
-      </u-button>
-
-      <span class="span-hf-margin">
-        <span>{{ $t('dialog.setting.footerMargin') }}：</span>
-      </span>
-      <div class="u-inline">
-        <u-input-number
-          :value="footerMargin"
-          @change="handleFooterMarginChange"
-        />
-      </div>
-    </div>
-
-    <div class="form-group" style="margin-top:10px">
-      <label class="label-align-top">{{ $t('dialog.setting.hfLeft') }}：</label>
-      <textarea
-        ref="leftFooter"
-        :value="localFooter.left"
-        class="form-control editor-textarea"
-        @change="handleFooterLeftChange"
-      ></textarea>
-
-      <span class="span-align-top">{{ $t('dialog.setting.hfCenter') }}：</span>
-      <textarea
-        ref="centerFooter"
-        :value="localFooter.center"
-        class="form-control editor-textarea"
-        @change="handleFooterCenterChange"
-      ></textarea>
-
-      <span class="span-align-top">{{ $t('dialog.setting.hfRight') }}：</span>
-      <textarea
-        ref="rightFooter"
-        :value="localFooter.right"
-        class="form-control editor-textarea"
-        @change="handleFooterRightChange"
-      ></textarea>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { pointToMM, mmToPoint } from '@/utils/table'
+import { mmToPoint, pointToMM } from '@/utils/table'
 
 defineOptions({ name: 'HeaderFooterSettings' })
+
+const props = withDefaults(defineProps<{
+  header?: any
+  footer?: any
+}>(), {
+  header: () => ({}),
+  footer: () => ({}),
+})
 
 const emit = defineEmits<{
   (e: 'open-header-font-dialog'): void
@@ -112,14 +22,6 @@ const emit = defineEmits<{
   (e: 'footer-margin-change'): void
   (e: 'header-footer-change'): void
 }>()
-
-const props = withDefaults(defineProps<{
-  header?: any
-  footer?: any
-}>(), {
-  header: () => ({}),
-  footer: () => ({})
-})
 
 const { t } = useI18n()
 
@@ -152,6 +54,7 @@ onMounted(() => {
 })
 
 function handleOpenHeaderFontDialog() { emit('open-header-font-dialog') }
+
 function handleOpenFooterFontDialog() { emit('open-footer-font-dialog') }
 
 function handleHeaderMarginChange(value: number) {
@@ -206,27 +109,129 @@ function handleFooterRightChange(event: Event) {
 
 function setHeaderEditorStyles() {
   const editors = [leftHeader.value, centerHeader.value, rightHeader.value]
-  editors.forEach(editor => {
-    if (editor) applyEditorStyle(editor, localHeader.value)
-  })
+  for (const editor of editors) {
+    if (editor)
+      applyEditorStyle(editor, localHeader.value)
+  }
 }
 
 function setFooterEditorStyles() {
   const editors = [leftFooter.value, centerFooter.value, rightFooter.value]
-  editors.forEach(editor => {
-    if (editor) applyEditorStyle(editor, localFooter.value)
-  })
+  for (const editor of editors) {
+    if (editor)
+      applyEditorStyle(editor, localFooter.value)
+  }
 }
 
 function applyEditorStyle(editor: HTMLTextAreaElement, style: any) {
   editor.style.fontFamily = style.fontFamily
-  editor.style.fontSize = style.fontSize + 'pt'
+  editor.style.fontSize = `${style.fontSize}pt`
   editor.style.color = `rgb(${style.forecolor})`
   editor.style.fontWeight = style.bold && style.bold !== 'false' ? 'bold' : 'normal'
   editor.style.fontStyle = style.italic && style.italic !== 'false' ? 'italic' : 'normal'
   editor.style.textDecoration = style.underline && style.underline !== 'false' ? 'underline' : 'none'
 }
 </script>
+
+<template>
+  <div>
+    <div class="form-group form-group-hf-desc">
+      {{ $t('dialog.setting.hfdesc') }}
+    </div>
+
+    <div>
+      <label>{{ $t('dialog.setting.header') }}：</label>
+      <u-button
+        class="btn-hf-setting"
+        @click="handleOpenHeaderFontDialog"
+      >
+        {{ $t('dialog.setting.fontStyleSetting') }}
+      </u-button>
+
+      <span class="span-hf-margin">
+        <span>{{ $t('dialog.setting.headerMargin') }}：</span>
+      </span>
+      <div class="u-inline">
+        <u-input-number
+          :value="headerMargin"
+          @change="handleHeaderMarginChange"
+        />
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:10px">
+      <label class="label-align-top">{{ $t('dialog.setting.hfLeft') }}：</label>
+      <textarea
+        ref="leftHeader"
+        :value="localHeader.left"
+        class="form-control editor-textarea"
+        @change="handleHeaderLeftChange"
+      />
+
+      <span class="span-align-top">{{ $t('dialog.setting.hfCenter') }}：</span>
+      <textarea
+        ref="centerHeader"
+        :value="localHeader.center"
+        class="form-control editor-textarea"
+        @change="handleHeaderCenterChange"
+      />
+
+      <span class="span-align-top">{{ $t('dialog.setting.hfRight') }}：</span>
+      <textarea
+        ref="rightHeader"
+        :value="localHeader.right"
+        class="form-control editor-textarea"
+        @change="handleHeaderRightChange"
+      />
+    </div>
+
+    <div class="div-footer-section">
+      <label>{{ $t('dialog.setting.footer') }}：</label>
+      <u-button
+        class="btn-hf-setting"
+        @click="handleOpenFooterFontDialog"
+      >
+        {{ $t('dialog.setting.fontStyleSetting') }}
+      </u-button>
+
+      <span class="span-hf-margin">
+        <span>{{ $t('dialog.setting.footerMargin') }}：</span>
+      </span>
+      <div class="u-inline">
+        <u-input-number
+          :value="footerMargin"
+          @change="handleFooterMarginChange"
+        />
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:10px">
+      <label class="label-align-top">{{ $t('dialog.setting.hfLeft') }}：</label>
+      <textarea
+        ref="leftFooter"
+        :value="localFooter.left"
+        class="form-control editor-textarea"
+        @change="handleFooterLeftChange"
+      />
+
+      <span class="span-align-top">{{ $t('dialog.setting.hfCenter') }}：</span>
+      <textarea
+        ref="centerFooter"
+        :value="localFooter.center"
+        class="form-control editor-textarea"
+        @change="handleFooterCenterChange"
+      />
+
+      <span class="span-align-top">{{ $t('dialog.setting.hfRight') }}：</span>
+      <textarea
+        ref="rightFooter"
+        :value="localFooter.right"
+        class="form-control editor-textarea"
+        @change="handleFooterRightChange"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .form-group-hf-desc {

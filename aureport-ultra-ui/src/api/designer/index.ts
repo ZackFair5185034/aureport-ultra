@@ -1,5 +1,5 @@
-import { post, get } from '@/utils/request'
-import type { ProviderItem, ReportFile, DatasourceItem } from '@/types'
+import type { DatasourceItem, ProviderItem, ReportFile } from '@/types'
+import { get, post } from '@/utils/request'
 
 export function loadReport(formData: FormData): Promise<unknown> {
   return post('/designer/loadReport', formData, {
@@ -19,10 +19,12 @@ export function previewData(parameters: Record<string, unknown>): Promise<unknow
     const value = parameters[key]
     if (typeof value === 'object' && value !== null) {
       formData.append(key, JSON.stringify(value))
-    } else {
+    }
+    else {
       formData.append(key, String(value))
     }
   }
+
   return post('/datasource/previewData', formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
@@ -37,6 +39,7 @@ export function buildFields(parameters: Record<string, unknown>): Promise<unknow
   for (const key in parameters) {
     formData.append(key, String(parameters[key]))
   }
+
   return post('/datasource/buildFields', formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
@@ -63,6 +66,7 @@ export function buildDatabaseTables(parameters: Record<string, unknown>): Promis
   for (const key in parameters) {
     formData.append(key, String(parameters[key]))
   }
+
   return post('/datasource/buildDatabaseTables', formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
@@ -73,6 +77,7 @@ export function buildJdbcFields(parameters: Record<string, unknown>): Promise<un
   for (const key in parameters) {
     formData.append(key, String(parameters[key]))
   }
+
   return post('/datasource/buildFields', formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })

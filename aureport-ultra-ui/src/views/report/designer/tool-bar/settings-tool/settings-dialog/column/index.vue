@@ -1,3 +1,68 @@
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { mmToPoint, pointToMM } from '@/utils/table'
+
+defineOptions({ name: 'ColumnSettings' })
+
+const props = withDefaults(defineProps<{
+  paper?: any
+}>(), {
+  paper: () => ({}),
+})
+
+const emit = defineEmits<{
+  (e: 'update:paper', value: any): void
+  (e: 'column-enabled-change'): void
+  (e: 'column-count-change'): void
+  (e: 'column-margin-change'): void
+}>()
+
+const { t } = useI18n()
+
+const localPaper = ref({ ...props.paper })
+
+const columnMargin = computed(() => pointToMM(localPaper.value.columnMargin))
+
+const columnCountOptions = computed(() => {
+  const options = []
+  for (let i = 1; i <= 9; i++) {
+    options.push({
+      value: i + 1,
+      label: `${i + 1}${t('dialog.setting.columnUnit')}`,
+    })
+  }
+
+  return options
+})
+
+const columnEnabledOptions = computed(() => [
+  { value: false, label: t('dialog.setting.disable') },
+  { value: true, label: t('dialog.setting.enable') },
+])
+
+watch(() => props.paper, (newVal) => {
+  localPaper.value = { ...newVal }
+}, { deep: true })
+
+function handleColumnEnabledChange(value: boolean) {
+  emit('update:paper', { ...localPaper.value, columnEnabled: value })
+  emit('column-enabled-change')
+}
+
+function handleColumnCountChange(value: number) {
+  emit('update:paper', { ...localPaper.value, columnCount: value })
+  emit('column-count-change')
+}
+
+function handleColumnMarginChange(value: number) {
+  if (!isNaN(value)) {
+    emit('update:paper', { ...localPaper.value, columnMargin: mmToPoint(value) })
+    emit('column-margin-change')
+  }
+}
+</script>
+
 <template>
   <div>
     <div class="div-col-desc">{{ $t('dialog.setting.colDesc') }}</div>
@@ -6,13 +71,13 @@
       <label>{{ $t('dialog.setting.column') }}：</label>
       <div class="u-inline">
         <u-radio-group
-            :value="localPaper.columnEnabled"
-            @change="handleColumnEnabledChange"
+          :value="localPaper.columnEnabled"
+          @change="handleColumnEnabledChange"
         >
           <u-radio
-              v-for="option in columnEnabledOptions"
-              :key="option.value"
-              :label="option.value"
+            v-for="option in columnEnabledOptions"
+            :key="option.value"
+            :label="option.value"
           >
             {{ option.label }}
           </u-radio>
@@ -50,70 +115,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { pointToMM, mmToPoint } from '@/utils/table'
-
-defineOptions({ name: 'ColumnSettings' })
-
-const emit = defineEmits<{
-  (e: 'update:paper', value: any): void
-  (e: 'column-enabled-change'): void
-  (e: 'column-count-change'): void
-  (e: 'column-margin-change'): void
-}>()
-
-const props = withDefaults(defineProps<{
-  paper?: any
-}>(), {
-  paper: () => ({})
-})
-
-const { t } = useI18n()
-
-const localPaper = ref({ ...props.paper })
-
-const columnMargin = computed(() => pointToMM(localPaper.value.columnMargin))
-
-const columnCountOptions = computed(() => {
-  const options = []
-  for (let i = 1; i <= 9; i++) {
-    options.push({
-      value: i + 1,
-      label: `${i + 1}${t('dialog.setting.columnUnit')}`
-    })
-  }
-  return options
-})
-
-const columnEnabledOptions = computed(() => [
-  { value: false, label: t('dialog.setting.disable') },
-  { value: true, label: t('dialog.setting.enable') }
-])
-
-watch(() => props.paper, (newVal) => {
-  localPaper.value = { ...newVal }
-}, { deep: true })
-
-function handleColumnEnabledChange(value: boolean) {
-  emit('update:paper', { ...localPaper.value, columnEnabled: value })
-  emit('column-enabled-change')
-}
-
-function handleColumnCountChange(value: number) {
-  emit('update:paper', { ...localPaper.value, columnCount: value })
-  emit('column-count-change')
-}
-
-function handleColumnMarginChange(value: number) {
-  if (!isNaN(value)) {
-    emit('update:paper', { ...localPaper.value, columnMargin: mmToPoint(value) })
-    emit('column-margin-change')
-  }
-}
-</script>
 
 <style scoped>
 .div-col-desc {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, inject } from 'vue'
 import type { FormItemContext } from '../form-item/index.vue'
+import { inject, ref, watch } from 'vue'
 
 defineOptions({ name: 'UInputNumber' })
 
@@ -24,10 +24,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | string]
-  change: [value: number | string]
+  'change': [value: number | string]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
 const currentValue = ref<number | string>(0)
 const increaseForbid = ref(false)
@@ -39,14 +39,16 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 function handleIncrease() {
-  if (props.disabled || increaseForbid.value) return
+  if (props.disabled || increaseForbid.value)
+    return
   currentValue.value = Number(currentValue.value) + props.step
   emit('update:modelValue', currentValue.value)
   emit('change', currentValue.value)
 }
 
 function handleDecrease() {
-  if (props.disabled || decreaseForbid.value) return
+  if (props.disabled || decreaseForbid.value)
+    return
   currentValue.value = Number(currentValue.value) - props.step
   emit('update:modelValue', currentValue.value)
   emit('change', currentValue.value)
@@ -57,34 +59,38 @@ function onInputBlur() {
 }
 
 function handleBlur(emitEvent = true) {
-  if (!currentValue.value) return
+  if (!currentValue.value)
+    return
   let numVal: number
-  if (typeof currentValue.value !== 'number') {
-    numVal = Number(String(currentValue.value).replace(/[^\d.-]/g, ''))
-  } else {
-    numVal = currentValue.value
-  }
+  numVal = typeof currentValue.value === 'number' ? currentValue.value : Number(String(currentValue.value).replaceAll(/[^\d.-]/g, ''))
   if (isNaN(numVal)) {
     numVal = 0
   }
+
   if (props.stepStrictly) {
     numVal = _approCalc(numVal, props.step)
   }
+
   if (props.precision > 0) {
     numVal = Number(numVal.toFixed(Math.floor(props.precision)))
   }
+
   if (props.min != null && numVal <= props.min) {
     decreaseForbid.value = true
     numVal = props.min
-  } else {
+  }
+  else {
     decreaseForbid.value = false
   }
+
   if (props.max != null && numVal >= props.max) {
     increaseForbid.value = true
     numVal = props.max
-  } else {
+  }
+  else {
     increaseForbid.value = false
   }
+
   currentValue.value = numVal
   if (emitEvent) {
     emit('update:modelValue', numVal)
@@ -113,21 +119,25 @@ function _approCalc(num: number, base: number) {
       class="u-input-number-button u-input-number-button-left"
       :class="{ 'u-input-number-button-disabled': disabled || decreaseForbid }"
       @click="handleDecrease"
-    >-</span>
+    >
+      -
+    </span>
     <input
       class="u-input-number-input"
       :class="{ 'u-input-number-input-disabled': disabled }"
       type="text"
       :value="currentValue"
+      :disabled="disabled"
       @blur="onInputBlur"
       @input="handleInput"
-      :disabled="disabled"
     />
     <span
       class="u-input-number-button u-input-number-button-right"
       :class="{ 'u-input-number-button-disabled': disabled || increaseForbid }"
       @click="handleIncrease"
-    >+</span>
+    >
+      +
+    </span>
   </div>
 </template>
 
@@ -136,7 +146,7 @@ function _approCalc(num: number, base: number) {
   position: relative;
   width: 140px;
   height: 36px;
-  line-height: 32px
+  line-height: 32px;
 }
 
 .u-input-number-input {
@@ -149,18 +159,18 @@ function _approCalc(num: number, base: number) {
   border-radius: 4px;
   border: 1px solid #dcdfe6;
   outline: 0;
-  font-size: 14px
+  font-size: 14px;
 }
 
 .u-input-number-input:focus {
   border-color: #00554a;
-  box-shadow: 0 0 4px #00554a
+  box-shadow: 0 0 4px #00554a;
 }
 
 .u-input-number-input-disabled {
   cursor: not-allowed;
   background-color: #f5f7fa;
-  color: #b2b6be
+  color: #b2b6be;
 }
 
 .u-input-number-button {
@@ -174,11 +184,11 @@ function _approCalc(num: number, base: number) {
   padding: 0;
   border: none;
   cursor: pointer;
-  background-color: #f5f7fa
+  background-color: #f5f7fa;
 }
 
 .u-input-number-button:active {
-  background-color: rgba(245, 247, 250, .3)
+  background-color: rgba(245, 247, 250, 0.3);
 }
 
 .u-input-number-button-left {
@@ -186,7 +196,7 @@ function _approCalc(num: number, base: number) {
   top: 1px;
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
-  border-right: 1px solid #dcdfe6
+  border-right: 1px solid #dcdfe6;
 }
 
 .u-input-number-button-right {
@@ -194,26 +204,26 @@ function _approCalc(num: number, base: number) {
   top: 1px;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
-  border-left: 1px solid #dcdfe6
+  border-left: 1px solid #dcdfe6;
 }
 
 .u-input-number-button-disabled {
   cursor: not-allowed;
-  color: #b2b6be
+  color: #b2b6be;
 }
 
 .u-input-number-size-large {
   height: 40px;
-  line-height: 36px
+  line-height: 36px;
 }
 
 .u-input-number-size-small {
   height: 32px;
-  line-height: 28px
+  line-height: 28px;
 }
 
 .u-input-number-size-mini {
   height: 28px;
-  line-height: 24px
+  line-height: 24px;
 }
 </style>

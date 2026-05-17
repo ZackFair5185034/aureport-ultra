@@ -1,25 +1,10 @@
-<template>
-  <u-button
-      :title="$t('tools.save.save')"
-      class="tool-button"
-      icon="icon-save2"
-      @click="handleClick"
-  >
-    <SaveDialog
-      :visible="visible"
-      @update:visible="visible = $event"
-      @saveAfter="handleSaveAfter"
-    />
-  </u-button>
-</template>
-
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { saveReportFile } from '@/api/designer/index'
 import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'
 import { resetDirty, tableToXml } from '@/utils/table'
-import { saveReportFile } from '@/api/designer/index'
 
 defineOptions({ name: 'SaveTool' })
 
@@ -38,7 +23,7 @@ function handleClick() {
   }
 
   const content = tableToXml(context.value)
-  const fullFileName = getFileName.value + ".ureport.xml"
+  const fullFileName = `${getFileName.value}.ureport.xml`
 
   saveReportFile(fullFileName, content)
     .then(() => {
@@ -49,16 +34,32 @@ function handleClick() {
       console.error('保存失败:', error)
       if (error.msg) {
         showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-      } else {
+      }
+      else {
         showAlert(t('tools.save.failSave'))
       }
     })
 }
 
 function handleSaveAfter(fullFile: string) {
-  window.location.replace("?reportPath=" + fullFile)
+  window.location.replace(`?reportPath=${fullFile}`)
 }
 </script>
+
+<template>
+  <u-button
+    :title="$t('tools.save.save')"
+    class="tool-button"
+    icon="icon-save2"
+    @click="handleClick"
+  >
+    <SaveDialog
+      :visible="visible"
+      @update:visible="visible = $event"
+      @saveAfter="handleSaveAfter"
+    />
+  </u-button>
+</template>
 
 <style scoped>
 </style>

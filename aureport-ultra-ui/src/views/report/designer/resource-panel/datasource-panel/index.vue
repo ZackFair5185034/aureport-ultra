@@ -1,116 +1,16 @@
-<template>
-  <div style="width:100%;">
-    <!-- 工具栏 -->
-    <div class="ds-toolbar">
-      <u-button
-        type="info"
-        class="toolbar-btn"
-        icon="icon-database"
-        :title="$t('property.datasource.title')"
-        @click="showDatasourceDialog"
-      >
-      </u-button>
-
-      <u-button
-        type="info"
-        class="toolbar-btn"
-        icon="icon-leaf"
-        :title="$t('property.datasource.addBean')"
-        @click="showSpringDialog"
-      >
-      </u-button>
-
-      <u-button
-        type="info"
-        class="toolbar-btn"
-        icon="icon-share"
-        :title="$t('property.datasource.addBuildin')"
-        @click="showBuildinDialog"
-      >
-      </u-button>
-    </div>
-
-    <!-- 树容器 -->
-    <div ref="treeContainer">
-      <!-- 数据库树组件 -->
-      <DatabaseTree
-        v-for="(datasource, index) in jdbcDatasources"
-        :key="'jdbc_' + '_' + index"
-        :datasources="datasources"
-        :ds="datasource"
-        ref="databaseTree"
-        @remove="removeDatasource"
-        @update-datasource="updateDatasource"
-      />
-
-      <!-- Spring树组件 -->
-      <SpringTree
-        v-for="(datasource, index) in springDatasources"
-        :key="'spring_' + '_' + index"
-        :name="datasource.name"
-        :datasets="datasource.datasets || []"
-        :datasources="datasources"
-        :bean-id="datasource.beanId"
-        @remove="removeDatasource"
-        @update-datasource="updateDatasource"
-        @update-datasets="updateSpringDatasets(datasource, $event)"
-      />
-
-      <!-- 内置数据源树组件 -->
-      <BuildinTree
-        v-for="(datasource, index) in buildinDatasources"
-        :key="'buildin_' + '_' + index"
-        :name="datasource.name"
-        :datasets="datasource.datasets || []"
-        @remove="removeDatasource"
-        @update-datasource="updateDatasource"
-      />
-    </div>
-
-    <!-- 数据源对话框 -->
-    <DatasourceDialog
-      ref="datasourceDialog"
-      :datasources="datasources"
-      :visible="datasourceDialogVisible"
-      :datasource="currentDatasource"
-      @close="datasourceDialogVisible = false"
-      @save="addJdbcDatasource"
-    />
-
-    <!-- Spring对话框 -->
-    <SpringDialog
-      ref="springDialog"
-      :datasources="datasources"
-      :visible="springDialogVisible"
-      :datasource="currentSpringDatasource"
-      @close="springDialogVisible = false"
-      @save="addSpringDatasource"
-    />
-
-    <!-- 内置数据源选择对话框 -->
-    <BuildinDatasourceSelectDialog
-      ref="buildinDialog"
-      :datasources="datasources"
-      :visible="buildinDialogVisible"
-      @close="buildinDialogVisible = false"
-      @select="addBuildinDatasource"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, watch, onMounted } from 'vue'
-import { useReportStore } from '@/stores/report'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DatabaseTree from './database-tree/index.vue'
-import SpringTree from './spring-tree/index.vue'
+import { deepCopy } from '@/components/utils'
+import { useReportStore } from '@/stores/report'
+import { updateReportDef } from '@/utils/contextActions'
+import BuildinDatasourceSelectDialog from './buildin-datasource-select-dialog/index.vue'
 import BuildinTree from './buildin-tree/index.vue'
+import DatabaseTree from './database-tree/index.vue'
 import DatasourceDialog from './datasource-dialog/index.vue'
 import SpringDialog from './spring-dialog/index.vue'
-import BuildinDatasourceSelectDialog from './buildin-datasource-select-dialog/index.vue'
-import { deepCopy } from '@/components/utils'
-import { updateReportDef } from '@/utils/contextActions'
+import SpringTree from './spring-tree/index.vue'
 
 defineOptions({ name: 'DatasourcePanel' })
 
@@ -147,10 +47,12 @@ onMounted(() => {
 
 function initializeDatasources() {
   const ctx = context.value
-  if (!ctx) return
+  if (!ctx)
+    return
 
   const reportDef = ctx.reportDef
-  if (!reportDef) return
+  if (!reportDef)
+    return
 
   if (!reportDef.datasources) {
     const newReportDef = deepCopy(reportDef)
@@ -183,7 +85,7 @@ function addJdbcDatasource(datasource: any) {
     type: datasource.type || 'jdbc',
     url: datasource.url,
     driver: datasource.driver,
-    datasets: datasource.datasets || []
+    datasets: datasource.datasets || [],
   }
 
   const newIndex = datasources.value.length
@@ -198,7 +100,7 @@ function addSpringDatasource(datasource: any) {
     name: datasource.name,
     beanId: datasource.beanId,
     type: datasource.type || 'spring',
-    datasets: datasource.datasets || []
+    datasets: datasource.datasets || [],
   }
 
   const newIndex = datasources.value.length
@@ -212,7 +114,7 @@ function addBuildinDatasource(datasource: any) {
   const newDatasource = {
     name: datasource.name,
     type: datasource.type || 'buildin',
-    datasets: datasource.datasets || []
+    datasets: datasource.datasets || [],
   }
 
   const newIndex = datasources.value.length
@@ -252,21 +154,118 @@ function buildPanel() {
   return [{
     appendChild: (el: HTMLElement) => {
       if (treeContainer.value) {
-        treeContainer.value.appendChild(el)
+        treeContainer.value.append(el)
       }
-    }
+    },
   }]
 }
 </script>
+
+<template>
+  <div style="width:100%;">
+    <!-- 工具栏 -->
+    <div class="ds-toolbar">
+      <u-button
+        type="info"
+        class="toolbar-btn"
+        icon="icon-database"
+        :title="$t('property.datasource.title')"
+        @click="showDatasourceDialog"
+      />
+
+      <u-button
+        type="info"
+        class="toolbar-btn"
+        icon="icon-leaf"
+        :title="$t('property.datasource.addBean')"
+        @click="showSpringDialog"
+      />
+
+      <u-button
+        type="info"
+        class="toolbar-btn"
+        icon="icon-share"
+        :title="$t('property.datasource.addBuildin')"
+        @click="showBuildinDialog"
+      />
+    </div>
+
+    <!-- 树容器 -->
+    <div ref="treeContainer">
+      <!-- 数据库树组件 -->
+      <DatabaseTree
+        v-for="(datasource, index) in jdbcDatasources"
+        :key="`jdbc_` + `_${index}`"
+        ref="databaseTree"
+        :datasources="datasources"
+        :ds="datasource"
+        @remove="removeDatasource"
+        @update-datasource="updateDatasource"
+      />
+
+      <!-- Spring树组件 -->
+      <SpringTree
+        v-for="(datasource, index) in springDatasources"
+        :key="`spring_` + `_${index}`"
+        :name="datasource.name"
+        :datasets="datasource.datasets || []"
+        :datasources="datasources"
+        :bean-id="datasource.beanId"
+        @remove="removeDatasource"
+        @update-datasource="updateDatasource"
+        @update-datasets="updateSpringDatasets(datasource, $event)"
+      />
+
+      <!-- 内置数据源树组件 -->
+      <BuildinTree
+        v-for="(datasource, index) in buildinDatasources"
+        :key="`buildin_` + `_${index}`"
+        :name="datasource.name"
+        :datasets="datasource.datasets || []"
+        @remove="removeDatasource"
+        @update-datasource="updateDatasource"
+      />
+    </div>
+
+    <!-- 数据源对话框 -->
+    <DatasourceDialog
+      ref="datasourceDialog"
+      :datasources="datasources"
+      :visible="datasourceDialogVisible"
+      :datasource="currentDatasource"
+      @close="datasourceDialogVisible = false"
+      @save="addJdbcDatasource"
+    />
+
+    <!-- Spring对话框 -->
+    <SpringDialog
+      ref="springDialog"
+      :datasources="datasources"
+      :visible="springDialogVisible"
+      :datasource="currentSpringDatasource"
+      @close="springDialogVisible = false"
+      @save="addSpringDatasource"
+    />
+
+    <!-- 内置数据源选择对话框 -->
+    <BuildinDatasourceSelectDialog
+      ref="buildinDialog"
+      :datasources="datasources"
+      :visible="buildinDialogVisible"
+      @close="buildinDialogVisible = false"
+      @select="addBuildinDatasource"
+    />
+  </div>
+</template>
 
 <style scoped>
 .ds-toolbar {
   background: rgb(248, 248, 248);
   line-height: 40px;
-  box-shadow: 0 2px 6px 0 rgba(0,0,0,.2);
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
 }
 
-.toolbar-btn{
+.toolbar-btn {
   border: none;
   background: #f8f8f8;
 }

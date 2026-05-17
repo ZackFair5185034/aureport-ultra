@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"E:/coding-space/aiCode/aureport-ultra\\\" && rtk git add src/utils/table.ts src/utils/url.ts src/locales/lang/zh.js src/locales/lang/en.js src/views/report/designer/resource-panel/prope...",
-  "error": "Exit code 128\nFAILED: git add\nfatal: pathspec 'src/utils/table.ts' did not match any files",
-  "timestamp": "2026-05-16T16:56:10.364Z",
+  "tool_input_preview": "{\"command\":\"cd E:/coding-space/aiCode/aureport-ultra/aureport-ultra-ui && rtk lint --ext .vue src/components/color-picker/index.vue 2>&1\",\"timeout\":60000}",
+  "error": "Exit code 1\nESLint: 2 errors, 0 warnings in 1 files\n═══════════════════════════════════════\nTop rules:\n  vue/no-unused-refs (1x)\n  @typescript-eslint/no-explicit-any (1x)\n\nTop files:\n  src/components/color-picker/index.vue (2 issues)\n    vue/no-unused-refs (1)\n    @typescript-eslint/no-explicit-any (1)\n[full output: ~/AppData\\Local\\rtk\\tee\\1779023989_lint.log]",
+  "timestamp": "2026-05-17T13:19:50.238Z",
   "retry_count": 1
 }

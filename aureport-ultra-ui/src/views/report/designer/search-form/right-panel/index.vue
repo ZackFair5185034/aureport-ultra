@@ -1,3 +1,180 @@
+<script setup lang="ts">
+// @ts-nocheck
+import { computed, defineEmits, defineOptions, defineProps, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import draggable from 'vuedraggable'
+import { deepCopy } from '@/components/utils'
+import { isNumberStr } from '../utils'
+import { inputComponents, selectComponents } from '../utils/config'
+
+defineOptions({
+  name: 'RightPanel',
+})
+const props = defineProps<{
+  showField: boolean
+  activeData: any
+  formConf: any
+}>()
+
+const emit = defineEmits<{
+  (e: 'tag-change', target: any): void
+}>()
+
+const { t } = useI18n()
+
+const currentTab = ref('field')
+
+const justifyOptions = [
+  { label: 'start', value: 'start' },
+  { label: 'end', value: 'end' },
+  { label: 'center', value: 'center' },
+  { label: 'space-around', value: 'space-around' },
+  { label: 'space-between', value: 'space-between' },
+]
+
+const documentLink = computed(() =>
+  props.activeData.document || 'https://element.eleme.cn/#/zh-CN/component/installation',
+)
+
+const dateTypeOptions = computed(() => [
+  { label: t('searchForm.date'), value: 'date' },
+  { label: t('searchForm.month'), value: 'month' },
+  { label: t('searchForm.year'), value: 'year' },
+  { label: t('searchForm.datetime'), value: 'datetime' },
+])
+
+const dateOptions = computed(() => {
+  if (props.activeData.type !== undefined && props.activeData.tag === 'u-date-picker') {
+    return dateTypeOptions.value
+  }
+
+  return []
+})
+
+const tagList = computed(() => [
+  { label: t('searchForm.inputComponents'), options: inputComponents },
+  { label: t('searchForm.selectComponents'), options: selectComponents },
+])
+
+const layoutTree = computed(() => deepCopy([props.activeData]))
+
+const dateTimeFormat: Record<string, string> = {
+  date: 'YYYY-MM-DD',
+  month: 'YYYY-MM',
+  year: 'YYYY',
+  datetime: 'YYYY-MM-DD HH:mm:ss',
+}
+
+function addReg() {
+  if (!props.activeData.regList) {
+    props.activeData.regList = []
+  }
+
+  props.activeData.regList.push({
+    pattern: '',
+    message: '',
+  })
+}
+
+function addSelectItem() {
+  props.activeData.options.push({
+    label: '',
+    value: '',
+  })
+}
+
+function addNode(data: any) {
+  // currentNode is not used functionally; kept for compatibility
+}
+
+function onOptionValueInput(item: any, val: string) {
+  item.value = isNumberStr(val) ? +val : val
+}
+
+function setDefaultValue(val: any): string {
+  if (Array.isArray(val)) {
+    return val.join(',')
+  }
+
+  if (['string', 'number'].includes(typeof val)) {
+    return String(val)
+  }
+
+  if (typeof val === 'boolean') {
+    return String(val)
+  }
+
+  return val
+}
+
+function onDefaultValueInput(str: string) {
+  if (Array.isArray(props.activeData.defaultValue)) {
+    props.activeData.defaultValue = str.split(',').map((val: string) =>
+      isNumberStr(val) ? +val : val,
+    )
+  }
+  else if (['true', 'false'].includes(str)) {
+    props.activeData.defaultValue = JSON.parse(str)
+  }
+  else {
+    props.activeData.defaultValue = isNumberStr(str) ? +str : str
+  }
+}
+
+function onSwitchValueInput(val: string, name: string) {
+  if (['true', 'false'].includes(val)) {
+    props.activeData[name] = JSON.parse(val)
+  }
+  else {
+    props.activeData[name] = isNumberStr(val) ? +val : val
+  }
+}
+
+function onSwitchActiveValueInput(val: string) {
+  onSwitchValueInput(val, 'activeValue')
+}
+
+function onSwitchInactiveValueInput(val: string) {
+  onSwitchValueInput(val, 'inactiveValue')
+}
+
+function setTimeFormatValue(val: string) {
+  setTimeValue(val)
+}
+
+function setTimeValue(val: string, _type?: string) {
+  props.activeData.defaultValue = null
+  props.activeData.format = val
+}
+
+function spanChange(val: number) {
+  props.formConf.span = val
+}
+
+function multipleChange(val: boolean) {
+  props.activeData.defaultValue = val ? [] : ''
+}
+
+function dateTypeChange(val: string) {
+  setTimeValue(dateTimeFormat[val] || val, val)
+}
+
+function tagChange(tagIcon: string) {
+  let target = inputComponents.find((item: any) => item.tagIcon === tagIcon)
+  if (!target)
+    target = selectComponents.find((item: any) => item.tagIcon === tagIcon)
+  emit('tag-change', target)
+}
+
+function onCheckboxMinInput(val: any) {
+  props.activeData.min = val || undefined
+}
+
+function onCheckboxMaxInput(val: any) {
+  props.activeData.max = val || undefined
+}
+</script>
+
 <template>
   <!-- eslint-disable -->
   <div class="right-board">
@@ -377,174 +554,6 @@
 
   </div>
 </template>
-
-<script setup lang="ts">
-// @ts-nocheck
-import { ref, computed, defineProps, defineEmits, defineOptions } from 'vue'
-import { useI18n } from 'vue-i18n'
-import draggable from 'vuedraggable'
-import { isNumberStr } from '../utils'
-import { inputComponents, selectComponents } from '../utils/config'
-import { deepCopy } from '@/components/utils'
-
-defineOptions({
-  name: 'RightPanel'
-})
-const props = defineProps<{
-  showField: boolean
-  activeData: any
-  formConf: any
-}>()
-
-const emit = defineEmits<{
-  (e: 'tag-change', target: any): void
-}>()
-
-const { t } = useI18n()
-
-const currentTab = ref('field')
-
-const justifyOptions = [
-  { label: 'start', value: 'start' },
-  { label: 'end', value: 'end' },
-  { label: 'center', value: 'center' },
-  { label: 'space-around', value: 'space-around' },
-  { label: 'space-between', value: 'space-between' }
-]
-
-const documentLink = computed(() =>
-  props.activeData.document || 'https://element.eleme.cn/#/zh-CN/component/installation'
-)
-
-const dateTypeOptions = computed(() => [
-  { label: t('searchForm.date'), value: 'date' },
-  { label: t('searchForm.month'), value: 'month' },
-  { label: t('searchForm.year'), value: 'year' },
-  { label: t('searchForm.datetime'), value: 'datetime' }
-])
-
-const dateOptions = computed(() => {
-  if (props.activeData.type !== undefined && props.activeData.tag === 'u-date-picker') {
-    return dateTypeOptions.value
-  }
-  return []
-})
-
-const tagList = computed(() => [
-  { label: t('searchForm.inputComponents'), options: inputComponents },
-  { label: t('searchForm.selectComponents'), options: selectComponents }
-])
-
-const layoutTree = computed(() => deepCopy([props.activeData]))
-
-const dateTimeFormat: Record<string, string> = {
-  date: 'YYYY-MM-DD',
-  month: 'YYYY-MM',
-  year: 'YYYY',
-  datetime: 'YYYY-MM-DD HH:mm:ss'
-}
-
-function addReg() {
-  if (!props.activeData.regList) {
-    props.activeData.regList = []
-  }
-  props.activeData.regList.push({
-    pattern: '',
-    message: ''
-  })
-}
-
-function addSelectItem() {
-  props.activeData.options.push({
-    label: '',
-    value: ''
-  })
-}
-
-function addNode(data: any) {
-  // currentNode is not used functionally; kept for compatibility
-}
-
-function onOptionValueInput(item: any, val: string) {
-  item.value = isNumberStr(val) ? +val : val
-}
-
-function setDefaultValue(val: any): string {
-  if (Array.isArray(val)) {
-    return val.join(',')
-  }
-  if (['string', 'number'].indexOf(typeof val) > -1) {
-    return String(val)
-  }
-  if (typeof val === 'boolean') {
-    return String(val)
-  }
-  return val
-}
-
-function onDefaultValueInput(str: string) {
-  if (Array.isArray(props.activeData.defaultValue)) {
-    props.activeData.defaultValue = str.split(',').map((val: string) =>
-      isNumberStr(val) ? +val : val
-    )
-  } else if (['true', 'false'].indexOf(str) > -1) {
-    props.activeData.defaultValue = JSON.parse(str)
-  } else {
-    props.activeData.defaultValue = isNumberStr(str) ? +str : str
-  }
-}
-
-function onSwitchValueInput(val: string, name: string) {
-  if (['true', 'false'].indexOf(val) > -1) {
-    props.activeData[name] = JSON.parse(val)
-  } else {
-    props.activeData[name] = isNumberStr(val) ? +val : val
-  }
-}
-
-function onSwitchActiveValueInput(val: string) {
-  onSwitchValueInput(val, 'activeValue')
-}
-
-function onSwitchInactiveValueInput(val: string) {
-  onSwitchValueInput(val, 'inactiveValue')
-}
-
-function setTimeFormatValue(val: string) {
-  setTimeValue(val)
-}
-
-function setTimeValue(val: string, _type?: string) {
-  props.activeData.defaultValue = null
-  props.activeData.format = val
-}
-
-function spanChange(val: number) {
-  props.formConf.span = val
-}
-
-function multipleChange(val: boolean) {
-  props.activeData.defaultValue = val ? [] : ''
-}
-
-function dateTypeChange(val: string) {
-  setTimeValue(dateTimeFormat[val] || val, val)
-}
-
-function tagChange(tagIcon: string) {
-  let target = inputComponents.find((item: any) => item.tagIcon === tagIcon)
-  if (!target) target = selectComponents.find((item: any) => item.tagIcon === tagIcon)
-  emit('tag-change', target)
-}
-
-function onCheckboxMinInput(val: any) {
-  props.activeData.min = val ? val : undefined
-}
-
-function onCheckboxMaxInput(val: any) {
-  props.activeData.max = val ? val : undefined
-}
-</script>
 
 <style scoped lang="scss">
 .right-scrollbar {

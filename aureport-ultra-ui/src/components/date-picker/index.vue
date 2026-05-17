@@ -1,93 +1,10 @@
-<template>
-  <div class="u-date-picker">
-    <DatePicker
-      ref="datePickerRef"
-      v-model:value="innerValue"
-      v-bind="attrs"
-      :type="type"
-      :range="range"
-      :format="format"
-      :value-type="valueType as 'date' | 'timestamp' | 'format' | string"
-      :default-value="defaultValue"
-      :lang="lang"
-      :placeholder="placeholder"
-      :editable="editable"
-      :clearable="clearable"
-      :confirm="confirm"
-      :confirm-text="confirmText"
-      :multiple="multiple"
-      :disabled="disabled"
-      :disabled-date="disabledDate"
-      :disabled-time="disabledTime"
-      :append-to-body="appendToBody"
-      :inline="inline"
-      :input-class="inputClass"
-      :input-attr="inputAttr"
-      :open="open"
-      :default-panel="defaultPanel"
-      :popup-style="popupStyle"
-      :popup-class="popupClass"
-      :shortcuts="shortcuts"
-      :title-format="titleFormat"
-      :partial-update="partialUpdate"
-      :range-separator="rangeSeparator"
-      :show-week-number="showWeekNumber"
-      :hour-step="hourStep"
-      :minute-step="minuteStep"
-      :second-step="secondStep"
-      :hour-options="hourOptions"
-      :minute-options="minuteOptions"
-      :second-options="secondOptions"
-      :show-hour="showHour"
-      :show-minute="showMinute"
-      :show-second="showSecond"
-      :use12h="use12h"
-      :show-time-header="showTimeHeader"
-      :time-title-format="timeTitleFormat"
-      :time-picker-options="timePickerOptions"
-      :prefix-class="prefixClass"
-      :scroll-duration="scrollDuration"
-      @change="handleChange"
-      @open="handleOpen"
-      @close="handleClose"
-      @confirm="handleConfirm"
-      @clear="handleClear"
-      @input-error="handleInputError"
-      @focus="handleFocus"
-      @blur="handleBlur"
-      @pick="handlePick"
-      @calendar-change="handleCalendarChange"
-      @panel-change="handlePanelChange"
-    >
-      <template v-if="$slots['icon-calendar']" #icon-calendar>
-        <slot name="icon-calendar"></slot>
-      </template>
-      <template v-if="$slots['icon-clear']" #icon-clear>
-        <slot name="icon-clear"></slot>
-      </template>
-      <template v-if="$slots.input" #input>
-        <slot name="input"></slot>
-      </template>
-      <template v-if="$slots.header" #header>
-        <slot name="header"></slot>
-      </template>
-      <template v-if="$slots.footer" #footer>
-        <slot name="footer"></slot>
-      </template>
-      <template v-if="$slots.sidebar" #sidebar>
-        <slot name="sidebar"></slot>
-      </template>
-    </DatePicker>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, useAttrs, useSlots, inject } from 'vue'
+import type { FormItemContext } from '../form-item/index.vue'
+import { inject, ref, useAttrs, useSlots } from 'vue'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import 'vue-datepicker-next/locale/zh-cn'
 import 'vue-datepicker-next/locale/en'
-import type { FormItemContext } from '../form-item/index.vue'
 
 defineOptions({ name: 'UDatePicker' })
 
@@ -196,9 +113,9 @@ const emit = defineEmits<{
   'panel-change': [type: unknown, oldType: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
-const datePickerRef = ref<{ openPopup: () => void; closePopup: () => void; clearDate: () => void } | null>(null)
+const datePickerRef = ref<{ openPopup: () => void, closePopup: () => void, clearDate: () => void } | null>(null)
 const innerValue = ref(props.modelValue)
 const attrs = useAttrs()
 const $slots = useSlots()
@@ -265,6 +182,89 @@ function clearDate() {
 
 defineExpose({ openPopup, closePopup, clearDate })
 </script>
+
+<template>
+  <div class="u-date-picker">
+    <DatePicker
+      ref="datePickerRef"
+      v-model:value="innerValue"
+      v-bind="attrs"
+      :type="type"
+      :range="range"
+      :format="format"
+      :value-type="valueType as 'date' | 'timestamp' | 'format' | string"
+      :default-value="defaultValue"
+      :lang="lang"
+      :placeholder="placeholder"
+      :editable="editable"
+      :clearable="clearable"
+      :confirm="confirm"
+      :confirm-text="confirmText"
+      :multiple="multiple"
+      :disabled="disabled"
+      :disabled-date="disabledDate"
+      :disabled-time="disabledTime"
+      :append-to-body="appendToBody"
+      :inline="inline"
+      :input-class="inputClass"
+      :input-attr="inputAttr"
+      :open="open"
+      :default-panel="defaultPanel"
+      :popup-style="popupStyle"
+      :popup-class="popupClass"
+      :shortcuts="shortcuts"
+      :title-format="titleFormat"
+      :partial-update="partialUpdate"
+      :range-separator="rangeSeparator"
+      :show-week-number="showWeekNumber"
+      :hour-step="hourStep"
+      :minute-step="minuteStep"
+      :second-step="secondStep"
+      :hour-options="hourOptions"
+      :minute-options="minuteOptions"
+      :second-options="secondOptions"
+      :show-hour="showHour"
+      :show-minute="showMinute"
+      :show-second="showSecond"
+      :use12h="use12h"
+      :show-time-header="showTimeHeader"
+      :time-title-format="timeTitleFormat"
+      :time-picker-options="timePickerOptions"
+      :prefix-class="prefixClass"
+      :scroll-duration="scrollDuration"
+      @change="handleChange"
+      @open="handleOpen"
+      @close="handleClose"
+      @confirm="handleConfirm"
+      @clear="handleClear"
+      @input-error="handleInputError"
+      @focus="handleFocus"
+      @blur="handleBlur"
+      @pick="handlePick"
+      @calendar-change="handleCalendarChange"
+      @panel-change="handlePanelChange"
+    >
+      <template v-if="$slots['icon-calendar']" #icon-calendar>
+        <slot name="icon-calendar" />
+      </template>
+      <template v-if="$slots['icon-clear']" #icon-clear>
+        <slot name="icon-clear" />
+      </template>
+      <template v-if="$slots.input" #input>
+        <slot name="input" />
+      </template>
+      <template v-if="$slots.header" #header>
+        <slot name="header" />
+      </template>
+      <template v-if="$slots.footer" #footer>
+        <slot name="footer" />
+      </template>
+      <template v-if="$slots.sidebar" #sidebar>
+        <slot name="sidebar" />
+      </template>
+    </DatePicker>
+  </div>
+</template>
 
 <style scoped>
 .u-date-picker {

@@ -1,125 +1,20 @@
-<template>
-  <div class="tree" style="margin-left: 10px">
-    <ul class="tree-root">
-      <li>
-        <!-- 数据源节点 -->
-        <span
-          :id="id"
-          @click="toggleDatasource"
-          @contextmenu.prevent.stop="showDatasourceContextMenu($event)"
-        >
-          <i
-            class="iconfont"
-            :class="datasourceExpanded ? 'icon-minus-circle' : 'icon-plus-circle'"
-            style="margin-right:2px"
-          ></i>
-          <i class="iconfont icon-leaf"></i>
-          <a href="###" class="ds_name">{{ localName }}</a>
-        </span>
-
-        <!-- 数据集列表 -->
-        <ul
-          v-show="datasourceExpanded"
-          class="node-list"
-        >
-          <li
-            v-for="(dataset, index) in localDatasets"
-            :key="dataset.name + '_' + index"
-          >
-            <!-- 数据集节点 -->
-            <span
-              :id="'dataset_' + dataset.name + '_' + index"
-              @click="toggleDataset(index)"
-              @contextmenu.prevent.stop="showDatasetContextMenu($event, dataset, index)"
-            >
-              <i
-                class="iconfont"
-                :class="datasetExpanded[index] ? 'icon-minus-circle' : 'icon-plus-circle'"
-                style="margin-right:2px"
-              ></i>
-              <i class="iconfont icon-sqlds"></i>
-              <a href="###" class="dataset_name">{{ dataset.name }}</a>
-            </span>
-
-            <!-- 字段列表 -->
-            <ul
-              v-show="datasetExpanded[index]"
-              style="padding-left: 22px;"
-            >
-              <li
-                v-for="(field, fieldIndex) in dataset.fields"
-                :key="field.name + '_' + fieldIndex"
-              >
-                <span
-                  :id="'field_' + dataset.name + '_' + field.name + '_' + fieldIndex"
-                  :title="$t('tree.doubleClick')"
-                  @dblclick="handleFieldDoubleClick(dataset, field)"
-                  @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
-                >
-                  <i class="iconfont icon-property"></i>
-                  <a href="###">{{ field.name }}</a>
-                </span>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
-
-    <!-- Bean方法配置对话框 -->
-    <BeanMethodDialog
-        :visible="beanMethodDialogVisible"
-        :dataset="currentDataset"
-        :datasources="datasources"
-        :beanId="localBeanId"
-        @save="handleBeanMethodSave"
-        @close="beanMethodDialogVisible = false"
-      />
-
-    <!-- Spring数据源配置对话框 -->
-    <SpringDialog
-      ref="springDialog"
-      :datasources="datasources"
-      :visible="springDialogVisible"
-      :datasource="currentSpringDatasource"
-      @close="springDialogVisible = false"
-      @save="handleSpringDatasourceSave"
-    />
-
-    <!-- 字段名输入对话框 -->
-    <FieldNameDialog
-      ref="fieldNameDialog"
-      :visible="fieldNameDialogVisible"
-      :dataset="currentDataset"
-      @save="handleFieldNameSave"
-      @close="fieldNameDialogVisible = false"
-    />
-
-    <!-- 右键菜单 -->
-    <ContextMenu ref="contextMenu" />
-  </div>
-</template>
-
 <script setup lang="ts">
-// @ts-nocheck
-import { ref, computed, watch, onMounted } from 'vue'
-import { useReportStore } from '@/stores/report'
-import { useI18n } from 'vue-i18n'
 import { v1 as uuidv1 } from 'uuid'
-import { showAlert, showConfirm } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
-import BeanMethodDialog from '@/views/report/designer/resource-panel/datasource-panel/bean-method-dialog/index.vue'
-import SpringDialog from '@/views/report/designer/resource-panel/datasource-panel/spring-dialog/index.vue'
-import FieldNameDialog from '../field-name-dialog/index.vue'
-import ContextMenu from '../context-menu/index.vue'
+// @ts-nocheck
+import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { buildClass } from '@/api/designer/index'
+import { deepCopy } from '@/components/utils/index'
+import { useReportStore } from '@/stores/report'
+import { showAlert, showConfirm } from '@/utils/comnon'
 import { addCell, getCell, setCell } from '@/utils/contextActions'
 import TableManager from '@/views/report/designer/edit-table/manager'
+import BeanMethodDialog from '@/views/report/designer/resource-panel/datasource-panel/bean-method-dialog/index.vue'
+import SpringDialog from '@/views/report/designer/resource-panel/datasource-panel/spring-dialog/index.vue'
+import ContextMenu from '../context-menu/index.vue'
+import FieldNameDialog from '../field-name-dialog/index.vue'
 
 defineOptions({ name: 'SpringTree' })
-
-const { t } = useI18n()
-const store = useReportStore()
 
 const props = withDefaults(defineProps<{
   name: string
@@ -130,16 +25,17 @@ const props = withDefaults(defineProps<{
   name: '',
   datasets: () => [],
   datasources: () => [],
-  beanId: ''
+  beanId: '',
 })
-
 const emit = defineEmits<{
   (e: 'remove', name: string): void
   (e: 'update-datasource', data: any): void
   (e: 'update-datasets', datasets: any[]): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
 
-const id = 'spring_' + uuidv1()
+const id = `spring_${uuidv1()}`
 const datasourceExpanded = ref(true)
 const datasetExpanded = ref<Record<number, boolean>>({})
 const localName = ref(props.name)
@@ -187,7 +83,7 @@ function showDatasourceContextMenu(event: MouseEvent) {
   const items = [
     { key: 'add', name: t('tree.addDataset'), icon: 'add' },
     { key: 'edit', name: t('tree.edit'), icon: 'edit' },
-    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+    { key: 'delete', name: t('tree.del'), icon: 'delete' },
   ]
   contextMenu.value.show(event, items, (key: string) => {
     handleDatasourceMenuAction(key)
@@ -195,12 +91,25 @@ function showDatasourceContextMenu(event: MouseEvent) {
 }
 
 function handleDatasourceMenuAction(key: string) {
-  if (key === 'add') {
-    addDatasetAction()
-  } else if (key === 'delete') {
-    deleteDatasourceAction()
-  } else if (key === 'edit') {
-    editDatasourceAction()
+  switch (key) {
+    case 'add': {
+      addDatasetAction()
+
+      break
+    }
+
+    case 'delete': {
+      deleteDatasourceAction()
+
+      break
+    }
+
+    case 'edit': {
+      editDatasourceAction()
+
+      break
+    }
+  // No default
   }
 }
 
@@ -218,7 +127,7 @@ function deleteDatasourceAction() {
 function editDatasourceAction() {
   currentSpringDatasource.value = {
     name: localName.value,
-    beanId: localBeanId.value
+    beanId: localBeanId.value,
   }
   springDialogVisible.value = true
 }
@@ -228,7 +137,7 @@ function showDatasetContextMenu(event: MouseEvent, dataset: any, index: number) 
     { key: 'add', name: t('tree.addField'), icon: 'add' },
     { key: 'edit', name: t('tree.edit'), icon: 'edit' },
     { key: 'delete', name: t('tree.del'), icon: 'delete' },
-    { key: 'refresh', name: t('tree.refresh'), icon: 'loading' }
+    { key: 'refresh', name: t('tree.refresh'), icon: 'loading' },
   ]
 
   contextMenu.value.show(event, items, (key: string) => {
@@ -237,14 +146,31 @@ function showDatasetContextMenu(event: MouseEvent, dataset: any, index: number) 
 }
 
 function handleDatasetMenuAction(key: string, dataset: any, index: number) {
-  if (key === 'add') {
-    addFieldAction(dataset)
-  } else if (key === 'delete') {
-    deleteDatasetAction(dataset, index)
-  } else if (key === 'edit') {
-    editDatasetAction(dataset, index)
-  } else if (key === 'refresh') {
-    refreshDatasetAction(dataset, index)
+  switch (key) {
+    case 'add': {
+      addFieldAction(dataset)
+
+      break
+    }
+
+    case 'delete': {
+      deleteDatasetAction(dataset, index)
+
+      break
+    }
+
+    case 'edit': {
+      editDatasetAction(dataset, index)
+
+      break
+    }
+
+    case 'refresh': {
+      refreshDatasetAction(dataset, index)
+
+      break
+    }
+  // No default
   }
 }
 
@@ -295,7 +221,8 @@ function handleBeanMethodSave(nameVal: string, method: string, clazz: string, ol
       if (clazz !== originalClazz) {
         if (!clazz || clazz === '') {
           dataset.fields = []
-        } else {
+        }
+        else {
           buildFields(dataset, index, false, newDatasets)
         }
       }
@@ -334,7 +261,7 @@ function refreshDatasetAction(dataset: any, index: number) {
 
 function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
   const items = [
-    { key: 'delete', name: t('tree.del'), icon: 'delete' }
+    { key: 'delete', name: t('tree.del'), icon: 'delete' },
   ]
 
   contextMenu.value.show(event, items, (key: string) => {
@@ -370,6 +297,7 @@ async function buildFields(dataset: any, index: number, refresh = false, newData
     if (newDatasets) {
       emit('update-datasets', newDatasets)
     }
+
     return
   }
 
@@ -379,10 +307,12 @@ async function buildFields(dataset: any, index: number, refresh = false, newData
     if (newDatasets) {
       emit('update-datasets', newDatasets)
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     if (error.msg) {
       showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-    } else {
+    }
+    else {
       showAlert(t('tree.loadFieldFail'))
     }
   }
@@ -394,6 +324,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
     showAlert(t('tree.cellTip'))
     return
   }
+
   const cellsMap = ctx.cellsMap
   const selected = hot.getSelected()
 
@@ -407,28 +338,29 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
 
   let newCellDef = deepCopy(cellDef)
 
-  if (newCellDef.value.type !== 'dataset') {
+  if (newCellDef.value.type === 'dataset') {
+    setCell(rowIndex, colIndex, newCellDef)
+  }
+  else {
     newCellDef = {
       value: { type: 'dataset', conditions: [] },
       rowNumber: newCellDef.rowNumber,
       columnNumber: newCellDef.columnNumber,
-      cellStyle: newCellDef.cellStyle
+      cellStyle: newCellDef.cellStyle,
     }
     addCell(newCellDef)
-  } else {
-    setCell(rowIndex, colIndex, newCellDef)
   }
 
-  newCellDef.expand = "Down"
+  newCellDef.expand = 'Down'
   const value = newCellDef.value
-  value.aggregate = "group"
+  value.aggregate = 'group'
   value.datasetName = dataset.name
   value.property = field.name
   value.order = 'none'
 
-  let text = value.datasetName + "." + value.aggregate + "("
+  let text = `${value.datasetName}.${value.aggregate}(`
   const prop = value.property
-  text += prop + ')'
+  text += `${prop})`
   hot.setDataAtCell(rowIndex, colIndex, text)
 
   hot.render()
@@ -444,8 +376,111 @@ function handleSpringDatasourceSave(datasourceData: any) {
   emit('update-datasource', datasourceData)
 }
 </script>
+
+<template>
+  <div class="tree" style="margin-left: 10px">
+    <ul class="tree-root">
+      <li>
+        <!-- 数据源节点 -->
+        <span
+          :id="id"
+          @click="toggleDatasource"
+          @contextmenu.prevent.stop="showDatasourceContextMenu($event)"
+        >
+          <i
+            class="iconfont"
+            :class="datasourceExpanded ? 'icon-minus-circle' : 'icon-plus-circle'"
+            style="margin-right:2px"
+          />
+          <i class="iconfont icon-leaf" />
+          <a href="###" class="ds_name">{{ localName }}</a>
+        </span>
+
+        <!-- 数据集列表 -->
+        <ul
+          v-show="datasourceExpanded"
+          class="node-list"
+        >
+          <li
+            v-for="(dataset, index) in localDatasets"
+            :key="`${dataset.name}_${index}`"
+          >
+            <!-- 数据集节点 -->
+            <span
+              :id="`dataset_${dataset.name}_${index}`"
+              @click="toggleDataset(index)"
+              @contextmenu.prevent.stop="showDatasetContextMenu($event, dataset, index)"
+            >
+              <i
+                class="iconfont"
+                :class="datasetExpanded[index] ? 'icon-minus-circle' : 'icon-plus-circle'"
+                style="margin-right:2px"
+              />
+              <i class="iconfont icon-sqlds" />
+              <a href="###" class="dataset_name">{{ dataset.name }}</a>
+            </span>
+
+            <!-- 字段列表 -->
+            <ul
+              v-show="datasetExpanded[index]"
+              style="padding-left: 22px;"
+            >
+              <li
+                v-for="(field, fieldIndex) in dataset.fields"
+                :key="`${field.name}_${fieldIndex}`"
+              >
+                <span
+                  :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
+                  :title="$t('tree.doubleClick')"
+                  @dblclick="handleFieldDoubleClick(dataset, field)"
+                  @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
+                >
+                  <i class="iconfont icon-property" />
+                  <a href="###">{{ field.name }}</a>
+                </span>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- Bean方法配置对话框 -->
+    <BeanMethodDialog
+      :visible="beanMethodDialogVisible"
+      :dataset="currentDataset"
+      :datasources="datasources"
+      :beanId="localBeanId"
+      @save="handleBeanMethodSave"
+      @close="beanMethodDialogVisible = false"
+    />
+
+    <!-- Spring数据源配置对话框 -->
+    <SpringDialog
+      ref="springDialog"
+      :datasources="datasources"
+      :visible="springDialogVisible"
+      :datasource="currentSpringDatasource"
+      @close="springDialogVisible = false"
+      @save="handleSpringDatasourceSave"
+    />
+
+    <!-- 字段名输入对话框 -->
+    <FieldNameDialog
+      ref="fieldNameDialog"
+      :visible="fieldNameDialogVisible"
+      :dataset="currentDataset"
+      @save="handleFieldNameSave"
+      @close="fieldNameDialogVisible = false"
+    />
+
+    <!-- 右键菜单 -->
+    <ContextMenu ref="contextMenu" />
+  </div>
+</template>
+
 <style scoped>
-.tree{
+.tree {
   a {
     text-decoration: none;
     margin-left: 4px;

@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { computed, reactive, provide } from 'vue'
+import { computed, provide, reactive } from 'vue'
 import './style/index.css'
 
 defineOptions({ name: 'URow' })
-
-export interface RowContext {
-  gutter: number
-}
 
 const props = withDefaults(defineProps<{
   type?: string
@@ -17,6 +13,10 @@ const props = withDefaults(defineProps<{
 }>(), {
   gutter: 0,
 })
+
+export interface RowContext {
+  gutter: number
+}
 
 const prefixCls = 'u-row'
 
@@ -37,6 +37,7 @@ const styles = computed(() => {
       marginRight: `${props.gutter / -2}px`,
     }
   }
+
   return {}
 })
 

@@ -1,49 +1,9 @@
-<template>
-  <UDialog
-    :title="title"
-    width="500px"
-    :visible="visible"
-    :z-index="20010"
-    @close="handleClose"
-  >
-    <div class="dialog-content">
-      <u-form ref="form" :label-width="80">
-        <u-form-item :label="t('dialog.paramItem.name')">
-          <u-input
-            v-model="name"
-            ref="nameInput"
-            style="width: 350px;"
-            @keyup.enter="handleOk"
-          />
-        </u-form-item>
-
-        <u-form-item :label="t('dialog.paramItem.expr')">
-          <u-input
-            v-model="value"
-            ref="valueInput"
-            style="width: 350px;"
-            @keyup.enter="handleOk"
-          />
-        </u-form-item>
-      </u-form>
-    </div>
-    <template #footer>
-      <div style="text-align: right">
-        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
-        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
-      </div>
-    </template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'URLParameterItemDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   visible?: boolean
@@ -52,13 +12,15 @@ const props = withDefaults(defineProps<{
 }>(), {
   visible: false,
   paramItem: null,
-  operation: 'add'
+  operation: 'add',
 })
 
 const emit = defineEmits<{
   (e: 'saveAfter', value: { paramItem: any, operation: string }): void
   (e: 'update:visible', value: boolean): void
 }>()
+
+const { t } = useI18n()
 
 const form = ref<any>(null)
 const nameInput = ref<any>(null)
@@ -68,7 +30,7 @@ const value = ref('')
 const localParamItem = ref<any>(null)
 
 const title = computed(() =>
-  props.operation === 'add' ? t('dialog.paramItem.add') : t('dialog.paramItem.edit')
+  props.operation === 'add' ? t('dialog.paramItem.add') : t('dialog.paramItem.edit'),
 )
 
 watch(() => props.visible, (newVal) => {
@@ -96,16 +58,17 @@ function handleOk() {
   if (localParamItem.value) {
     localParamItem.value.name = name.value
     localParamItem.value.value = value.value
-  } else {
+  }
+  else {
     localParamItem.value = {
       name: name.value,
-      value: value.value
+      value: value.value,
     }
   }
 
   emit('saveAfter', {
     paramItem: localParamItem.value,
-    operation: props.operation
+    operation: props.operation,
   })
 
   handleClose()
@@ -121,13 +84,49 @@ function handleClose() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (props.visible) {
-    if (e.key === 'Escape') {
-      handleClose()
-    }
+  if (props.visible && e.key === 'Escape') {
+    handleClose()
   }
 }
 </script>
+
+<template>
+  <UDialog
+    :title="title"
+    width="500px"
+    :visible="visible"
+    :z-index="20010"
+    @close="handleClose"
+  >
+    <div class="dialog-content">
+      <u-form ref="form" :label-width="80">
+        <u-form-item :label="t('dialog.paramItem.name')">
+          <u-input
+            ref="nameInput"
+            v-model="name"
+            style="width: 350px;"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+
+        <u-form-item :label="t('dialog.paramItem.expr')">
+          <u-input
+            ref="valueInput"
+            v-model="value"
+            style="width: 350px;"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+      </u-form>
+    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 </style>

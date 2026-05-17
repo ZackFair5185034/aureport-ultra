@@ -1,78 +1,12 @@
-<template>
-  <div class="form-group" style="padding-top: 10px">
-    <!-- 当没有选择数据集时显示提示 -->
-    <div v-if="!selectedDataset" class="empty-tip-container">
-      <i class="iconfont icon-warning empty-tip-icon"></i>
-      <div class="empty-tip-content">
-        <div class="empty-tip-title">{{ t('property.dataset.noDatasetSelected') }}</div>
-        <div class="empty-tip-desc">{{ t('property.dataset.bindDatasetTip') }}</div>
-      </div>
-    </div>
-
-    <!-- 条件列表和操作按钮 -->
-    <div v-show="selectedDataset" class="form-group" style="margin-bottom: 10px;">
-      <div class="top-button">
-        <u-button
-            type="info"
-            icon="icon-plus-circle"
-            :title="t('property.dataset.addFilterCondition')"
-            @click="handleAddCondition"
-        >
-        </u-button>
-        <u-button
-            type="info"
-            icon="icon-edit"
-            :title="t('property.dataset.editFilterCondition')"
-            @click="handleEditCondition"
-        >
-        </u-button>
-        <u-button
-            type="info"
-            icon="icon-delete"
-            :title="t('property.dataset.delFilterCondition')"
-            @click="handleDeleteCondition"
-        >
-        </u-button>
-      </div>
-
-      <div style="margin-top: 10px;">
-        <select
-            class="form-control condition-select"
-            size="5"
-            v-model="selectedConditionIndex"
-        >
-          <option
-              v-for="(condition, index) in conditions"
-              :key="condition.id"
-              :value="index"
-          >
-            {{ formatConditionText(condition) }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 条件对话框组件 -->
-    <ConditionDialog
-      v-model:visible="conditionDialogVisible"
-      :fields="conditionDialogFields"
-      :condition="conditionDialogCondition"
-      @saveAfter="handleConditionSave"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
+import { v1 as uuidv1 } from 'uuid'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert, showConfirm } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
-import { v1 as uuidv1 } from 'uuid'
 import ConditionDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue'
 
 defineOptions({ name: 'FilterConditionTab' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   selectedDataset?: string
@@ -81,13 +15,15 @@ const props = withDefaults(defineProps<{
 }>(), {
   selectedDataset: '',
   conditions: () => [],
-  currentFields: () => []
+  currentFields: () => [],
 })
 
 const emit = defineEmits<{
   (e: 'update:conditions', value: any[]): void
   (e: 'update-filter-conditions', value: any[]): void
 }>()
+
+const { t } = useI18n()
 
 const selectedConditionIndex = ref(-1)
 const currentConditionIndex = ref(-1)
@@ -131,13 +67,14 @@ function handleConditionSave(conditionData: any) {
       targetCondition.right = conditionData.right
       targetCondition.join = conditionData.join
     }
-  } else {
+  }
+  else {
     const condition = {
       left: conditionData.left,
       operation: conditionData.operation,
       right: conditionData.right,
       join: conditionData.join,
-      id: uuidv1()
+      id: uuidv1(),
     }
     conditions.push(condition)
   }
@@ -173,21 +110,83 @@ function formatConditionText(condition: any) {
   if (condition.join) {
     text = `${condition.join} ${text}`
   }
+
   return text
 }
 </script>
 
+<template>
+  <div class="form-group" style="padding-top: 10px">
+    <!-- 当没有选择数据集时显示提示 -->
+    <div v-if="!selectedDataset" class="empty-tip-container">
+      <i class="iconfont icon-warning empty-tip-icon" />
+      <div class="empty-tip-content">
+        <div class="empty-tip-title">{{ t('property.dataset.noDatasetSelected') }}</div>
+        <div class="empty-tip-desc">{{ t('property.dataset.bindDatasetTip') }}</div>
+      </div>
+    </div>
+
+    <!-- 条件列表和操作按钮 -->
+    <div v-show="selectedDataset" class="form-group" style="margin-bottom: 10px;">
+      <div class="top-button">
+        <u-button
+          type="info"
+          icon="icon-plus-circle"
+          :title="t('property.dataset.addFilterCondition')"
+          @click="handleAddCondition"
+        />
+        <u-button
+          type="info"
+          icon="icon-edit"
+          :title="t('property.dataset.editFilterCondition')"
+          @click="handleEditCondition"
+        />
+        <u-button
+          type="info"
+          icon="icon-delete"
+          :title="t('property.dataset.delFilterCondition')"
+          @click="handleDeleteCondition"
+        />
+      </div>
+
+      <div style="margin-top: 10px;">
+        <select
+          v-model="selectedConditionIndex"
+          class="form-control condition-select"
+          size="5"
+        >
+          <option
+            v-for="(condition, index) in conditions"
+            :key="condition.id"
+            :value="index"
+          >
+            {{ formatConditionText(condition) }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 条件对话框组件 -->
+    <ConditionDialog
+      v-model:visible="conditionDialogVisible"
+      :fields="conditionDialogFields"
+      :condition="conditionDialogCondition"
+      @saveAfter="handleConditionSave"
+    />
+  </div>
+</template>
+
 <style scoped>
-.u-button + .u-button{
+.u-button + .u-button {
   margin-left: 5px;
 }
 
-.top-button{
+.top-button {
   display: flex;
   justify-content: end;
 }
 
-.condition-select{
+.condition-select {
   height: 100px;
   outline: none;
 }

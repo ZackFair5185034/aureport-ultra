@@ -1,13 +1,13 @@
 import { createApp } from 'vue'
 import MessageBoxTemplate from './index.vue'
 
-const MessageBox = function (params: Record<string, any>) {
+function MessageBox(params: Record<string, any>) {
   const app = createApp(MessageBoxTemplate, {
     visible: true,
     ...params,
   })
   const vm = app.mount(document.createElement('div'))
-  document.body.appendChild(vm.$el as HTMLElement)
+  document.body.append(vm.$el as HTMLElement)
 
   return { app, vm }
 }
@@ -21,7 +21,7 @@ MessageBox.alert = function (message: string, title?: string, options?: Record<s
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null
-      resolve(undefined)
+      resolve()
     })
   })
 }
@@ -33,7 +33,7 @@ MessageBox.confirm = function (message: string, title?: string, options?: Record
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null
-      resolve(undefined)
+      resolve()
     })
   })
 }
@@ -45,7 +45,7 @@ MessageBox.prompt = function (message: string, title?: string, options?: Record<
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null
-      resolve(undefined)
+      resolve()
     })
   })
 }

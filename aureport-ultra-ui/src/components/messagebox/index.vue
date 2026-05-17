@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineOptions({ name: 'UMessageBox' })
 
@@ -22,8 +22,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:visible': [value: boolean]
-  submit: [value?: string]
-  cancel: []
+  'submit': [value?: string]
+  'cancel': []
 }>()
 
 const currentValue = ref('')
@@ -118,11 +118,11 @@ onBeforeUnmount(() => {
   height: 100%;
   background-color: rgba(0, 0, 0, 0);
   visibility: hidden;
-  transition: all .2s;
+  transition: all 0.2s;
 }
 
 .u-messagebox-show {
-  background-color: rgba(0, 0, 0, .5);
+  background-color: rgba(0, 0, 0, 0.5);
   visibility: visible;
 }
 
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
   width: 400px;
   background-color: #fff;
   border-radius: 6px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
@@ -158,7 +158,9 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
-.u-messagebox-close:hover { color: #ddd; }
+.u-messagebox-close:hover {
+  color: #ddd;
+}
 
 .u-messagebox-content {
   padding: 15px;
@@ -167,7 +169,9 @@ onBeforeUnmount(() => {
   display: flex;
 }
 
-.u-messagebox-text { font-size: 14px; }
+.u-messagebox-text {
+  font-size: 14px;
+}
 
 .u-messagebox-icon {
   position: relative;

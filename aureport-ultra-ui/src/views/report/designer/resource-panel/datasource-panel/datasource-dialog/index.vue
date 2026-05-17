@@ -1,52 +1,12 @@
-<template>
-    <UDialog
-        :title="$t('dialog.datasource.title')"
-        width="800px"
-        :visible="visible"
-        @close="closeDialog"
-    >
-        <div class="dialog-content">
-            <u-form ref="form" :model="formData" :rules="rules" :label-width="120">
-                <u-form-item :label="$t('dialog.datasource.name')" prop="dsName">
-                    <u-input v-model="formData.dsName" style="width: 600px" />
-                </u-form-item>
-
-                <u-form-item :label="$t('dialog.datasource.username')" prop="username">
-                    <u-input v-model="formData.username" style="width: 600px" />
-                </u-form-item>
-
-                <u-form-item :label="$t('dialog.datasource.password')" prop="password">
-                    <u-input type="password" v-model="formData.password" style="width: 600px" />
-                </u-form-item>
-
-                <u-form-item :label="$t('dialog.datasource.driver')" prop="driver">
-                    <u-input v-model="formData.driver" style="width: 600px" />
-                </u-form-item>
-
-                <u-form-item :label="$t('dialog.datasource.url')" prop="url">
-                    <u-input v-model="formData.url" style="width: 600px" />
-                </u-form-item>
-            </u-form>
-        </div>
-
-        <template #footer><div style="text-align: right">
-            <u-button @click="testConnection(true)" type="info" style="margin-right: 10px;">{{ $t('dialog.datasource.test') }}</u-button>
-            <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-        </div></template>
-    </UDialog>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { testConnection } from '@/api/designer'
 import { showAlert } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
-import { testConnection } from '@/api/designer'
 
 defineOptions({ name: 'DatasourceDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   datasources: any[]
@@ -55,13 +15,15 @@ const props = withDefaults(defineProps<{
 }>(), {
   datasources: () => [],
   visible: false,
-  datasource: null
+  datasource: null,
 })
 
 const emit = defineEmits<{
   (e: 'save', data: any): void
   (e: 'close'): void
 }>()
+
+const { t } = useI18n()
 
 const form = ref<any>(null)
 const oldName = ref<string | null>(null)
@@ -70,15 +32,17 @@ const formData = reactive({
   username: '',
   password: '',
   driver: '',
-  url: ''
+  url: '',
 })
 
-const validateDsName = (rule: any, value: string, callback: (error?: Error) => void) => {
+function validateDsName(rule: any, value: string, callback: (error?: Error) => void) {
   if (!value) {
     callback(new Error(t('dialog.datasource.nameTip')))
-  } else if (checkDuplicateName(value)) {
+  }
+  else if (checkDuplicateName(value)) {
     callback()
-  } else {
+  }
+  else {
     callback(new Error(`${t('dialog.datasource.datasource')}[${value}]${t('dialog.datasource.existTip')}`))
   }
 }
@@ -87,28 +51,28 @@ const rules = reactive({
   dsName: [{
     required: true,
     validator: validateDsName,
-    trigger: 'blur'
+    trigger: 'blur',
   }],
   username: [{
     required: true,
     message: t('dialog.datasource.usernameTip'),
-    trigger: 'blur'
+    trigger: 'blur',
   }],
   password: [{
     required: true,
     message: t('dialog.datasource.passwordTip'),
-    trigger: 'blur'
+    trigger: 'blur',
   }],
   driver: [{
     required: true,
     message: t('dialog.datasource.driverTip'),
-    trigger: 'blur'
+    trigger: 'blur',
   }],
   url: [{
     required: true,
     message: t('dialog.datasource.urlTip'),
-    trigger: 'blur'
-  }]
+    trigger: 'blur',
+  }],
 })
 
 watch(() => props.visible, (newVal) => {
@@ -116,6 +80,7 @@ watch(() => props.visible, (newVal) => {
     if (props.datasource) {
       fillForm(props.datasource)
     }
+
     resetForm()
   }
 })
@@ -158,12 +123,13 @@ function validateForm(): Promise<boolean> {
 
 function checkDuplicateName(name: string) {
   if (!oldName.value || name !== oldName.value) {
-    for (let source of props.datasources) {
+    for (const source of props.datasources) {
       if (source.name === name) {
         return false
       }
     }
   }
+
   return true
 }
 
@@ -173,7 +139,7 @@ async function testConnection(showSuccessTips: boolean) {
     return false
   }
 
-  let formDataObj = new FormData()
+  const formDataObj = new FormData()
   formDataObj.append('username', formData.username)
   formDataObj.append('password', formData.password)
   formDataObj.append('driver', formData.driver)
@@ -184,15 +150,19 @@ async function testConnection(showSuccessTips: boolean) {
     if (data.result && showSuccessTips) {
       showAlert(t('dialog.datasource.testSuccess'))
     }
+
     return true
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Error testing connection:', error)
     if (error.msg) {
       showAlert(t('dialog.datasource.failTip') + t('colon') + error.msg, { useHTMLString: true })
-    } else {
+    }
+    else {
       showAlert(t('dialog.datasource.failTip'))
     }
   }
+
   return false
 }
 
@@ -211,13 +181,53 @@ async function save() {
       driver: formData.driver,
       url: formData.url,
       oldName: oldName.value,
-      type: 'jdbc'
+      type: 'jdbc',
     })
     setDirty()
     closeDialog()
   }
 }
 </script>
+
+<template>
+  <UDialog
+    :title="$t('dialog.datasource.title')"
+    width="800px"
+    :visible="visible"
+    @close="closeDialog"
+  >
+    <div class="dialog-content">
+      <u-form ref="form" :model="formData" :rules="rules" :label-width="120">
+        <u-form-item :label="$t('dialog.datasource.name')" prop="dsName">
+          <u-input v-model="formData.dsName" style="width: 600px" />
+        </u-form-item>
+
+        <u-form-item :label="$t('dialog.datasource.username')" prop="username">
+          <u-input v-model="formData.username" style="width: 600px" />
+        </u-form-item>
+
+        <u-form-item :label="$t('dialog.datasource.password')" prop="password">
+          <u-input v-model="formData.password" type="password" style="width: 600px" />
+        </u-form-item>
+
+        <u-form-item :label="$t('dialog.datasource.driver')" prop="driver">
+          <u-input v-model="formData.driver" style="width: 600px" />
+        </u-form-item>
+
+        <u-form-item :label="$t('dialog.datasource.url')" prop="url">
+          <u-input v-model="formData.url" style="width: 600px" />
+        </u-form-item>
+      </u-form>
+    </div>
+
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="testConnection(true)">{{ $t('dialog.datasource.test') }}</u-button>
+        <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 </style>

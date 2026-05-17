@@ -1,76 +1,19 @@
-<template>
-  <div>
-    <div>
-      <u-button
-          type="info"
-          icon="icon-plus-circle"
-          :title="t('dialog.propCondition.addItem')"
-          @click="addItem"
-      >
-      </u-button>
-      <u-button
-          type="info"
-          icon="icon-edit"
-          :title="t('dialog.propCondition.editItem')"
-          @click="editItem"
-      >
-      </u-button>
-      <u-button
-          type="info"
-          icon="icon-delete"
-          :title="t('dialog.propCondition.delItem')"
-          @click="deleteItem"
-      >
-      </u-button>
-    </div>
-
-    <div style="margin-top: 10px;">
-      <select
-        ref="itemSelect"
-        size="10"
-        class="form-control item-select"
-        :value="selectedItemIndex"
-        @change="onItemSelectChange"
-      >
-      <option
-          v-for="(item, index) in propertyConditions"
-          :key="item.id"
-          :value="index"
-      >
-        {{ item.name }}
-      </option>
-    </select>
-    </div>
-
-    <property-condition-item-dialog
-        :visible="dialogVisible"
-        :conditionItem="currentConditionItem"
-        :operation="currentOperation"
-        :propertyConditions="propertyConditions"
-        @saveAfter="handleSaveAfter"
-        @close="handleDialogClose"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
+import { v1 as uuid } from 'uuid'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert, showConfirm } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
-import { v1 as uuid } from 'uuid'
 import PropertyConditionItemDialog from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-item-dialog/index.vue'
 
 defineOptions({ name: 'ConditionItem' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   propertyConditions?: any[]
   selectedItemIndex?: number
 }>(), {
   propertyConditions: () => [],
-  selectedItemIndex: -1
+  selectedItemIndex: -1,
 })
 
 const emit = defineEmits<{
@@ -80,6 +23,8 @@ const emit = defineEmits<{
   (e: 'item-deleted', value: number): void
   (e: 'item-index-changed', value: number): void
 }>()
+
+const { t } = useI18n()
 
 const itemSelect = ref<HTMLSelectElement | null>(null)
 const selectedItem = ref<any>(null)
@@ -91,7 +36,8 @@ watch(() => props.selectedItemIndex, (newVal) => {
   if (newVal < 0 || newVal >= props.propertyConditions.length) {
     selectedItem.value = null
     emit('item-selected', null)
-  } else {
+  }
+  else {
     selectedItem.value = props.propertyConditions[newVal]
     emit('item-selected', selectedItem.value)
   }
@@ -145,12 +91,12 @@ function handleSaveAfter({ item, operation }: { item: any, operation: string }) 
       const newIndex = props.propertyConditions.length - 1
       emit('item-index-changed', newIndex)
     }
-  } else if (operation === 'edit') {
-    if (currentConditionItem.value) {
-      currentConditionItem.value.name = item.name
-      emit('item-updated', currentConditionItem.value)
-    }
   }
+  else if (operation === 'edit' && currentConditionItem.value) {
+    currentConditionItem.value.name = item.name
+    emit('item-updated', currentConditionItem.value)
+  }
+
   setDirty()
 }
 
@@ -163,12 +109,64 @@ function handleDialogClose() {
 }
 </script>
 
+<template>
+  <div>
+    <div>
+      <u-button
+        type="info"
+        icon="icon-plus-circle"
+        :title="t('dialog.propCondition.addItem')"
+        @click="addItem"
+      />
+      <u-button
+        type="info"
+        icon="icon-edit"
+        :title="t('dialog.propCondition.editItem')"
+        @click="editItem"
+      />
+      <u-button
+        type="info"
+        icon="icon-delete"
+        :title="t('dialog.propCondition.delItem')"
+        @click="deleteItem"
+      />
+    </div>
+
+    <div style="margin-top: 10px;">
+      <select
+        ref="itemSelect"
+        size="10"
+        class="form-control item-select"
+        :value="selectedItemIndex"
+        @change="onItemSelectChange"
+      >
+        <option
+          v-for="(item, index) in propertyConditions"
+          :key="item.id"
+          :value="index"
+        >
+          {{ item.name }}
+        </option>
+      </select>
+    </div>
+
+    <PropertyConditionItemDialog
+      :visible="dialogVisible"
+      :conditionItem="currentConditionItem"
+      :operation="currentOperation"
+      :propertyConditions="propertyConditions"
+      @saveAfter="handleSaveAfter"
+      @close="handleDialogClose"
+    />
+  </div>
+</template>
+
 <style scoped>
-.u-button + .u-button{
+.u-button + .u-button {
   margin-left: 5px;
 }
 
-.item-select{
+.item-select {
   height: 500px;
   outline: none;
 }

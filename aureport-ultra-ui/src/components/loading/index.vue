@@ -33,7 +33,7 @@ withDefaults(defineProps<{
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, .8);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .u-loading-content {
@@ -58,8 +58,12 @@ withDefaults(defineProps<{
 }
 
 @keyframes loading {
-  from { transform: rotate(0); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .u-loading-fullscreen {

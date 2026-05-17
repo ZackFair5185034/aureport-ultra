@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { debounce } from '../utils'
 
 defineOptions({ name: 'UInput' })
@@ -31,9 +31,9 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  change: [value: string]
-  blur: [event: FocusEvent]
-  focus: [event: FocusEvent]
+  'change': [value: string]
+  'blur': [event: FocusEvent]
+  'focus': [event: FocusEvent]
 }>()
 
 const inputRef = ref<HTMLElement | null>(null)
@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
       @blur="handleBlur"
     />
     <span v-if="prefixIcon" class="u-input-icon u-input-icon--prefix">
-      <i :class="['iconfont', prefixIcon]" />
+      <i class="iconfont" :class="[prefixIcon]" />
     </span>
     <span class="u-input-icon u-input-icon--suffix">
       <i
@@ -147,7 +147,7 @@ onBeforeUnmount(() => {
         class="iconfont icon-close"
         @click="handleClean"
       />
-      <i v-else-if="suffixIcon" :class="['iconfont', suffixIcon]" />
+      <i v-else-if="suffixIcon" class="iconfont" :class="[suffixIcon]" />
     </span>
     <transition name="fade-bottom">
       <div
@@ -180,7 +180,9 @@ onBeforeUnmount(() => {
   height: 36px;
 }
 
-.u-input-disabled { cursor: not-allowed; }
+.u-input-disabled {
+  cursor: not-allowed;
+}
 
 .u-input-inner {
   box-sizing: border-box;
@@ -205,18 +207,40 @@ onBeforeUnmount(() => {
   background-color: #f5f7fa;
 }
 
-.u-input--has-prefix { padding-left: 30px; }
-.u-input--has-suffix { padding-right: 30px; }
+.u-input--has-prefix {
+  padding-left: 30px;
+}
+.u-input--has-suffix {
+  padding-right: 30px;
+}
 
-.u-input-inner-large { padding: 9px 10px; }
-.u-input-inner-medium { padding: 7px 10px; }
-.u-input-inner-small { padding: 5px 10px; font-size: 13px; }
-.u-input-inner-mini { padding: 3px 10px; font-size: 12px; }
+.u-input-inner-large {
+  padding: 9px 10px;
+}
+.u-input-inner-medium {
+  padding: 7px 10px;
+}
+.u-input-inner-small {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.u-input-inner-mini {
+  padding: 3px 10px;
+  font-size: 12px;
+}
 
-.u-input-large { height: 40px; }
-.u-input-medium { height: 36px; }
-.u-input-small { height: 32px; }
-.u-input-mini { height: 28px; }
+.u-input-large {
+  height: 40px;
+}
+.u-input-medium {
+  height: 36px;
+}
+.u-input-small {
+  height: 32px;
+}
+.u-input-mini {
+  height: 28px;
+}
 
 .u-input-icon {
   position: absolute;
@@ -230,11 +254,19 @@ onBeforeUnmount(() => {
   color: #999;
 }
 
-.u-input-icon--prefix { left: 8px; }
-.u-input-icon--suffix { right: 8px; }
+.u-input-icon--prefix {
+  left: 8px;
+}
+.u-input-icon--suffix {
+  right: 8px;
+}
 
-.u-input-icon--suffix i { cursor: pointer; }
-.u-input-icon--suffix i:hover { color: #333; }
+.u-input-icon--suffix i {
+  cursor: pointer;
+}
+.u-input-icon--suffix i:hover {
+  color: #333;
+}
 
 .u-input-suggestion {
   position: absolute;
@@ -258,7 +290,9 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.u-input-suggestion-item:hover { background-color: #f5f7fa; }
+.u-input-suggestion-item:hover {
+  background-color: #f5f7fa;
+}
 
 .u-input-suggestion-loading {
   padding: 8px;
@@ -266,7 +300,12 @@ onBeforeUnmount(() => {
 }
 
 .fade-bottom-enter-active,
-.fade-bottom-leave-active { transition: all 0.2s; }
+.fade-bottom-leave-active {
+  transition: all 0.2s;
+}
 .fade-bottom-enter-from,
-.fade-bottom-leave-to { opacity: 0; transform: translateY(-4px); }
+.fade-bottom-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
 </style>

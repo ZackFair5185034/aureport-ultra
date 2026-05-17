@@ -1,5 +1,5 @@
-import axios from 'axios'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios from 'axios'
 
 const request = axios.create({
   baseURL: '/api',
@@ -16,6 +16,7 @@ request.interceptors.response.use((response: AxiosResponse) => {
   if (response.status !== 200) {
     throw new Error('请求异常')
   }
+
   return response
 }, (error) => {
   console.error('API Error:', error)
@@ -27,13 +28,14 @@ function dealAxiosResult<T>(res: AxiosResponse<T> | T): Promise<T> {
   if ((res as AxiosResponse).request?.responseType === 'blob') {
     return Promise.resolve(res as T)
   }
+
   return Promise.resolve(realRes as T)
 }
 
 export async function post<T = unknown>(
   url: string,
   data?: unknown,
-  config?: AxiosRequestConfig
+  config?: AxiosRequestConfig,
 ): Promise<T> {
   const res = await request.post<T>(url, data, config)
   return dealAxiosResult(res)
@@ -41,10 +43,10 @@ export async function post<T = unknown>(
 
 export async function get<T = unknown>(
   url: string,
-  config?: AxiosRequestConfig
+  config?: AxiosRequestConfig,
 ): Promise<T> {
   const res = await request.get<T>(url, config)
   return dealAxiosResult(res)
 }
 
-export { request as default }
+export default request

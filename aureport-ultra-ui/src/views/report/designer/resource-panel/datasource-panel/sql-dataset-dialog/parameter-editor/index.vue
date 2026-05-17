@@ -1,17 +1,3 @@
-<template>
-  <div class="parameter-editor">
-    <div class="row" style="margin:10px;">
-      <ParameterTable
-        :data="parameters"
-        @add-parameter="handleAddParameter"
-        @edit-parameter="handleEditParameter"
-        @remove-parameter="handleRemoveParameter"
-        @update="handleUpdate"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import ParameterTable from '@/views/report/designer/resource-panel/datasource-panel/parameter-table/index.vue'
 
@@ -31,16 +17,33 @@ const emit = defineEmits<{
 function handleAddParameter(newParam: any) {
   emit('add-parameter', newParam)
 }
+
 function handleEditParameter(index: number, updatedParam: any) {
   emit('edit-parameter', index, updatedParam)
 }
+
 function handleRemoveParameter(index: number) {
   emit('remove-parameter', index)
 }
+
 function handleUpdate() {
   emit('update')
 }
 </script>
+
+<template>
+  <div class="parameter-editor">
+    <div class="row" style="margin:10px;">
+      <ParameterTable
+        :data="parameters"
+        @add-parameter="handleAddParameter"
+        @edit-parameter="handleEditParameter"
+        @remove-parameter="handleRemoveParameter"
+        @update="handleUpdate"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .parameter-editor {

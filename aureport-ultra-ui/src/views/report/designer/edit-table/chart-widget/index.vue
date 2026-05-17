@@ -1,19 +1,12 @@
-<template>
-  <div class="chart-container" ref="chartContainer">
-    <canvas ref="chartCanvas"></canvas>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { Chart, registerables, ChartTypeRegistry } from 'chart.js'
+import type { ChartTypeRegistry } from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-
-Chart.register(...registerables, ChartDataLabels)
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { $t } from '@/locales'
 import { showAlert } from '@/utils/comnon'
 import { getCell } from '@/utils/contextActions'
 import TableManager from '../manager.js'
-import { $t } from '@/locales'
 
 defineOptions({ name: 'ChartWidget' })
 
@@ -22,6 +15,8 @@ const props = defineProps<{
   rowIndex: number
   colIndex: number
 }>()
+
+Chart.register(...registerables, ChartDataLabels)
 
 const chartContainer = ref<HTMLDivElement | null>(null)
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
@@ -37,7 +32,7 @@ const chartColors = computed(() => ({
   green: 'rgb(75, 192, 192)',
   blue: 'rgb(54, 162, 235)',
   purple: 'rgb(153, 102, 255)',
-  grey: 'rgb(201, 203, 207)'
+  grey: 'rgb(201, 203, 207)',
 }))
 
 onMounted(() => {
@@ -56,6 +51,7 @@ function colorWithAlpha(rgbString: string, alpha: number) {
     const [, r, g, b] = match
     return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
+
   return rgbString
 }
 
@@ -68,7 +64,8 @@ function renderChart() {
   const hot = TableManager.get()
   const container = chartContainer.value
   const canvas = chartCanvas.value
-  if (!container || !canvas) return
+  if (!container || !canvas)
+    return
 
   const tdElement = getTDByCell(rowIndex, colIndex)
   const rowSpan = tdElement ? parseInt(String(tdElement.rowSpan)) || 1 : 1
@@ -110,21 +107,27 @@ function renderChart() {
 
   const xaxes = chartConfig.xaxes
   if (xaxes) {
-    if (!options.scales) options.scales = {}
+    if (!options.scales)
+      options.scales = {}
     if (xaxes.rotation) {
-      if (!(xaxes as any).ticks) (xaxes as any).ticks = {}
+      if (!(xaxes as any).ticks)
+        (xaxes as any).ticks = {}
       ;(xaxes as any).ticks.minRotation = xaxes.rotation
     }
+
     options.scales.x = xaxes
   }
 
   const yaxes = chartConfig.yaxes
   if (yaxes) {
-    if (!options.scales) options.scales = {}
+    if (!options.scales)
+      options.scales = {}
     if (yaxes.rotation) {
-      if (!(yaxes as any).ticks) (yaxes as any).ticks = {}
+      if (!(yaxes as any).ticks)
+        (yaxes as any).ticks = {}
       ;(yaxes as any).ticks.minRotation = yaxes.rotation
     }
+
     options.scales.y = yaxes
   }
 
@@ -140,14 +143,14 @@ function renderChart() {
           backgroundColor: colorWithAlpha(colors.red, 0.5),
           borderColor: colors.red,
           borderWidth: 1,
-          data: [21, 25, 8, 12, 31, 19]
+          data: [21, 25, 8, 12, 31, 19],
         }, {
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
-          data: [11, 13, 18, 9, 23, 29]
-        }]
+          data: [11, 13, 18, 9, 23, 29],
+        }],
       }
       break
     case 'horizontalBar':
@@ -160,14 +163,14 @@ function renderChart() {
           backgroundColor: colorWithAlpha(colors.red, 0.5),
           borderColor: colors.red,
           borderWidth: 1,
-          data: [21, 25, 8, 12, 31, 19]
+          data: [21, 25, 8, 12, 31, 19],
         }, {
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
-          data: [11, 13, 18, 9, 23, 29]
-        }]
+          data: [11, 13, 18, 9, 23, 29],
+        }],
       }
       break
     case 'line':
@@ -180,15 +183,15 @@ function renderChart() {
           borderColor: colors.red,
           borderWidth: 1,
           fill: false,
-          data: [21, 25, 8, 12, 31, 19]
+          data: [21, 25, 8, 12, 31, 19],
         }, {
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
           fill: false,
-          data: [11, 13, 18, 9, 23, 29]
-        }]
+          data: [11, 13, 18, 9, 23, 29],
+        }],
       }
       break
     case 'area':
@@ -200,14 +203,14 @@ function renderChart() {
           backgroundColor: colorWithAlpha(colors.red, 0.5),
           borderColor: colors.red,
           borderWidth: 1,
-          data: [21, 25, 8, 12, 31, 19]
+          data: [21, 25, 8, 12, 31, 19],
         }, {
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
-          data: [11, 13, 18, 9, 23, 29]
-        }]
+          data: [11, 13, 18, 9, 23, 29],
+        }],
       }
       options.scales = options.scales || {}
       options.scales.y = { stacked: true }
@@ -219,8 +222,8 @@ function renderChart() {
         datasets: [{
           label: '系列1',
           backgroundColor: [colors.red, colors.orange, colors.yellow, colors.green],
-          data: [21, 25, 8, 12]
-        }]
+          data: [21, 25, 8, 12],
+        }],
       }
       break
     case 'doughnut':
@@ -230,8 +233,8 @@ function renderChart() {
         datasets: [{
           label: '系列1',
           backgroundColor: [colors.red, colors.orange, colors.yellow, colors.green],
-          data: [21, 25, 8, 12]
-        }]
+          data: [21, 25, 8, 12],
+        }],
       }
       break
     case 'radar':
@@ -243,14 +246,14 @@ function renderChart() {
           backgroundColor: colorWithAlpha(colors.red, 0.5),
           borderColor: colors.red,
           borderWidth: 1,
-          data: [21, 25, 8, 12, 31]
+          data: [21, 25, 8, 12, 31],
         }, {
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
-          data: [11, 13, 18, 9, 23, 9]
-        }]
+          data: [11, 13, 18, 9, 23, 9],
+        }],
       }
       break
     case 'polarArea':
@@ -260,8 +263,8 @@ function renderChart() {
         datasets: [{
           label: '系列1',
           backgroundColor: [colors.red, colors.orange, colors.yellow, colors.green],
-          data: [21, 25, 12, 31]
-        }]
+          data: [21, 25, 12, 31],
+        }],
       }
       break
     case 'scatter':
@@ -272,15 +275,15 @@ function renderChart() {
             label: '系列1',
             borderColor: colors.red,
             backgroundColor: colorWithAlpha(colors.red, 0.2),
-            data: [{ x: 10, y: 10 }, { x: 5, y: 15 }, { x: 8, y: 12 }, { x: 18, y: 10 }]
+            data: [{ x: 10, y: 10 }, { x: 5, y: 15 }, { x: 8, y: 12 }, { x: 18, y: 10 }],
           },
           {
             label: '系列2',
             borderColor: colors.blue,
             backgroundColor: colorWithAlpha(colors.blue, 0.2),
-            data: [{ x: 13, y: 6 }, { x: 25, y: 10 }, { x: 18, y: 11 }, { x: 14, y: 16 }]
-          }
-        ]
+            data: [{ x: 13, y: 6 }, { x: 25, y: 10 }, { x: 18, y: 11 }, { x: 14, y: 16 }],
+          },
+        ],
       }
       break
     case 'bubble':
@@ -291,15 +294,15 @@ function renderChart() {
             label: '系列1',
             borderColor: colors.red,
             backgroundColor: colorWithAlpha(colors.red, 0.2),
-            data: [{ x: 10, y: 10, r: 4 }, { x: 5, y: 15, r: 6 }, { x: 8, y: 12, r: 2 }, { x: 18, y: 10, r: 8 }]
+            data: [{ x: 10, y: 10, r: 4 }, { x: 5, y: 15, r: 6 }, { x: 8, y: 12, r: 2 }, { x: 18, y: 10, r: 8 }],
           },
           {
             label: '系列2',
             borderColor: colors.blue,
             backgroundColor: colorWithAlpha(colors.blue, 0.2),
-            data: [{ x: 13, y: 6, r: 3 }, { x: 25, y: 10, r: 9 }, { x: 18, y: 11, r: 2 }, { x: 14, y: 16, r: 10 }]
-          }
-        ]
+            data: [{ x: 13, y: 6, r: 3 }, { x: 25, y: 10, r: 9 }, { x: 18, y: 11, r: 2 }, { x: 14, y: 16, r: 10 }],
+          },
+        ],
       }
       break
     case 'mix':
@@ -311,15 +314,15 @@ function renderChart() {
           label: '系列1',
           backgroundColor: colorWithAlpha(colors.red, 0.5),
           borderColor: colors.red,
-          data: [21, 25, 8, 12, 31, 19]
+          data: [21, 25, 8, 12, 31, 19],
         }, {
           type: 'bar',
           label: '系列2',
           backgroundColor: colorWithAlpha(colors.blue, 0.5),
           borderColor: colors.blue,
           borderWidth: 1,
-          data: [11, 13, 18, 9, 23, 29]
-        }]
+          data: [11, 13, 18, 9, 23, 29],
+        }],
       }
       break
     default:
@@ -335,21 +338,23 @@ function renderChart() {
           options.plugins = options.plugins || {}
           options.plugins.title = { display: true, position: op.position, text: op.text }
         }
+
         break
       case 'legend':
         options.plugins = options.plugins || {}
         options.plugins.legend = {
           display: op.display || false,
           position: op.position,
-          labels: (op as any).labels || {}
+          labels: (op as any).labels || {},
         }
         break
       case 'layout':
         if ((op as any).padding) {
           options.layout = {
-            padding: { left: (op as any).padding.left, right: (op as any).padding.right, top: (op as any).padding.top, bottom: (op as any).padding.bottom }
+            padding: { left: (op as any).padding.left, right: (op as any).padding.right, top: (op as any).padding.top, bottom: (op as any).padding.bottom },
           }
         }
+
         break
     }
   }
@@ -360,28 +365,37 @@ function renderChart() {
 
   chart.value = new Chart(canvas, {
     type: chartType as keyof ChartTypeRegistry,
-    data: data,
-    options: options || {}
+    data,
+    options: options || {},
   })
 }
 
 function getTDByCell(rowIndex: number, colIndex: number): HTMLTableCellElement | null {
   const hot = TableManager.get()
-  if (!hot || !hot.view || !hot.view.wtTable) return null
+  if (!hot || !hot.view || !hot.view.wtTable)
+    return null
   const wtTable = hot.view.wtTable
   if (wtTable.getCell && wtTable.getCell(rowIndex, colIndex)) {
     return wtTable.getCell(rowIndex, colIndex).parentNode
   }
+
   const cellElements = document.querySelectorAll(`.htCore td[data-row="${rowIndex}"][data-col="${colIndex}"]`)
   return cellElements.length > 0 ? cellElements[0] as HTMLTableCellElement : null
 }
 
 function updateChart() {
-  if (chart.value) chart.value.update()
+  if (chart.value)
+    chart.value.update()
 }
 
 defineExpose({ updateChart })
 </script>
+
+<template>
+  <div ref="chartContainer" class="chart-container">
+    <canvas ref="chartCanvas" />
+  </div>
+</template>
 
 <style scoped>
 .chart-container {

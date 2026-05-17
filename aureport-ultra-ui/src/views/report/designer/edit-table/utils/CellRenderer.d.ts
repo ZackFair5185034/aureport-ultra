@@ -4,5 +4,5 @@ export function afterRenderer(
   col: number,
   prop: string | number,
   value: string,
-  cellProperties: Record<string, unknown>
+  cellProperties: Record<string, unknown>,
 ): void

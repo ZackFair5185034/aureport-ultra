@@ -1,51 +1,21 @@
-<template>
-  <UDialog
-    :title="$t('dialog.import.title')"
-    width="800px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="dialog-content">
-      <div class="form-group">
-        <div class="import-description">{{ $t('dialog.import.desc') }}</div>
-      </div>
-      <div class="form-group">
-        <label>{{ $t('dialog.import.file') }}：</label>
-        <input
-          type="file"
-          class="form-control"
-          :key="fileInputKey"
-          accept=".xlsx,.xls"
-          @change="handleFileChange"
-        />
-      </div>
-    </div>
-
-    <template #footer><div style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleUpload">{{ $t('dialog.common.ok') }}</u-button>
-    </div></template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert } from '@/utils/comnon'
 import { importExcelFile } from '@/api/designer'
+import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'ImportDialog' })
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false,
+})
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'import-success'): void
 }>()
-
-const props = withDefaults(defineProps<{
-  visible?: boolean
-}>(), {
-  visible: false
-})
 
 const { t } = useI18n()
 const selectedFile = ref<File | null>(null)
@@ -75,11 +45,13 @@ async function handleUpload() {
     await importExcelFile(selectedFile.value)
     emit('import-success')
     emit('update:visible', false)
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('上传文件失败:', error)
     if (error.msg) {
       showAlert(t('dialog.import.fail') + t('colon') + error.msg, { useHTMLString: true })
-    } else {
+    }
+    else {
       showAlert(t('dialog.import.fail'))
     }
   }
@@ -91,8 +63,39 @@ function handleClose() {
 }
 </script>
 
-<style scoped>
+<template>
+  <UDialog
+    :title="$t('dialog.import.title')"
+    width="800px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="dialog-content">
+      <div class="form-group">
+        <div class="import-description">{{ $t('dialog.import.desc') }}</div>
+      </div>
+      <div class="form-group">
+        <label>{{ $t('dialog.import.file') }}：</label>
+        <input
+          :key="fileInputKey"
+          type="file"
+          class="form-control"
+          accept=".xlsx,.xls"
+          @change="handleFileChange"
+        />
+      </div>
+    </div>
 
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleUpload">{{ $t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
+
+<style scoped>
 .import-description {
   margin-bottom: 10px;
   line-height: 2;

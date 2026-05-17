@@ -29,7 +29,8 @@ export function createNavigator() {
       if (openInNewTab) {
         const routeData = router!.resolve({ name: target, query: params })
         window.open(routeData.href, '_blank')
-      } else {
+      }
+      else {
         window.open(router!.resolve({ name: target, query: params }).href, '_self')
       }
     },
@@ -47,13 +48,15 @@ export function createNavigator() {
     },
 
     getRouteParams(): Record<string, string> {
-      if (!router) return {}
+      if (!router)
+        return {}
       return (router.currentRoute.value.query as Record<string, string>) || {}
     },
   }
 }
 
 export function getRouteParams(): Record<string, string> {
-  if (!router) return {}
+  if (!router)
+    return {}
   return (router.currentRoute.value.query as Record<string, string>) || {}
 }

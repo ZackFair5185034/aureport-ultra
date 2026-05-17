@@ -1,108 +1,17 @@
-<template>
-  <div class="dataset-value-editor" ref="container">
-
-    <u-tabs v-model="activeTab" type="button">
-      <u-tab-pane :label="t('property.dataset.datasetConfig')" index="dataset">
-        <dataset-config
-            :datasets="datasets"
-            :current-fields="currentFields"
-            :group-items="groupItems"
-            :selected-dataset="selectedDataset"
-            :selected-property="selectedProperty"
-            :selected-aggregate="selectedAggregate"
-            :selected-sort="selectedSort"
-            :selected-expand="selectedExpand"
-            :line-height="lineHeight"
-            :wrap-compute="wrapCompute"
-            :format="format"
-            :fill-blank-rows="fillBlankRows"
-            :multiple="multiple"
-            :show-sort-options="showSortOptions"
-            :show-expand-options="showExpandOptions"
-            :condition-property-items="conditionPropertyItems"
-            :selected-nest-property="selectedNestProperty"
-            :group-head="groupHead"
-            :group-foot="groupFoot"
-            @update:selectedDataset="val => selectedDataset = val"
-            @update:selectedProperty="val => selectedProperty = val"
-            @update:selectedAggregate="val => selectedAggregate = val"
-            @update:selectedSort="val => selectedSort = val"
-            @update:selectedExpand="val => selectedExpand = val"
-            @update:lineHeight="val => lineHeight = val"
-            @update:wrapCompute="val => wrapCompute = val"
-            @update:format="val => format = val"
-            @update:fillBlankRows="val => fillBlankRows = val"
-            @update:multiple="val => multiple = val"
-            @update:showSortOptions="val => showSortOptions = val"
-            @update:showExpandOptions="val => showExpandOptions = val"
-            @update:conditionPropertyItems="val => conditionPropertyItems = val"
-            @update:selectedNestProperty="val => selectedNestProperty = val"
-            @update:groupHead="val => groupHead = val"
-            @update:groupFoot="val => groupFoot = val"
-            @nest-property-change="handleNestPropertyChange"
-            @dataset-change="handleDatasetChange"
-            @property-change="handlePropertyChange"
-            @aggregate-change="handleAggregateChange"
-            @sort-change="handleSortChange"
-            @expand-change="handleExpandChange"
-            @line-height-change="handleLineHeightChange"
-            @wrap-compute-change="handleWrapComputeChange"
-            @format-change="handleFormatChange"
-            @fill-blank-rows-change="handleFillBlankRowsChange"
-            @multiple-change="handleMultipleChange"
-            @condition-property-items-change="handleConditionPropertyItemsChange"
-            @update-custom-group="handleUpdateCustomGroup"
-        />
-      </u-tab-pane>
-
-      <u-tab-pane :label="t('property.dataset.filterCondition')" index="condition">
-        <filter-condition
-          :selected-dataset="selectedDataset"
-          :conditions="conditions"
-          :current-fields="currentFields"
-          @update:conditions="val => conditions = val"
-          @update-filter-conditions="handleUpdateFilterConditions"
-        />
-      </u-tab-pane>
-
-      <u-tab-pane :label="t('property.dataset.mapping')" index="mapping">
-        <data-mapping
-          :datasets="datasets"
-          :show-mapping-options="showMappingOptions"
-          :mapping-type="mappingType"
-          :mapping-items="mappingItems"
-          :mapping-dataset="mappingDataset"
-          :mapping-key-property="mappingKeyProperty"
-          :mapping-value-property="mappingValueProperty"
-          @mapping-type-change="_setMappingType"
-          @mapping-items-change="_setMappingItems"
-          @mapping-dataset-change="_setMappingDataset"
-          @mapping-key-property-change="_setMappingKeyProperty"
-          @mapping-value-property-change="_setMappingValueProperty"
-        />
-      </u-tab-pane>
-    </u-tabs>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, watch, nextTick, computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
-import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils/index'
-import FilterCondition from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/filter-condition/index.vue'
+import { useReportStore } from '@/stores/report'
+import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty } from '@/utils/table'
+import TableManager from '@/views/report/designer/edit-table/manager'
 import DataMapping from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/data-mapping/index.vue'
 import DatasetConfig from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/index.vue'
-import { getCell, setCell } from '@/utils/contextActions'
-import TableManager from '@/views/report/designer/edit-table/manager'
+import FilterCondition from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/filter-condition/index.vue'
 
 defineOptions({ name: 'DatasetValueEditor' })
-
-const { t } = useI18n()
-const store = useReportStore()
-const context = computed(() => store.context)
 
 const props = withDefaults(defineProps<{
   rowIndex?: number
@@ -113,8 +22,11 @@ const props = withDefaults(defineProps<{
   rowIndex: 0,
   colIndex: 0,
   row2Index: 0,
-  col2Index: 0
+  col2Index: 0,
 })
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context)
 
 const container = ref<HTMLDivElement | null>(null)
 const activeTab = ref('dataset')
@@ -151,30 +63,36 @@ watch(() => [props.rowIndex, props.colIndex], () => {
 }, { immediate: true })
 
 watch(groupHead, () => {
-  if (!initialized.value) return
+  if (!initialized.value)
+    return
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef || !cellDef.value) continue
+      if (!cellDef || !cellDef.value)
+        continue
       const newCellDef = deepCopy(cellDef)
       newCellDef.value.groupHead = groupHead.value
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 })
 
 watch(groupFoot, () => {
-  if (!initialized.value) return
+  if (!initialized.value)
+    return
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef || !cellDef.value) continue
+      if (!cellDef || !cellDef.value)
+        continue
       const newCellDef = deepCopy(cellDef)
       newCellDef.value.groupFoot = groupFoot.value
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 })
 
@@ -194,45 +112,30 @@ function loadCellData() {
 function loadDatasets() {
   datasets.value = []
   const datasources = context.value.reportDef.datasources || []
-  for (let ds of datasources) {
-    let dsDatasets = ds.datasets || []
-    for (let dataset of dsDatasets) {
+  for (const ds of datasources) {
+    const dsDatasets = ds.datasets || []
+    for (const dataset of dsDatasets) {
       datasets.value.push(dataset)
     }
   }
 }
 
 function loadInitialValues(cellDef: any) {
-  if (cellDef.cellStyle && cellDef.cellStyle.wrapCompute) {
-    wrapCompute.value = 'default'
-  } else {
-    wrapCompute.value = 'custom'
-  }
+  wrapCompute.value = cellDef.cellStyle && cellDef.cellStyle.wrapCompute ? 'default' : 'custom'
 
-  if (cellDef.cellStyle && cellDef.cellStyle.lineHeight) {
-    lineHeight.value = cellDef.cellStyle.lineHeight
-  } else {
-    lineHeight.value = ''
-  }
+  lineHeight.value = cellDef.cellStyle && cellDef.cellStyle.lineHeight ? cellDef.cellStyle.lineHeight : ''
 
-  if (cellDef.cellStyle && cellDef.cellStyle.format) {
-    format.value = cellDef.cellStyle.format
-  } else {
-    format.value = ''
-  }
+  format.value = cellDef.cellStyle && cellDef.cellStyle.format ? cellDef.cellStyle.format : ''
 
   if (cellDef.fillBlankRows) {
     fillBlankRows.value = 'default'
     multiple.value = cellDef.multiple || 0
-  } else {
+  }
+  else {
     fillBlankRows.value = 'custom'
   }
 
-  if (cellDef.expand) {
-    selectedExpand.value = cellDef.expand
-  } else {
-    selectedExpand.value = 'None'
-  }
+  selectedExpand.value = cellDef.expand ? cellDef.expand : 'None'
 
   const value = cellDef.value
   if (value) {
@@ -251,23 +154,15 @@ function loadInitialValues(cellDef: any) {
     groupFoot.value = value.groupFoot || false
   }
 
-  if (cellDef.conditionPropertyItems) {
-    conditionPropertyItems.value = [...cellDef.conditionPropertyItems]
-  } else {
-    conditionPropertyItems.value = []
-  }
+  conditionPropertyItems.value = cellDef.conditionPropertyItems ? [...cellDef.conditionPropertyItems] : []
 
-  if (cellDef.value.groupItems) {
-    groupItems.value = [...cellDef.value.groupItems]
-  } else {
-    groupItems.value = []
-  }
+  groupItems.value = cellDef.value.groupItems ? [...cellDef.value.groupItems] : []
 
   handleDatasetChange()
 
-  if (selectedAggregate.value === 'sum' || selectedAggregate.value === 'count' ||
-      selectedAggregate.value === 'max' || selectedAggregate.value === 'min' ||
-      selectedAggregate.value === 'avg') {
+  if (selectedAggregate.value === 'sum' || selectedAggregate.value === 'count'
+    || selectedAggregate.value === 'max' || selectedAggregate.value === 'min'
+    || selectedAggregate.value === 'avg') {
     showSortOptions.value = false
     showExpandOptions.value = false
   }
@@ -278,14 +173,15 @@ function handleDatasetChange() {
 
   if (selectedDataset.value) {
     const datasources = context.value.reportDef.datasources || []
-    for (let ds of datasources) {
-      let dsDatasets = ds.datasets || []
-      for (let dataset of dsDatasets) {
+    for (const ds of datasources) {
+      const dsDatasets = ds.datasets || []
+      for (const dataset of dsDatasets) {
         if (dataset.name === selectedDataset.value) {
           currentFields.value = dataset.fields || []
           break
         }
       }
+
       if (currentFields.value.length > 0) {
         break
       }
@@ -305,23 +201,21 @@ function handleAggregateChange(params: any) {
   if (params && typeof params === 'object') {
     showSortOptions.value = params.showSortOptions
     showExpandOptions.value = params.showExpandOptions
-  } else {
-    if (selectedAggregate.value === 'sum' || selectedAggregate.value === 'count' ||
-        selectedAggregate.value === 'max' || selectedAggregate.value === 'min' ||
-        selectedAggregate.value === 'avg') {
+  }
+  else {
+    if (selectedAggregate.value === 'sum' || selectedAggregate.value === 'count'
+      || selectedAggregate.value === 'max' || selectedAggregate.value === 'min'
+      || selectedAggregate.value === 'avg') {
       showSortOptions.value = false
       showExpandOptions.value = false
-    } else {
+    }
+    else {
       showSortOptions.value = true
       showExpandOptions.value = true
     }
   }
 
-  if (selectedAggregate.value === 'group' || selectedAggregate.value === 'select') {
-    showMappingOptions.value = true
-  } else {
-    showMappingOptions.value = false
-  }
+  showMappingOptions.value = !!(selectedAggregate.value === 'group' || selectedAggregate.value === 'select')
 
   if (initialized.value) {
     _setAggregate(selectedAggregate.value)
@@ -346,11 +240,7 @@ function handleLineHeightChange() {
     if (hot) {
       const td = hot.getCell(props.rowIndex, props.colIndex)
       if (td) {
-        if (lineHeight.value === '') {
-          td.style.lineHeight = ''
-        } else {
-          td.style.lineHeight = lineHeight.value as string
-        }
+        td.style.lineHeight = lineHeight.value === '' ? '' : (lineHeight.value as string)
         hot.render()
       }
     }
@@ -375,15 +265,18 @@ function handleWrapComputeChange() {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const newCellDef = deepCopy(cellDef)
       if (!newCellDef.cellStyle) {
         newCellDef.cellStyle = {}
       }
+
       newCellDef.cellStyle.wrapCompute = wrapComputeValue
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 }
 
@@ -392,15 +285,18 @@ function handleFormatChange() {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const newCellDef = deepCopy(cellDef)
       if (!newCellDef.cellStyle) {
         newCellDef.cellStyle = {}
       }
+
       newCellDef.cellStyle.format = format.value
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 }
 
@@ -413,12 +309,14 @@ function handleMultipleChange() {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const newCellDef = deepCopy(cellDef)
       newCellDef.multiple = multiple.value
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 }
 
@@ -472,27 +370,44 @@ function _updateTableData() {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const value = cellDef.value
       const valueType = value.type
       let data = ''
-      if (valueType === 'simple') {
-        data = value.value
-      } else if (valueType === 'dataset') {
-        let text = value.datasetName + "." + value.aggregate + "("
-        if (value.aggregate === 'iterate') {
-          text += value.nestProperty || ''
-          text += ')'
-          if (value.property) {
-            text += '.' + value.property
-          }
-        } else {
-          text += value.property + ')'
+      switch (valueType) {
+        case 'simple': {
+          data = value.value
+
+          break
         }
-        data = text
-      } else if (valueType === 'expression') {
-        data = value.value
+
+        case 'dataset': {
+          let text = `${value.datasetName}.${value.aggregate}(`
+          if (value.aggregate === 'iterate') {
+            text += value.nestProperty || ''
+            text += ')'
+            if (value.property) {
+              text += `.${value.property}`
+            }
+          }
+          else {
+            text += `${value.property})`
+          }
+
+          data = text
+
+          break
+        }
+
+        case 'expression': {
+          data = value.value
+
+          break
+        }
+      // No default
       }
+
       if (hot) {
         hot.setDataAtCell(cellDef.rowNumber - 1, cellDef.columnNumber - 1, data)
       }
@@ -504,7 +419,8 @@ function _setDatasetName(datasetName: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const valueType = cellDef.value.type
       if (valueType === 'dataset') {
         const newCellDef = deepCopy(cellDef)
@@ -513,6 +429,7 @@ function _setDatasetName(datasetName: string) {
       }
     }
   }
+
   _updateTableData()
   setDirty()
 }
@@ -521,7 +438,8 @@ function _setProperty(property: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const valueType = cellDef.value.type
       if (valueType === 'dataset') {
         const newCellDef = deepCopy(cellDef)
@@ -530,6 +448,7 @@ function _setProperty(property: string) {
       }
     }
   }
+
   _updateTableData()
   setDirty()
 }
@@ -539,30 +458,35 @@ function _setAggregate(aggregate: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const valueType = cellDef.value.type
       if (valueType === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.aggregate = aggregate
-        if (aggregate === 'sum' || aggregate === 'count' || aggregate === 'max' ||
-            aggregate === 'min' || aggregate === 'avg') {
+        if (aggregate === 'sum' || aggregate === 'count' || aggregate === 'max'
+          || aggregate === 'min' || aggregate === 'avg') {
           newCellDef.value.order = 'none'
           newCellDef.expand = 'None'
           none = true
         }
+
         setCell(i, j, newCellDef)
       }
     }
   }
+
   if (none) {
     selectedSort.value = 'none'
     selectedExpand.value = 'None'
   }
+
   _updateTableData()
   const hot = TableManager.get()
   if (hot) {
     hot.render()
   }
+
   setDirty()
 }
 
@@ -570,7 +494,8 @@ function _setOrder(order: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const valueType = cellDef.value.type
       if (valueType === 'dataset') {
         const newCellDef = deepCopy(cellDef)
@@ -579,6 +504,7 @@ function _setOrder(order: string) {
       }
     }
   }
+
   setDirty()
 }
 
@@ -594,6 +520,7 @@ function _setExpand(expand: string) {
   if (hot) {
     hot.render()
   }
+
   setDirty()
 }
 
@@ -601,15 +528,18 @@ function _setFillBlankRows(value: boolean) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const newCellDef = deepCopy(cellDef)
       newCellDef.fillBlankRows = value
       if (!newCellDef.multiple) {
         newCellDef.multiple = 0
       }
+
       setCell(i, j, newCellDef)
     }
   }
+
   setDirty()
 }
 
@@ -617,7 +547,8 @@ function handleNestPropertyChange() {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       const valueType = cellDef.value.type
       if (valueType === 'dataset') {
         const newCellDef = deepCopy(cellDef)
@@ -626,6 +557,7 @@ function handleNestPropertyChange() {
       }
     }
   }
+
   setDirty()
 }
 
@@ -634,7 +566,8 @@ function _setMappingType(mappingType: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.mappingType = mappingType
@@ -642,6 +575,7 @@ function _setMappingType(mappingType: string) {
       }
     }
   }
+
   setDirty()
 }
 
@@ -650,7 +584,8 @@ function _setMappingItems(mappingItems: any[]) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.mappingItems = mappingItems
@@ -658,6 +593,7 @@ function _setMappingItems(mappingItems: any[]) {
       }
     }
   }
+
   setDirty()
 }
 
@@ -666,7 +602,8 @@ function _setMappingDataset(mappingDataset: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.mappingDataset = mappingDataset
@@ -674,6 +611,7 @@ function _setMappingDataset(mappingDataset: string) {
       }
     }
   }
+
   setDirty()
 }
 
@@ -682,7 +620,8 @@ function _setMappingKeyProperty(mappingKeyProperty: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.mappingKeyProperty = mappingKeyProperty
@@ -690,6 +629,7 @@ function _setMappingKeyProperty(mappingKeyProperty: string) {
       }
     }
   }
+
   setDirty()
 }
 
@@ -698,7 +638,8 @@ function _setMappingValueProperty(mappingValueProperty: string) {
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
         newCellDef.value.mappingValueProperty = mappingValueProperty
@@ -706,9 +647,96 @@ function _setMappingValueProperty(mappingValueProperty: string) {
       }
     }
   }
+
   setDirty()
 }
 </script>
+
+<template>
+  <div ref="container" class="dataset-value-editor">
+    <u-tabs v-model="activeTab" type="button">
+      <u-tab-pane :label="t('property.dataset.datasetConfig')" index="dataset">
+        <DatasetConfig
+          :datasets="datasets"
+          :current-fields="currentFields"
+          :group-items="groupItems"
+          :selected-dataset="selectedDataset"
+          :selected-property="selectedProperty"
+          :selected-aggregate="selectedAggregate"
+          :selected-sort="selectedSort"
+          :selected-expand="selectedExpand"
+          :line-height="lineHeight"
+          :wrap-compute="wrapCompute"
+          :format="format"
+          :fill-blank-rows="fillBlankRows"
+          :multiple="multiple"
+          :show-sort-options="showSortOptions"
+          :show-expand-options="showExpandOptions"
+          :condition-property-items="conditionPropertyItems"
+          :selected-nest-property="selectedNestProperty"
+          :group-head="groupHead"
+          :group-foot="groupFoot"
+          @update:selectedDataset="val => selectedDataset = val"
+          @update:selectedProperty="val => selectedProperty = val"
+          @update:selectedAggregate="val => selectedAggregate = val"
+          @update:selectedSort="val => selectedSort = val"
+          @update:selectedExpand="val => selectedExpand = val"
+          @update:lineHeight="val => lineHeight = val"
+          @update:wrapCompute="val => wrapCompute = val"
+          @update:format="val => format = val"
+          @update:fillBlankRows="val => fillBlankRows = val"
+          @update:multiple="val => multiple = val"
+          @update:showSortOptions="val => showSortOptions = val"
+          @update:showExpandOptions="val => showExpandOptions = val"
+          @update:conditionPropertyItems="val => conditionPropertyItems = val"
+          @update:selectedNestProperty="val => selectedNestProperty = val"
+          @update:groupHead="val => groupHead = val"
+          @update:groupFoot="val => groupFoot = val"
+          @nest-property-change="handleNestPropertyChange"
+          @dataset-change="handleDatasetChange"
+          @property-change="handlePropertyChange"
+          @aggregate-change="handleAggregateChange"
+          @sort-change="handleSortChange"
+          @expand-change="handleExpandChange"
+          @line-height-change="handleLineHeightChange"
+          @wrap-compute-change="handleWrapComputeChange"
+          @format-change="handleFormatChange"
+          @fill-blank-rows-change="handleFillBlankRowsChange"
+          @multiple-change="handleMultipleChange"
+          @condition-property-items-change="handleConditionPropertyItemsChange"
+          @update-custom-group="handleUpdateCustomGroup"
+        />
+      </u-tab-pane>
+
+      <u-tab-pane :label="t('property.dataset.filterCondition')" index="condition">
+        <FilterCondition
+          :selected-dataset="selectedDataset"
+          :conditions="conditions"
+          :current-fields="currentFields"
+          @update:conditions="val => conditions = val"
+          @update-filter-conditions="handleUpdateFilterConditions"
+        />
+      </u-tab-pane>
+
+      <u-tab-pane :label="t('property.dataset.mapping')" index="mapping">
+        <DataMapping
+          :datasets="datasets"
+          :show-mapping-options="showMappingOptions"
+          :mapping-type="mappingType"
+          :mapping-items="mappingItems"
+          :mapping-dataset="mappingDataset"
+          :mapping-key-property="mappingKeyProperty"
+          :mapping-value-property="mappingValueProperty"
+          @mapping-type-change="_setMappingType"
+          @mapping-items-change="_setMappingItems"
+          @mapping-dataset-change="_setMappingDataset"
+          @mapping-key-property-change="_setMappingKeyProperty"
+          @mapping-value-property-change="_setMappingValueProperty"
+        />
+      </u-tab-pane>
+    </u-tabs>
+  </div>
+</template>
 
 <style scoped>
 </style>

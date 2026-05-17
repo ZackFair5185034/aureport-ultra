@@ -1,9 +1,10 @@
-import { createApp, h, type App } from 'vue'
+import type { App } from 'vue'
 import { createPinia } from 'pinia'
+import { createApp, h } from 'vue'
 import { createI18n } from 'vue-i18n'
-import DesignerComponent from '@/views/report/designer/index.vue'
-import zh from '@/locales/lang/zh'
 import en from '@/locales/lang/en'
+import zh from '@/locales/lang/zh'
+import DesignerComponent from '@/views/report/designer/index.vue'
 
 import 'handsontable/dist/handsontable.min.css'
 import 'codemirror/lib/codemirror.css'
@@ -61,7 +62,7 @@ class LuckDesignerElement extends HTMLElement {
     container.className = 'luck-designer-container'
     container.style.width = '100%'
     container.style.height = '100%'
-    this.appendChild(container)
+    this.append(container)
 
     const pinia = createPinia()
     const locale = this.getAttribute('locale') || 'zh'
@@ -84,14 +85,15 @@ class LuckDesignerElement extends HTMLElement {
         reportPath: {
           immediate: true,
           handler(val: string) {
-            if (val !== undefined) (this as any).internalReportPath = val
+            if (val !== undefined)
+              (this as any).internalReportPath = val
           },
         },
       },
       methods: {
         _emit(eventName: string, detail?: any) {
           ;(this as any).$el.dispatchEvent(
-            new CustomEvent(eventName, { detail, bubbles: true, composed: true })
+            new CustomEvent(eventName, { detail, bubbles: true, composed: true }),
           )
         },
         _handleNavigate(data: any) {
@@ -101,6 +103,7 @@ class LuckDesignerElement extends HTMLElement {
               ;(this as any).$el.parentElement.setAttribute('report-path', data.params.reportPath)
             }
           }
+
           ;(this as any)._emit('navigate', data)
         },
         getReportData() {
@@ -131,16 +134,20 @@ class LuckDesignerElement extends HTMLElement {
   }
 
   private _camelize(str: string) {
-    return str.replace(/-(\w)/g, (_, c) => (c ? c.toUpperCase() : ''))
+    return str.replaceAll(/-(\w)/g, (_, c) => (c ? c.toUpperCase() : ''))
   }
 
   private _parseValue(value: string | null) {
-    if (value === null || value === undefined) return value
-    if (value === 'true') return true
-    if (value === 'false') return false
+    if (value === null || value === undefined)
+      return value
+    if (value === 'true')
+      return true
+    if (value === 'false')
+      return false
     try {
       return JSON.parse(value)
-    } catch {
+    }
+    catch {
       return value
     }
   }

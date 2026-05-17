@@ -217,7 +217,7 @@ export interface ConditionPropertyItem {
   newValue?: string
   linkUrl?: string
   linkTargetWindow?: string
-  paging?: { position: string; line: number }
+  paging?: { position: string, line: number }
   linkParameters?: LinkParameter[]
   cellStyle?: CellStyle
   conditions: Condition[]
@@ -258,8 +258,8 @@ export interface ChartDataset {
 /** 图表轴 */
 export interface ChartAxis {
   rotation?: number
-  scaleLabel?: { display: string; labelString?: string }
-  ticks?: { beginAtZero?: boolean; stepSize?: number; suggestedMax?: number; max?: number }
+  scaleLabel?: { display: string, labelString?: string }
+  ticks?: { beginAtZero?: boolean, stepSize?: number, suggestedMax?: number, max?: number }
 }
 
 /** 图表选项 */
@@ -271,7 +271,7 @@ export interface ChartOption {
   easing?: string
   text?: string
   labels?: string[]
-  padding?: { top?: number; right?: number; bottom?: number; left?: number }
+  padding?: { top?: number, right?: number, bottom?: number, left?: number }
 }
 
 /** 图表插件 */

@@ -1,18 +1,3 @@
-<template>
-  <u-button
-      :title="$t('setting')"
-      class="tool-button"
-      icon="icon-settings"
-      @click="handleClick"
-  />
-  <SettingsDialog
-      :visible="dialogVisible"
-      @update:visible="dialogVisible = $event"
-      @close="handleDialogClose"
-      @ok="handleDialogOk"
-  />
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue'
 
@@ -32,6 +17,21 @@ function handleDialogOk() {
   dialogVisible.value = false
 }
 </script>
+
+<template>
+  <u-button
+    :title="$t('setting')"
+    class="tool-button"
+    icon="icon-settings"
+    @click="handleClick"
+  />
+  <SettingsDialog
+    :visible="dialogVisible"
+    @update:visible="dialogVisible = $event"
+    @close="handleDialogClose"
+    @ok="handleDialogOk"
+  />
+</template>
 
 <style scoped>
 </style>

@@ -1,41 +1,9 @@
-<template>
-  <UDialog
-    :title="dialogTitle"
-    width="400px"
-    :visible="visible"
-    :z-index="20000"
-    @close="handleClose"
-    @closed="handleClosed"
-  >
-    <div class="dialog-content">
-      <u-form ref="form" :label-width="80">
-        <u-form-item :label="t('dialog.groupItem.name')">
-          <u-input
-            v-model="name"
-            ref="nameInput"
-            @keyup.enter="handleOk"
-            style="width:240px;"
-          />
-        </u-form-item>
-      </u-form>
-    </div>
-    <template #footer>
-      <div style="text-align: right">
-        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
-        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
-      </div>
-    </template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'GroupItemDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   visible?: boolean
@@ -44,7 +12,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   visible: false,
   groupItem: null,
-  operation: 'add'
+  operation: 'add',
 })
 
 const emit = defineEmits<{
@@ -52,12 +20,14 @@ const emit = defineEmits<{
   (e: 'saveAfter', value: any): void
 }>()
 
+const { t } = useI18n()
+
 const name = ref('')
 
 const dialogTitle = computed(() =>
   props.operation === 'add'
     ? t('dialog.groupItem.addItem')
-    : t('dialog.groupItem.editItem')
+    : t('dialog.groupItem.editItem'),
 )
 
 watch(() => props.visible, (newVal) => {
@@ -84,7 +54,7 @@ function handleOk() {
 
   emit('saveAfter', {
     operation: props.operation,
-    groupItem: updatedGroupItem
+    groupItem: updatedGroupItem,
   })
 
   handleClose()
@@ -99,12 +69,41 @@ function handleClosed() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (props.visible) {
-    if (e.key === 'Escape') {
-      handleClose()
-    }
+  if (props.visible && e.key === 'Escape') {
+    handleClose()
   }
 }
 </script>
+
+<template>
+  <UDialog
+    :title="dialogTitle"
+    width="400px"
+    :visible="visible"
+    :z-index="20000"
+    @close="handleClose"
+    @closed="handleClosed"
+  >
+    <div class="dialog-content">
+      <u-form ref="form" :label-width="80">
+        <u-form-item :label="t('dialog.groupItem.name')">
+          <u-input
+            ref="nameInput"
+            v-model="name"
+            style="width:240px;"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+      </u-form>
+    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
+
 <style scoped>
 </style>

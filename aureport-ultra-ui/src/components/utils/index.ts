@@ -1,7 +1,8 @@
 export function debounce(func: () => void, wait: number, name: string): void {
   const key = `__debounce_${name}`
   const timer = (window as unknown as Record<string, ReturnType<typeof setTimeout> | undefined>)[key]
-  if (timer) clearTimeout(timer)
+  if (timer)
+    clearTimeout(timer)
   ;(window as unknown as Record<string, ReturnType<typeof setTimeout> | undefined>)[key] = setTimeout(() => {
     func()
     ;(window as unknown as Record<string, ReturnType<typeof setTimeout> | undefined>)[key] = undefined
@@ -9,12 +10,14 @@ export function debounce(func: () => void, wait: number, name: string): void {
 }
 
 export function oneOf<T>(value: T, validList: T[]): boolean {
-  return validList.indexOf(value) !== -1
+  return validList.includes(value)
 }
 
 export function deepCopy<T>(data: T, hash = new WeakMap()): T {
-  if (typeof data !== 'object' || data === null) return data
-  if (hash.has(data)) return hash.get(data) as T
+  if (typeof data !== 'object' || data === null)
+    return data
+  if (hash.has(data))
+    return hash.get(data) as T
 
   const t = typeOf(data)
   const o = (t === 'array' ? [] : {}) as T
@@ -24,11 +27,13 @@ export function deepCopy<T>(data: T, hash = new WeakMap()): T {
     for (let i = 0; i < (data as unknown[]).length; i++) {
       ;(o as unknown[]).push(deepCopy((data as unknown[])[i], hash))
     }
-  } else if (t === 'object') {
+  }
+  else if (t === 'object') {
     for (const i in data as Record<string, unknown>) {
       ;(o as Record<string, unknown>)[i] = deepCopy((data as Record<string, unknown>)[i], hash)
     }
   }
+
   return o
 }
 

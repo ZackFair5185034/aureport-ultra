@@ -1,9 +1,145 @@
+<script setup lang="ts">
+import ClipboardJS from 'clipboard'
+import beautifier from 'js-beautify'
+// @ts-nocheck
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import draggable from 'vuedraggable'
+
+import logo from '@/assets/images/form-designer/logo.png'
+import { deepCopy } from '@/components/utils'
+import { showAlert, showConfirm } from '@/utils/comnon'
+
+import CodeTypeDialog from './code-type-dialog/index.vue'
+import DraggableItem from './draggable-item/index.vue'
+import RightPanel from './right-panel/index.vue'
+import { beautifierConf, titleCase } from './utils'
+import { inputComponents as _ic, layoutComponents as _lc, selectComponents as _sc, formConf as importedFormConf } from './utils/config'
+import { makeUpCss } from './utils/css'
+import { cleanDrawingDefaultValue, drawingDefaultValue, initDrawingDefaultValue } from './utils/drawingDefault'
+import { cssStyle, makeUpHtml, vueScript, vueTemplate } from './utils/html'
+import { makeUpJs } from './utils/js'
+
+// Wrap in ref for vuedraggable v4 v-model compatibility
+const inputComponents = ref(_ic)
+const selectComponents = ref(_sc)
+const layoutComponents = ref(_lc)
+
+const { t } = useI18n()
+
+const activeData: any = ref({})
+const tempActiveData: any = null
+let oldActiveId: any = null
+
+initDrawingDefaultValue()
+
+const formConf = ref(deepCopy(importedFormConf))
+
+const drawingList = ref(deepCopy(drawingDefaultValue))
+const activeId = ref('')
+
+const dialogVisible = ref(false)
+const showFileName = ref('form-generator.vue')
+
+const generateType = ref('vue')
+const cliEvent = ref('copy')
+
+function copy() {
+  showAlert(t('searchForm.codeCopied'), 'success')
+}
+
+function download() {
+  dialogVisible.value = true
+}
+
+function empty() {
+  showConfirm(t('searchForm.clearAllConfirm')).then(() => {
+    drawingList.value = []
+    cleanDrawingDefaultValue()
+    activeId.value = ''
+    activeData.value = {}
+  }).catch(() => {})
+}
+
+function onEnd() {}
+
+function cloneComponent(origin: any) {
+  const clone = deepCopy(origin)
+  clone.renderKey = `${Date.now()}${Math.random()}`
+  return clone
+}
+
+function addComponent(element: any) {
+  const clone = deepCopy(element)
+  clone.renderKey = `${Date.now()}${Math.random()}`
+  drawingList.value.push(clone)
+  activeId.value = clone.renderKey
+  activeData.value = clone
+}
+
+function activeFormItem(element: any) {
+  activeId.value = element.renderKey
+  activeData.value = element
+}
+
+function drawingItemCopy(element: any) {
+  const clone = deepCopy(element)
+  clone.renderKey = `${Date.now()}${Math.random()}`
+  drawingList.value.push(clone)
+  activeId.value = clone.renderKey
+  activeData.value = clone
+}
+
+function drawingItemDelete(element: any) {
+  drawingList.value = drawingList.value.filter((item: any) => item.renderKey !== element.renderKey)
+  if (activeId.value === element.renderKey) {
+    activeId.value = ''
+    activeData.value = {}
+  }
+}
+
+function generate(type: string, fileName: string) {
+  const html = makeUpHtml(drawingList.value, formConf.value)
+  const script = makeUpJs(drawingList.value, formConf.value, generateType.value)
+  const css = makeUpCss(formConf.value)
+  const result = vueTemplate(html + script + css)
+  if (cliEvent.value === 'copy') {
+    const successful = navigator.clipboard.writeText(result)
+    if (successful) {
+      showAlert(t('searchForm.codeCopied'), 'success')
+    }
+  }
+}
+
+watch(activeId, (val) => {
+  oldActiveId = val
+  activeData.value = val ? drawingList.value.find((item: any) => item.renderKey === val) : {}
+})
+
+onMounted(() => {
+  // @ts-ignore
+  window.ClipboardJS = ClipboardJS
+  document.addEventListener('keydown', (e: any) => {
+    if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+      showAlert(t('searchForm.saved'), 'success')
+    }
+  })
+})
+
+onBeforeUnmount(() => {})
+
+defineExpose({
+  getFormData: () => drawingList.value,
+})
+</script>
+
 <template>
   <div class="container">
     <div class="left-board">
       <div class="logo-wrapper">
         <div class="logo">
-          <img :src="logo" alt="logo"> Form Generator
+          <img :src="logo" alt="logo" /> Form Generator
         </div>
       </div>
       <div class="left-scrollbar">
@@ -12,8 +148,8 @@
             {{ t('searchForm.inputComponents') }}
           </div>
           <draggable
-            class="components-draggable"
             v-model="inputComponents"
+            class="components-draggable"
             :group="{ name: 'componentsGroup', pull: 'clone', put: false }"
             :clone="cloneComponent"
             item-key="tag"
@@ -32,8 +168,8 @@
             {{ t('searchForm.selectComponents') }}
           </div>
           <draggable
-            class="components-draggable"
             v-model="selectComponents"
+            class="components-draggable"
             :group="{ name: 'componentsGroup', pull: 'clone', put: false }"
             :clone="cloneComponent"
             item-key="tag"
@@ -52,8 +188,8 @@
             {{ t('searchForm.layoutComponents') }}
           </div>
           <draggable
-            class="components-draggable"
             v-model="layoutComponents"
+            class="components-draggable"
             :group="{ name: 'componentsGroup', pull: 'clone', put: false }"
             :clone="cloneComponent"
             item-key="tag"
@@ -93,15 +229,15 @@
             :label-width="formConf.labelWidth"
           >
             <draggable
-              class="drawing-board"
               v-model="drawingList"
+              class="drawing-board"
               :animation="340"
               group="componentsGroup"
               item-key="renderKey"
               tag="div"
             >
               <template #item="{ element, index }">
-                <draggable-item
+                <DraggableItem
                   :drawing-list="drawingList"
                   :element="element"
                   :index="index"
@@ -121,157 +257,17 @@
       </div>
     </div>
 
-    <right-panel
+    <RightPanel
       :active-data="activeData"
       :form-conf="formConf"
       :show-file-name="showFileName"
       @confirm="generate"
     />
-    <code-type-dialog
+    <CodeTypeDialog
       v-model="dialogVisible"
       :show-file-name="showFileName"
       @confirm="generate"
     />
-    <input id="copyNode" type="hidden">
+    <input id="copyNode" type="hidden" />
   </div>
 </template>
-
-<script setup lang="ts">
-// @ts-nocheck
-import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
-import draggable from 'vuedraggable'
-import beautifier from 'js-beautify'
-import ClipboardJS from 'clipboard'
-
-import RightPanel from './right-panel/index.vue'
-import CodeTypeDialog from './code-type-dialog/index.vue'
-import DraggableItem from './draggable-item/index.vue'
-
-import { inputComponents as _ic, selectComponents as _sc, layoutComponents as _lc, formConf as importedFormConf } from './utils/config'
-import { beautifierConf, titleCase } from './utils'
-import { makeUpHtml, vueTemplate, vueScript, cssStyle } from './utils/html'
-import { makeUpJs } from './utils/js'
-import { makeUpCss } from './utils/css'
-import { drawingDefaultValue, initDrawingDefaultValue, cleanDrawingDefaultValue } from './utils/drawingDefault'
-import logo from '@/assets/images/form-designer/logo.png'
-import { showAlert, showConfirm } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils'
-
-// Wrap in ref for vuedraggable v4 v-model compatibility
-const inputComponents = ref(_ic)
-const selectComponents = ref(_sc)
-const layoutComponents = ref(_lc)
-
-const { t } = useI18n()
-
-let activeData: any = ref({})
-let tempActiveData: any = null
-let oldActiveId: any = null
-
-initDrawingDefaultValue()
-
-const formConf = ref(deepCopy(importedFormConf))
-
-const drawingList = ref(deepCopy(drawingDefaultValue))
-const activeId = ref('')
-
-const dialogVisible = ref(false)
-const showFileName = ref('form-generator.vue')
-
-const generateType = ref('vue')
-const cliEvent = ref('copy')
-
-const copy = () => {
-  showAlert(t('searchForm.codeCopied'), 'success')
-}
-
-const download = () => {
-  dialogVisible.value = true
-}
-
-const empty = () => {
-  showConfirm(t('searchForm.clearAllConfirm')).then(() => {
-    drawingList.value = []
-    cleanDrawingDefaultValue()
-    activeId.value = ''
-    activeData.value = {}
-  }).catch(() => {})
-}
-
-const onEnd = () => {}
-
-const cloneComponent = (origin: any) => {
-  const clone = deepCopy(origin)
-  clone.renderKey = Date.now() + '' + Math.random()
-  return clone
-}
-
-const addComponent = (element: any) => {
-  const clone = deepCopy(element)
-  clone.renderKey = Date.now() + '' + Math.random()
-  drawingList.value.push(clone)
-  activeId.value = clone.renderKey
-  activeData.value = clone
-}
-
-const activeFormItem = (element: any) => {
-  activeId.value = element.renderKey
-  activeData.value = element
-}
-
-const drawingItemCopy = (element: any) => {
-  const clone = deepCopy(element)
-  clone.renderKey = Date.now() + '' + Math.random()
-  drawingList.value.push(clone)
-  activeId.value = clone.renderKey
-  activeData.value = clone
-}
-
-const drawingItemDelete = (element: any) => {
-  drawingList.value = drawingList.value.filter((item: any) => item.renderKey !== element.renderKey)
-  if (activeId.value === element.renderKey) {
-    activeId.value = ''
-    activeData.value = {}
-  }
-}
-
-const generate = (type: string, fileName: string) => {
-  const html = makeUpHtml(drawingList.value, formConf.value)
-  const script = makeUpJs(drawingList.value, formConf.value, generateType.value)
-  const css = makeUpCss(formConf.value)
-  const result = vueTemplate(html + script + css)
-  if (cliEvent.value === 'copy') {
-    const successful = navigator.clipboard.writeText(result)
-    if (successful) {
-      showAlert(t('searchForm.codeCopied'), 'success')
-    }
-  }
-}
-
-watch(activeId, (val) => {
-  oldActiveId = val
-  if (val) {
-    activeData.value = drawingList.value.find((item: any) => item.renderKey === val)
-  } else {
-    activeData.value = {}
-  }
-})
-
-onMounted(() => {
-  // @ts-ignore
-  window.ClipboardJS = ClipboardJS
-  document.addEventListener('keydown', (e: any) => {
-    if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault()
-      showAlert(t('searchForm.saved'), 'success')
-    }
-  })
-})
-
-onBeforeUnmount(() => {})
-
-defineExpose({
-  getFormData: () => drawingList.value,
-})
-</script>

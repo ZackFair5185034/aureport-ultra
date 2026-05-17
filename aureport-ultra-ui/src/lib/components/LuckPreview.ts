@@ -1,17 +1,18 @@
-import { createApp, type App } from 'vue'
-import { createPinia } from 'pinia'
-import { createI18n } from 'vue-i18n'
-import PreviewComponent from '@/views/report/preview/index.vue'
-import zh from '@/locales/lang/zh'
-import en from '@/locales/lang/en'
-
+import type { App } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { updateUrlParams } from '@/utils/url'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/lang/en'
 
-Chart.register(...registerables, ChartDataLabels)
+import zh from '@/locales/lang/zh'
+import { updateUrlParams } from '@/utils/url'
+import PreviewComponent from '@/views/report/preview/index.vue'
 import '@/assets/css/iconfont/iconfont.css'
 import '@/assets/css/common/index.css'
+
+Chart.register(...registerables, ChartDataLabels)
 
 class LuckPreviewElement extends HTMLElement {
   private _app: App<Element> | null = null
@@ -41,8 +42,10 @@ class LuckPreviewElement extends HTMLElement {
         if (this._i18n) {
           this._i18n.global.locale = newValue || 'zh'
         }
+
         return
       }
+
       this._syncUrlFromAttributes()
       this._refreshPreview(true)
     }
@@ -70,13 +73,15 @@ class LuckPreviewElement extends HTMLElement {
     if (val && typeof val === 'object') {
       updateUrlParams(val)
     }
+
     this._refreshPreview(true)
   }
 
   get params() {
     try {
       return JSON.parse(this.getAttribute('params') || '{}')
-    } catch {
+    }
+    catch {
       return {}
     }
   }
@@ -115,7 +120,7 @@ class LuckPreviewElement extends HTMLElement {
     container.className = 'luck-preview-container'
     container.style.width = '100%'
     container.style.height = '100%'
-    this.appendChild(container)
+    this.append(container)
 
     const pinia = createPinia()
     const locale = this.getAttribute('locale') || 'zh'
@@ -139,10 +144,11 @@ class LuckPreviewElement extends HTMLElement {
     if (paramsStr) {
       try {
         const extraParams = JSON.parse(paramsStr)
-        Object.keys(extraParams).forEach((key) => {
+        for (const key of Object.keys(extraParams)) {
           params[key] = extraParams[key]
-        })
-      } catch {
+        }
+      }
+      catch {
         // ignore invalid JSON
       }
     }
@@ -152,10 +158,14 @@ class LuckPreviewElement extends HTMLElement {
     const pageIndex = this.getAttribute('page-index')
     const toolsInfo = this.getAttribute('tools-info')
 
-    if (reportPath != null) params.reportPath = reportPath || null
-    if (mode != null) params.mode = mode || null
-    if (pageIndex != null) params._i = pageIndex || null
-    if (toolsInfo != null) params._t = toolsInfo || null
+    if (reportPath != null)
+      params.reportPath = reportPath || null
+    if (mode != null)
+      params.mode = mode || null
+    if (pageIndex != null)
+      params._i = pageIndex || null
+    if (toolsInfo != null)
+      params._t = toolsInfo || null
 
     updateUrlParams(params)
   }

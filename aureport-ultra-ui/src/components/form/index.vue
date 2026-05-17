@@ -1,26 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, provide, computed } from 'vue'
+import { computed, provide, reactive, ref } from 'vue'
 
 defineOptions({ name: 'UForm' })
-
-export interface FormContext {
-  model: Record<string, unknown>
-  rules: Record<string, unknown>
-  labelWidth: number
-  labelPosition: 'left' | 'right' | 'top'
-  inline: boolean
-  showMessage: boolean
-  size: 'large' | 'medium' | 'small' | 'mini'
-  addField: (field: FormField) => void
-  removeField: (field: FormField) => void
-  validateField: (prop: string, cb?: (valid: boolean) => void) => void
-}
-
-export interface FormField {
-  prop?: string
-  validate: (trigger: string, cb?: (errors?: unknown) => void) => Promise<boolean>
-  resetField: () => void
-}
 
 const props = withDefaults(defineProps<{
   model?: Record<string, unknown>
@@ -43,6 +24,25 @@ const emit = defineEmits<{
   validate: [valid: boolean]
 }>()
 
+export interface FormContext {
+  model: Record<string, unknown>
+  rules: Record<string, unknown>
+  labelWidth: number
+  labelPosition: 'left' | 'right' | 'top'
+  inline: boolean
+  showMessage: boolean
+  size: 'large' | 'medium' | 'small' | 'mini'
+  addField: (field: FormField) => void
+  removeField: (field: FormField) => void
+  validateField: (prop: string, cb?: (valid: boolean) => void) => void
+}
+
+export interface FormField {
+  prop?: string
+  validate: (trigger: string, cb?: (errors?: unknown) => void) => Promise<boolean>
+  resetField: () => void
+}
+
 const fields = ref<FormField[]>([])
 
 const prefixCls = 'u-form'
@@ -55,39 +55,45 @@ const classes = computed(() => [
 ])
 
 function addField(field: FormField) {
-  if (field) fields.value.push(field)
+  if (field)
+    fields.value.push(field)
 }
 
 function removeField(field: FormField) {
   const index = fields.value.indexOf(field)
-  if (index !== -1) fields.value.splice(index, 1)
+  if (index !== -1)
+    fields.value.splice(index, 1)
 }
 
 function resetFields() {
-  fields.value.forEach(field => {
+  for (const field of fields.value) {
     field.resetField()
-  })
+  }
 }
 
 function validate(callback?: (valid: boolean) => void): Promise<boolean> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let valid = true
     let count = 0
     if (fields.value.length === 0) {
       resolve(true)
-      if (callback) callback(true)
+      if (callback)
+        callback(true)
       return
     }
-    fields.value.forEach(field => {
+
+    for (const field of fields.value) {
       field.validate('', (errors?: unknown) => {
-        if (errors) valid = false
+        if (errors)
+          valid = false
         if (++count === fields.value.length) {
           resolve(valid)
           emit('validate', valid)
-          if (callback) callback(valid)
+          if (callback)
+            callback(valid)
         }
       })
-    })
+    }
   })
 }
 
@@ -97,6 +103,7 @@ function validateField(prop: string, cb?: (valid: boolean) => void) {
     console.warn('[u-ui warn]: 必须使用有效的 prop 字符串调用 validateField !')
     return
   }
+
   field.validate('', (errors?: unknown) => {
     cb?.(!errors)
   })

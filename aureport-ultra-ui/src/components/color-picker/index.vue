@@ -1,37 +1,8 @@
-<template>
-  <div class="u-color-picker">
-    <div class="u-color-picker-trigger" @click="togglePicker">
-      <slot>
-        <UButton
-          :size="size"
-          type="info"
-          native-type="button"
-          style="border: none"
-        >
-          <span class="color-block" :style="{ backgroundColor: displayColor }"></span>
-        </UButton>
-      </slot>
-    </div>
-    <div class="u-color-picker-popover" v-if="pickerVisible" ref="popoverRef">
-      <Sketch v-model="colors" />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { Sketch } from '@ckpack/vue-color'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineOptions({ name: 'UColorPicker' })
-
-interface FullColor {
-  hex: string
-  hex8?: string
-  hsl: { h: number; s: number; l: number; a: number }
-  hsv: { h: number; s: number; v: number; a: number }
-  rgba: { r: number; g: number; b: number; a: number }
-  a: number
-}
 
 const props = withDefaults(defineProps<{
   modelValue?: string
@@ -53,6 +24,15 @@ const emit = defineEmits<{
   'change': [value: string]
 }>()
 
+interface FullColor {
+  hex: string
+  hex8?: string
+  hsl: { h: number, s: number, l: number, a: number }
+  hsv: { h: number, s: number, v: number, a: number }
+  rgba: { r: number, g: number, b: number, a: number }
+  a: number
+}
+
 const pickerVisible = ref(false)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,8 +47,10 @@ const colors = ref<any>({
 const displayColor = computed(() => props.modelValue || '#ffffff')
 
 function togglePicker() {
-  if (props.disabled) return
-  if (!pickerVisible.value && typeof props.beforeToggle === 'function' && !props.beforeToggle()) return
+  if (props.disabled)
+    return
+  if (!pickerVisible.value && typeof props.beforeToggle === 'function' && !props.beforeToggle())
+    return
   pickerVisible.value = !pickerVisible.value
 }
 
@@ -83,7 +65,7 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-function emitColor(val: { hex: string; hsl: { h: number; s: number; l: number; a: number }; hsv: { h: number; s: number; v: number; a: number }; rgba: { r: number; g: number; b: number; a: number } }) {
+function emitColor(val: { hex: string, hsl: { h: number, s: number, l: number, a: number }, hsv: { h: number, s: number, v: number, a: number }, rgba: { r: number, g: number, b: number, a: number } }) {
   let colorValue: string
   switch (props.colorMode) {
     case 'hex':
@@ -104,15 +86,18 @@ function emitColor(val: { hex: string; hsl: { h: number; s: number; l: number; a
     default:
       colorValue = val.hex
   }
+
   emit('update:modelValue', colorValue)
   emit('change', colorValue)
 }
 
 function setColorFromValue(value: string) {
-  if (!value) return
+  if (!value)
+    return
   if (value.startsWith('#')) {
     colors.value = { ...colors.value, hex: value }
-  } else if (value.startsWith('rgb')) {
+  }
+  else if (value.startsWith('rgb')) {
     const matches = value.match(/\d+/g)
     if (matches && matches.length >= 3) {
       colors.value = {
@@ -149,6 +134,26 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
+<template>
+  <div class="u-color-picker">
+    <div class="u-color-picker-trigger" @click="togglePicker">
+      <slot>
+        <UButton
+          :size="size"
+          type="info"
+          native-type="button"
+          style="border: none"
+        >
+          <span class="color-block" :style="{ backgroundColor: displayColor }" />
+        </UButton>
+      </slot>
+    </div>
+    <div v-if="pickerVisible" class="u-color-picker-popover">
+      <Sketch v-model="colors" />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .u-color-picker {

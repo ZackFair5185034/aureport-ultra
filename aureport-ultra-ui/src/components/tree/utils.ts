@@ -3,9 +3,10 @@ export function setNodeChecked(node: Record<string, unknown>, checked: boolean) 
     node.checked = checked
     node.indeterminate = false
   }
+
   if (node.children && (node.children as unknown[]).length > 0) {
-    ;(node.children as Record<string, unknown>[]).forEach(cell => {
+    ;for (const cell of (node.children as Record<string, unknown>[])) {
       setNodeChecked(cell, checked)
-    })
+    }
   }
 }

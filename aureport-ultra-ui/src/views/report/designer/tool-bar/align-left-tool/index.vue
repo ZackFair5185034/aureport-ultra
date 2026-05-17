@@ -1,31 +1,23 @@
-<template>
-  <ButtonGroup
-      :iconClass="'info-button iconfont' + currentIcon"
-      :title="$t('tools.alignLeft.leftRightAlign')"
-      :menuItems="menuItems"
-  />
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
 import ButtonGroup from '@/components/button-group/index.vue'
+import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'AlignLeftTool' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
-  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+  selectedCells?: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }
 }>(), {
-  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null }),
 })
+
+const { t } = useI18n()
 
 const currentAlign = ref('left')
 
@@ -33,27 +25,27 @@ const menuItems = computed(() => [
   {
     text: t('tools.alignLeft.leftAlign'),
     icon: 'iconfont icon-left-align',
-    action: () => handleAlignLeft()
+    action: () => handleAlignLeft(),
   },
   {
     text: t('tools.alignLeft.centerAlign'),
     icon: 'iconfont icon-center-align',
-    action: () => handleAlignCenter()
+    action: () => handleAlignCenter(),
   },
   {
     text: t('tools.alignLeft.rightAlign'),
     icon: 'iconfont icon-right-align',
-    action: () => handleAlignRight()
-  }
+    action: () => handleAlignRight(),
+  },
 ])
 
 const currentIcon = computed(() => {
   const iconMap: Record<string, string> = {
-    'left': ' icon-left-align',
-    'center': ' icon-center-align',
-    'right': ' icon-right-align'
+    left: ' icon-left-align',
+    center: ' icon-center-align',
+    right: ' icon-right-align',
   }
-  return iconMap[currentAlign.value] || iconMap['left']
+  return iconMap[currentAlign.value] || iconMap.left
 })
 
 watch(() => props.selectedCells, (newVal) => {
@@ -63,33 +55,36 @@ watch(() => props.selectedCells, (newVal) => {
 }, { deep: true })
 
 function handleAlignLeft() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
   const oldAligns = buildCellAlign('left')
   undoManager.add({
     undo: () => { buildCellAlign(null, oldAligns); setDirty() },
-    redo: () => { buildCellAlign('left'); setDirty() }
+    redo: () => { buildCellAlign('left'); setDirty() },
   })
   setDirty()
   currentAlign.value = 'left'
 }
 
 function handleAlignCenter() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
   const oldAligns = buildCellAlign('center')
   undoManager.add({
     undo: () => { buildCellAlign(null, oldAligns); setDirty() },
-    redo: () => { buildCellAlign('center'); setDirty() }
+    redo: () => { buildCellAlign('center'); setDirty() },
   })
   setDirty()
   currentAlign.value = 'center'
 }
 
 function handleAlignRight() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
   const oldAligns = buildCellAlign('right')
   undoManager.add({
     undo: () => { buildCellAlign(null, oldAligns); setDirty() },
-    redo: () => { buildCellAlign('right'); setDirty() }
+    redo: () => { buildCellAlign('right'); setDirty() },
   })
   setDirty()
   currentAlign.value = 'right'
@@ -102,6 +97,7 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
@@ -112,6 +108,7 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
   let [startRow, startCol, endRow, endCol] = selected[0]
 
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   for (let i = startRow; i <= endRow; i++) {
@@ -119,11 +116,12 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
       const cellDef = getCell(i, j)
       const td = table.getCell(i, j)
 
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldAligns[`${i},${j}`] = cellStyle.align || ""
+      oldAligns[`${i},${j}`] = cellStyle.align || ''
 
       if (prevAligns) {
         align = prevAligns[`${i},${j}`]
@@ -143,21 +141,31 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const cellStyle = cellDef.cellStyle
-      const align = cellStyle.align || "left"
+      const align = cellStyle.align || 'left'
       currentAlign.value = align
       return
     }
   }
 }
 </script>
+
+<template>
+  <ButtonGroup
+    :iconClass="`info-button iconfont${currentIcon}`"
+    :title="$t('tools.alignLeft.leftRightAlign')"
+    :menuItems="menuItems"
+  />
+</template>
 
 <style scoped>
 </style>

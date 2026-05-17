@@ -1,44 +1,22 @@
-<template>
-  <div class="u-inline">
-    <u-color-picker
-      v-model="selectedColor"
-      :before-toggle="checkSelection"
-      @change="onColorChange"
-    >
-      <u-button
-        type="info"
-        native-type="button"
-        class="bg-color-btn"
-        :title="$t('tools.bgColor.bgColor')"
-      >
-        <div class="icon-wrapper">
-          <i class="iconfont icon-background"></i>
-          <span class="color-indicator" :style="{ backgroundColor: displayColor }"></span>
-        </div>
-      </u-button>
-    </u-color-picker>
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
 import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'BgColorTool' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
-  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+  selectedCells?: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }
 }>(), {
-  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null }),
 })
+
+const { t } = useI18n()
 
 const currentColor = ref('255,255,255')
 const selectedColor = ref('#FFFFFF')
@@ -60,11 +38,13 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
 function onColorChange(color: string) {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const rgb = hexToRgb(color)
   if (rgb) {
@@ -76,6 +56,7 @@ function onColorChange(color: string) {
     let [startRow, startCol, endRow, endCol] = selected[0]
 
     if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
     if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
     const oldBgColorStyle = updateCellsBgColorStyle(startRow, startCol, endRow, endCol, rgbStr)
@@ -91,7 +72,7 @@ function onColorChange(color: string) {
         restoreBgColorStyle(startRow, startCol, endRow, endCol, oldBgColorStyle)
         table.render()
         setDirty()
-      }
+      },
     })
 
     setDirty()
@@ -100,11 +81,13 @@ function onColorChange(color: string) {
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null
 }
 
 function updateCellsBgColorStyle(startRow: number, startCol: number, endRow: number, endCol: number, color: string) {
@@ -113,11 +96,12 @@ function updateCellsBgColorStyle(startRow: number, startCol: number, endRow: num
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldBgColorStyle[i + ',' + j] = cellStyle.bgcolor
+      oldBgColorStyle[`${i},${j}`] = cellStyle.bgcolor
       cellStyle.bgcolor = color
       setCell(i, j, newCellDef)
     }
@@ -130,57 +114,74 @@ function restoreBgColorStyle(startRow: number, startCol: number, endRow: number,
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      cellStyle.bgcolor = oldBgColorStyle[i + ',' + j]
+      cellStyle.bgcolor = oldBgColorStyle[`${i},${j}`]
       setCell(i, j, newCellDef)
 
       if (i === startRow && j === startCol) {
         currentColor.value = cellStyle.bgcolor || '255,255,255'
         const rgbParts = currentColor.value.split(',')
-        if (rgbParts.length === 3) {
-          selectedColor.value = rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2]))
-        } else {
-          selectedColor.value = '#FFFFFF'
-        }
+        selectedColor.value = rgbParts.length === 3 ? rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2])) : '#FFFFFF'
       }
     }
   }
 }
 
 function rgbToHex(r: number, g: number, b: number) {
-  return '#' + [r, g, b].map(x => {
+  return `#${[r, g, b].map((x) => {
     const hex = x.toString(16)
-    return hex.length === 1 ? '0' + hex : hex
-  }).join('').toUpperCase()
+    return hex.length === 1 ? `0${hex}` : hex
+  }).join('').toUpperCase()}`
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const cellStyle = cellDef.cellStyle
       currentColor.value = cellStyle.bgcolor || '255,255,255'
 
       const rgbParts = currentColor.value.split(',')
-      if (rgbParts.length === 3) {
-        selectedColor.value = rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2]))
-      } else {
-        selectedColor.value = '#FFFFFF'
-      }
+      selectedColor.value = rgbParts.length === 3 ? rgbToHex(parseInt(rgbParts[0]), parseInt(rgbParts[1]), parseInt(rgbParts[2])) : '#FFFFFF'
 
       return
     }
   }
 }
 </script>
+
+<template>
+  <div class="u-inline">
+    <u-color-picker
+      v-model="selectedColor"
+      :before-toggle="checkSelection"
+      @change="onColorChange"
+    >
+      <u-button
+        type="info"
+        native-type="button"
+        class="bg-color-btn"
+        :title="$t('tools.bgColor.bgColor')"
+      >
+        <div class="icon-wrapper">
+          <i class="iconfont icon-background" />
+          <span class="color-indicator" :style="{ backgroundColor: displayColor }" />
+        </div>
+      </u-button>
+    </u-color-picker>
+  </div>
+</template>
 
 <style scoped>
 .bg-color-btn {

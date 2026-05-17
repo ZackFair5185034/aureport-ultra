@@ -1,74 +1,13 @@
-<template>
-  <div>
-    <div class="top-button">
-      <u-button
-        type="info"
-        icon="icon-plus-circle"
-        :title="t('dialog.propCondition.addValue')"
-        @click="addCondition"
-      >
-      </u-button>
-      <u-button
-        type="info"
-        icon="icon-edit"
-        :title="t('dialog.propCondition.editConditionItem')"
-        @click="editCondition"
-      >
-      </u-button>
-      <u-button
-        type="info"
-        icon="icon-delete"
-        :title="t('dialog.propCondition.delCondition')"
-        @click="deleteCondition"
-      >
-      </u-button>
-    </div>
-
-    <div style="margin-top: 10px;">
-      <select
-          ref="conditionList"
-          class="form-control condition-select"
-          size="100"
-          v-model="selectedConditionIndex"
-          @change="onConditionSelectChange"
-      >
-        <option
-            v-for="(condition, index) in conditions"
-            :key="condition.id"
-            :value="index"
-        >
-          {{ getConditionText(condition) }}
-        </option>
-      </select>
-    </div>
-
-    <condition-content-dialog
-      :visible="dialogVisible"
-      :dialog-fields="dialogFields"
-      :dialog-condition="dialogCondition"
-      :dialog-conditions="dialogConditions"
-      @saveAfter="handleSaveAfter"
-      @close="dialogVisible = false"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { v1 as uuid } from 'uuid'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
-import { v1 as uuid } from 'uuid'
 import ConditionContentDialog from '../condition-content-dialog/index.vue'
 
 defineOptions({ name: 'ConditionContent' })
-
-const { t } = useI18n()
-const store = useReportStore()
-const context = computed(() => store.context || {})
-// @ts-ignore
-const datasources = computed(() => context.value.reportDef?.datasources || [])
 
 const props = withDefaults(defineProps<{
   propertyConditions?: any[]
@@ -81,15 +20,19 @@ const props = withDefaults(defineProps<{
   selectedItem: null,
   datasetName: '',
   conditions: () => [],
-  resetSelection: true
+  resetSelection: true,
 })
-
 const emit = defineEmits<{
   (e: 'condition-added', value: any): void
   (e: 'condition-updated', value: any): void
   (e: 'condition-deleted', value: any): void
   (e: 'condition-selected', value: any): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
+const context = computed(() => store.context || {})
+// @ts-ignore
+const datasources = computed(() => context.value.reportDef?.datasources || [])
 
 const conditionList = ref<HTMLSelectElement | null>(null)
 const selectedConditionIndex = ref(-1)
@@ -111,17 +54,18 @@ watch(() => props.conditions, (newVal) => {
   }
 }, { immediate: true })
 
-watch(() => props.selectedItem, () => {
-}, { immediate: true })
+watch(() => props.selectedItem, () => {}, { immediate: true })
 
 function getConditionText(condition: any): string {
-  let text = condition.left + ' ' + condition.operation + ' ' + condition.right
+  let text = `${condition.left} ${condition.operation} ${condition.right}`
   if (condition.type === 'property' && (!condition.left || condition.left === '')) {
-    text = t('dialog.propCondition.currentValue') + ' ' + condition.operation + ' ' + (condition.right || condition.expr)
+    text = `${t('dialog.propCondition.currentValue')} ${condition.operation} ${condition.right || condition.expr}`
   }
+
   if (condition.join && props.conditions.indexOf(condition) > 0) {
-    text = condition.join + ' ' + text
+    text = `${condition.join} ${text}`
   }
+
   return text
 }
 
@@ -164,7 +108,8 @@ function editCondition() {
 }
 
 function handleSaveAfter(type: string, left: string, op: string, right: string, join?: string) {
-  if (!props.selectedItem) return
+  if (!props.selectedItem)
+    return
 
   if (isAddingCondition.value) {
     const newCondition = {
@@ -173,11 +118,12 @@ function handleSaveAfter(type: string, left: string, op: string, right: string, 
       operation: op,
       right,
       join,
-      id: uuid()
+      id: uuid(),
     }
     emit('condition-added', newCondition)
     isAddingCondition.value = false
-  } else {
+  }
+  else {
     if (selectedConditionIndex.value >= 0 && selectedConditionIndex.value < props.conditions.length) {
       const condition = props.conditions[selectedConditionIndex.value]
       const updatedCondition = {
@@ -186,10 +132,11 @@ function handleSaveAfter(type: string, left: string, op: string, right: string, 
         left,
         operation: op,
         right,
-        join
+        join,
       }
       emit('condition-updated', updatedCondition)
     }
+
     isAddingCondition.value = false
   }
 
@@ -219,18 +166,20 @@ function buildFields(): any[] {
     return fields
   }
 
-  for (let ds of datasources.value) {
-    let datasets = ds.datasets || []
-    for (let dataset of datasets) {
+  for (const ds of datasources.value) {
+    const datasets = ds.datasets || []
+    for (const dataset of datasets) {
       if (dataset.name === props.datasetName) {
         fields = dataset.fields || []
         break
       }
     }
+
     if (fields.length > 0) {
       break
     }
   }
+
   return fields
 }
 
@@ -242,17 +191,69 @@ function onConditionSelectChange() {
 }
 </script>
 
+<template>
+  <div>
+    <div class="top-button">
+      <u-button
+        type="info"
+        icon="icon-plus-circle"
+        :title="t('dialog.propCondition.addValue')"
+        @click="addCondition"
+      />
+      <u-button
+        type="info"
+        icon="icon-edit"
+        :title="t('dialog.propCondition.editConditionItem')"
+        @click="editCondition"
+      />
+      <u-button
+        type="info"
+        icon="icon-delete"
+        :title="t('dialog.propCondition.delCondition')"
+        @click="deleteCondition"
+      />
+    </div>
+
+    <div style="margin-top: 10px;">
+      <select
+        ref="conditionList"
+        v-model="selectedConditionIndex"
+        class="form-control condition-select"
+        size="100"
+        @change="onConditionSelectChange"
+      >
+        <option
+          v-for="(condition, index) in conditions"
+          :key="condition.id"
+          :value="index"
+        >
+          {{ getConditionText(condition) }}
+        </option>
+      </select>
+    </div>
+
+    <ConditionContentDialog
+      :visible="dialogVisible"
+      :dialog-fields="dialogFields"
+      :dialog-condition="dialogCondition"
+      :dialog-conditions="dialogConditions"
+      @saveAfter="handleSaveAfter"
+      @close="dialogVisible = false"
+    />
+  </div>
+</template>
+
 <style scoped>
-.u-button + .u-button{
+.u-button + .u-button {
   margin-left: 5px;
 }
 
-.top-button{
+.top-button {
   display: flex;
   justify-content: end;
 }
 
-.condition-select{
+.condition-select {
   height: 500px;
   padding: 3px;
   outline: none;

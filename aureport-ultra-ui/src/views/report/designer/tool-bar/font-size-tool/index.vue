@@ -1,34 +1,22 @@
-<template>
-  <div class="u-inline">
-    <ButtonGroup
-      :buttonText="currentFontSize.toString()"
-      :showText="true"
-      :title="$t('tools.fontSize.size')"
-      :customClass="'font-size-tool-dropdown'"
-      :menuItems="menuItems"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
 import ButtonGroup from '@/components/button-group/index.vue'
+import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'FontSizeTool' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
-  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+  selectedCells?: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }
 }>(), {
-  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null }),
 })
+
+const { t } = useI18n()
 
 const currentFontSize = ref(10)
 const fontSizes = ref(Array.from({ length: 100 }, (_, i) => i + 1))
@@ -36,7 +24,7 @@ const fontSizes = ref(Array.from({ length: 100 }, (_, i) => i + 1))
 const menuItems = computed(() => {
   return fontSizes.value.map(size => ({
     text: String(size),
-    action: () => applyFontSize(size)
+    action: () => applyFontSize(size),
   }))
 })
 
@@ -53,17 +41,20 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
 function applyFontSize(fontSize: number) {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const table = TableManager.get()
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   const oldFontSize = updateFontSize(startRow, startCol, endRow, endCol, fontSize)
@@ -79,7 +70,7 @@ function applyFontSize(fontSize: number) {
       restoreFontSize(startRow, startCol, endRow, endCol, oldFontSize)
       table.render()
       setDirty()
-    }
+    },
   })
 
   setDirty()
@@ -91,11 +82,12 @@ function updateFontSize(startRow: number, startCol: number, endRow: number, endC
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldFontSize[i + ',' + j] = newCellDef.cellStyle.fontSize ?? 0
+      oldFontSize[`${i},${j}`] = newCellDef.cellStyle.fontSize ?? 0
       cellStyle.fontSize = fontSize
       setCell(i, j, newCellDef)
 
@@ -112,11 +104,12 @@ function restoreFontSize(startRow: number, startCol: number, endRow: number, end
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      cellStyle.fontSize = oldFontSize[i + ',' + j]
+      cellStyle.fontSize = oldFontSize[`${i},${j}`]
       setCell(i, j, newCellDef)
 
       if (i === startRow && j === startCol) {
@@ -128,12 +121,14 @@ function restoreFontSize(startRow: number, startCol: number, endRow: number, end
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const cellStyle = cellDef.cellStyle
       const fontSize = cellStyle.fontSize || 10
@@ -143,6 +138,18 @@ function refresh(startRow: number, startCol: number, endRow: number, endCol: num
   }
 }
 </script>
+
+<template>
+  <div class="u-inline">
+    <ButtonGroup
+      :buttonText="currentFontSize.toString()"
+      :showText="true"
+      :title="$t('tools.fontSize.size')"
+      customClass="font-size-tool-dropdown"
+      :menuItems="menuItems"
+    />
+  </div>
+</template>
 
 <style scoped>
 .font-size-tool-dropdown :deep(.button-text) {

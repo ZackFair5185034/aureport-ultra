@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.6.0",
+    "@ffrosch/vue-simple-suggest": "^2.0.7",
     "@parcel/watcher": "^2.4.1",
     "async-validator": "^4.2.5",
     "axios": "^1.7.0",
@@ -32,10 +33,10 @@
     "vue-datepicker-next": "^1.0.3",
     "vue-i18n": "^10.0.0",
     "vue-router": "^4.5.0",
-    "@ffrosch/vue-simple-suggest": "^2.0.7",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^9.0.0",
     "@eslint/js": "^9.22.0",
     "@playwright/test": "^1.60.0",
     "@types/node": "^22.13.0",
@@ -44,6 +45,7 @@
     "cross-env": "^7.0.3",
     "esbuild": "~0.27.7",
     "eslint": "^9.22.0",
+    "eslint-plugin-format": "^2.0.1",
     "eslint-plugin-vue": "^9.32.0",
     "sass-embedded": "^1.99.0",
     "typescript": "^5.8.0",

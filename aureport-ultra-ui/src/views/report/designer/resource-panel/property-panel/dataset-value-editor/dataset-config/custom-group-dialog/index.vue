@@ -1,131 +1,12 @@
-<template>
-  <UDialog
-    :title="t('dialog.customGroup.title')"
-    width="800px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="custom-group-dialog">
-      <div class="form-group">
-        <!-- 分组项管理 -->
-        <div class="group-items-section">
-          <div class="button-group">
-            <u-button
-                type="info"
-                icon="icon-plus-circle"
-                :title="t('dialog.customGroup.addGroup')"
-                @click="addItem"
-            >
-            </u-button>
-            <u-button
-                type="info"
-                icon="icon-delete"
-                :title="t('dialog.customGroup.deleteGroup')"
-                @click="deleteItem"
-            >
-            </u-button>
-            <u-button
-                type="info"
-                icon="icon-edit"
-                :title="t('dialog.customGroup.editGroup')"
-                @click="editItem"
-            >
-            </u-button>
-          </div>
-
-          <div style="margin-top: 5px" >
-            <select
-                v-model="selectedItemIndex"
-                size="15"
-                class="form-control group-select"
-                @change="onSelectedItemChange"
-            >
-              <option v-for="(item, index) in localGroupItems" :key="index" :value="index">
-                {{ item.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 条件管理 -->
-        <div class="conditions-section" v-show="selectedItemIndex !== null && selectedItemIndex !== -1">
-          <div class="condition-header">
-            <label>{{ t('dialog.customGroup.groupCondition') }}：</label>
-            <div class="button-group">
-              <u-button
-                  type="info"
-                  icon="icon-plus-circle"
-                  :title="t('dialog.customGroup.addCondition')"
-                  @click="addCondition"
-              >
-              </u-button>
-              <u-button
-                  type="info"
-                  icon="icon-delete"
-                  :title="t('dialog.customGroup.delTitle')"
-                  @click="deleteCondition"
-              >
-              </u-button>
-              <u-button
-                  type="info"
-                  icon="icon-edit"
-                  :title="t('dialog.customGroup.editTip')"
-                  @click="editCondition"
-              >
-              </u-button>
-            </div>
-          </div>
-          <select
-            v-model="selectedConditionIndex"
-            size="13"
-            class="form-control condition-select"
-          >
-            <option v-for="(condition, index) in currentConditions" :key="index" :value="index">
-              {{ formatConditionText(condition, index) }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- GroupItemDialog 组件 -->
-    <GroupItemDialog
-      v-model:visible="groupItemDialogVisible"
-      :group-item="groupItemDialogItem"
-      :operation="groupItemDialogOperation"
-      @saveAfter="handleGroupItemSave"
-    />
-
-    <!-- ConditionDialog 组件 -->
-    <ConditionDialog
-      v-model:visible="conditionDialogVisible"
-      :fields="conditionDialogFields"
-      :condition="conditionDialogCondition"
-      :conditions="conditionDialogConditions"
-      @saveAfter="handleConditionSave"
-    />
-
-    <!-- 底部按钮 -->
-    <template #footer>
-      <div style="text-align: right">
-        <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ t('dialog.common.cancel') }}</u-button>
-        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
-      </div>
-    </template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { showAlert, showConfirm } from '@/utils/comnon'
 import { deepCopy } from '@/components/utils/index'
-import GroupItemDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-item-dialog/index.vue'
+import { showAlert, showConfirm } from '@/utils/comnon'
 import ConditionDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/condition-dialog/index.vue'
+import GroupItemDialog from '@/views/report/designer/resource-panel/property-panel/dataset-value-editor/dataset-config/custom-group-item-dialog/index.vue'
 
 defineOptions({ name: 'CustomGroupDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   groupItems?: any[]
@@ -134,7 +15,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   groupItems: () => [],
   visible: false,
-  fields: null
+  fields: null,
 })
 
 const emit = defineEmits<{
@@ -142,6 +23,8 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', value: any[]): void
 }>()
+
+const { t } = useI18n()
 
 const localGroupItems = ref<any[]>([])
 const selectedItemIndex = ref<number | null>(null)
@@ -160,6 +43,7 @@ const currentConditions = computed(() => {
   if (selectedItemIndex.value === null || selectedItemIndex.value === -1) {
     return []
   }
+
   return localGroupItems.value[selectedItemIndex.value].conditions || []
 })
 
@@ -184,7 +68,7 @@ onBeforeUnmount(() => {
 })
 
 function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
@@ -301,14 +185,15 @@ function handleConditionSave(conditionData: any) {
       condition.right = conditionData.right
       condition.join = conditionData.join
     }
-  } else {
+  }
+  else {
     const condition = {
       left: conditionData.left,
       operation: conditionData.operation,
       op: conditionData.operation,
       right: conditionData.right,
       join: conditionData.join,
-      id: generateId()
+      id: generateId(),
     }
     conditions.push(condition)
   }
@@ -344,13 +229,122 @@ function formatConditionText(condition: any, index: number) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (props.visible) {
-    if (e.key === 'Escape') {
-      handleClose()
-    }
+  if (props.visible && e.key === 'Escape') {
+    handleClose()
   }
 }
 </script>
+
+<template>
+  <UDialog
+    :title="t('dialog.customGroup.title')"
+    width="800px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="custom-group-dialog">
+      <div class="form-group">
+        <!-- 分组项管理 -->
+        <div class="group-items-section">
+          <div class="button-group">
+            <u-button
+              type="info"
+              icon="icon-plus-circle"
+              :title="t('dialog.customGroup.addGroup')"
+              @click="addItem"
+            />
+            <u-button
+              type="info"
+              icon="icon-delete"
+              :title="t('dialog.customGroup.deleteGroup')"
+              @click="deleteItem"
+            />
+            <u-button
+              type="info"
+              icon="icon-edit"
+              :title="t('dialog.customGroup.editGroup')"
+              @click="editItem"
+            />
+          </div>
+
+          <div style="margin-top: 5px">
+            <select
+              v-model="selectedItemIndex"
+              size="15"
+              class="form-control group-select"
+              @change="onSelectedItemChange"
+            >
+              <option v-for="(item, index) in localGroupItems" :key="index" :value="index">
+                {{ item.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 条件管理 -->
+        <div v-show="selectedItemIndex !== null && selectedItemIndex !== -1" class="conditions-section">
+          <div class="condition-header">
+            <label>{{ t('dialog.customGroup.groupCondition') }}：</label>
+            <div class="button-group">
+              <u-button
+                type="info"
+                icon="icon-plus-circle"
+                :title="t('dialog.customGroup.addCondition')"
+                @click="addCondition"
+              />
+              <u-button
+                type="info"
+                icon="icon-delete"
+                :title="t('dialog.customGroup.delTitle')"
+                @click="deleteCondition"
+              />
+              <u-button
+                type="info"
+                icon="icon-edit"
+                :title="t('dialog.customGroup.editTip')"
+                @click="editCondition"
+              />
+            </div>
+          </div>
+          <select
+            v-model="selectedConditionIndex"
+            size="13"
+            class="form-control condition-select"
+          >
+            <option v-for="(condition, index) in currentConditions" :key="index" :value="index">
+              {{ formatConditionText(condition, index) }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- GroupItemDialog 组件 -->
+    <GroupItemDialog
+      v-model:visible="groupItemDialogVisible"
+      :group-item="groupItemDialogItem"
+      :operation="groupItemDialogOperation"
+      @saveAfter="handleGroupItemSave"
+    />
+
+    <!-- ConditionDialog 组件 -->
+    <ConditionDialog
+      v-model:visible="conditionDialogVisible"
+      :fields="conditionDialogFields"
+      :condition="conditionDialogCondition"
+      :conditions="conditionDialogConditions"
+      @saveAfter="handleConditionSave"
+    />
+
+    <!-- 底部按钮 -->
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 .custom-group-dialog {
@@ -373,14 +367,14 @@ function handleKeydown(e: KeyboardEvent) {
   flex: 1;
 }
 
-.group-select{
+.group-select {
   width: 200px;
   height: 285px;
   display: inline-block;
-  outline: none
+  outline: none;
 }
 
-.condition-select{
+.condition-select {
   height: 250px;
   outline: none;
 }
@@ -396,7 +390,7 @@ function handleKeydown(e: KeyboardEvent) {
   margin-right: 10px;
 }
 
-.u-button + .u-button{
+.u-button + .u-button {
   margin-left: 5px;
 }
 </style>

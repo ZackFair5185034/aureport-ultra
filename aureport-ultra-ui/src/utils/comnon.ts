@@ -1,6 +1,6 @@
-import MessageBox from "@/components/messagebox/instance";
-import {$t} from "@/locales";
-import request from "@/utils/request";
+import MessageBox from '@/components/messagebox/instance'
+import { $t } from '@/locales'
+import request from '@/utils/request'
 
 /**
  * 提示
@@ -9,7 +9,7 @@ import request from "@/utils/request";
  * @returns {Promise<unknown>}
  */
 export function showAlert(message: string, options?: Record<string, unknown>): Promise<unknown> {
-    return MessageBox.alert(message, $t('components.message.info'), options);
+  return MessageBox.alert(message, $t('components.message.info'), options)
 }
 
 /**
@@ -19,14 +19,14 @@ export function showAlert(message: string, options?: Record<string, unknown>): P
  * @returns {Promise<unknown>}
  */
 export function showConfirm(message: string, options?: Record<string, unknown>): Promise<unknown> {
-    return MessageBox.confirm(message, $t('components.message.info'), options);
+  return MessageBox.confirm(message, $t('components.message.info'), options)
 }
 
 /**
  * 判断当前设备是否为移动设备
  */
 export function isMobile(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 }
 
 /**
@@ -36,62 +36,66 @@ export function isMobile(): boolean {
  * @param defaultFilename 默认文件名
  */
 export async function downloadBlob(url: string, params: Record<string, unknown>, defaultFilename: string): Promise<void> {
-    const queryString = buildQueryString(params);
-    const fullUrl = queryString ? `${url}?${queryString}` : url;
+  const queryString = buildQueryString(params)
+  const fullUrl = queryString ? `${url}?${queryString}` : url
 
-    const response = await request.get(fullUrl, {
-        responseType: 'blob'
-    });
+  const response = await request.get(fullUrl, {
+    responseType: 'blob',
+  })
 
-    const blob = response.data || response;
-    const contentDisposition = response.headers?.['content-disposition'];
-    const filename = extractFilename(contentDisposition, defaultFilename);
+  const blob = response.data || response
+  const contentDisposition = response.headers?.['content-disposition']
+  const filename = extractFilename(contentDisposition, defaultFilename)
 
-    const downloadUrl = URL.createObjectURL(blob as Blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
+  const downloadUrl = URL.createObjectURL(blob as Blob)
+  const link = document.createElement('a')
+  link.href = downloadUrl
+  link.download = filename
+  document.body.append(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(downloadUrl)
 }
 
 /**
  * 构建查询字符串
  */
 export function buildQueryString(params: Record<string, unknown>): string {
-    if (!params || typeof params !== 'object') {
-        return '';
-    }
+  if (!params || typeof params !== 'object') {
+    return ''
+  }
 
-    const pairs: string[] = [];
-    for (const key in params) {
-        if (params.hasOwnProperty(key) && params[key] !== undefined && params[key] !== null) {
-            pairs.push(key + '=' + params[key]);
-        }
+  const pairs: string[] = []
+  for (const key in params) {
+    if (Object.hasOwn(params, key) && params[key] !== undefined && params[key] !== null) {
+      pairs.push(`${key}=${params[key]}`)
     }
+  }
 
-    return pairs.join('&');
+  return pairs.join('&')
 }
 
 /**
  * 从 Content-Disposition 头中提取文件名
  */
 function extractFilename(contentDisposition: string | undefined, defaultName: string): string {
-    if (!contentDisposition) {
-        return defaultName;
+  if (!contentDisposition) {
+    return defaultName
+  }
+
+  const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+  const matches = filenameRegex.exec(contentDisposition)
+  if (matches && matches[1]) {
+    let filename = matches[1].replaceAll(/['"]/g, '')
+    try {
+      filename = decodeURIComponent(filename)
     }
-    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-    const matches = filenameRegex.exec(contentDisposition);
-    if (matches && matches[1]) {
-        let filename = matches[1].replace(/['"]/g, '');
-        try {
-            filename = decodeURIComponent(filename);
-        } catch (e) {
-            // 解码失败则使用原始值
-        }
-        return filename;
+    catch {
+      // 解码失败则使用原始值
     }
-    return defaultName;
+
+    return filename
+  }
+
+  return defaultName
 }

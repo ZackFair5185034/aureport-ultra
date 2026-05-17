@@ -1,12 +1,11 @@
-import { exportDefault } from './index'
 import { trigger } from './config'
+import { exportDefault } from './index'
 
 let confGlobal
 const inheritAttrs = {
   file: '',
-  dialog: 'inheritAttrs: false,'
+  dialog: 'inheritAttrs: false,',
 }
-
 
 export function makeUpJs(conf, type) {
   confGlobal = conf = JSON.parse(JSON.stringify(conf))
@@ -18,9 +17,9 @@ export function makeUpJs(conf, type) {
   const uploadVarList = []
 
   if (conf.fields && Array.isArray(conf.fields)) {
-    conf.fields.forEach(el => {
+    for (const el of conf.fields) {
       buildAttributes(el, dataList, ruleList, optionsList, methodList, propsList, uploadVarList)
-    })
+    }
   }
 
   const script = buildexport(
@@ -31,7 +30,7 @@ export function makeUpJs(conf, type) {
     optionsList.join('\n'),
     uploadVarList.join('\n'),
     propsList.join('\n'),
-    methodList.join('\n')
+    methodList.join('\n'),
   )
   confGlobal = null
   return script
@@ -46,17 +45,18 @@ function buildAttributes(el, dataList, ruleList, optionsList, methodList, propsL
   }
 
   if (el.children && Array.isArray(el.children)) {
-    el.children.forEach(el2 => {
+    for (const el2 of el.children) {
       buildAttributes(el2, dataList, ruleList, optionsList, methodList, propsList, uploadVarList)
-    })
+    }
   }
 }
 
 function mixinMethod(type) {
   const list = []; const
     minxins = {
-      file: confGlobal.formBtns ? {
-        submitForm: `submitForm() {
+      file: confGlobal.formBtns
+        ? {
+            submitForm: `submitForm() {
         let that = this;
         this.$refs['${confGlobal.formRef}'].validate(valid => {
           if(!valid) return
@@ -64,10 +64,11 @@ function mixinMethod(type) {
           // TODO 提交表单
         })
       },`,
-        resetForm: `resetForm() {
+            resetForm: `resetForm() {
         this.$refs['${confGlobal.formRef}'].resetFields()
-      },`
-      } : null,
+      },`,
+          }
+        : null,
       dialog: {
         onOpen: 'onOpen() {},',
         onClose: `onClose() {
@@ -81,34 +82,38 @@ function mixinMethod(type) {
           if(!valid) return
           this.close()
         })
-      },`
-      }
+      },`,
+      },
     }
 
   const methods = minxins[type]
   if (methods) {
-    Object.keys(methods).forEach(key => {
+    for (const key of Object.keys(methods)) {
       list.push(methods[key])
-    })
+    }
   }
 
   return list
 }
 
 function buildData(conf, dataList) {
-  if (conf.vModel === undefined) return
+  if (conf.vModel === undefined)
+    return
   let defaultValue
   if (typeof (conf.defaultValue) === 'string' && !conf.multiple) {
-    const escapedValue = conf.defaultValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedValue = conf.defaultValue.replaceAll('\\', '\\\\').replaceAll('\'', String.raw`\'`)
     defaultValue = `'${escapedValue}'`
-  } else {
+  }
+  else {
     defaultValue = `${JSON.stringify(conf.defaultValue)}`
   }
+
   dataList.push(`${conf.vModel}: ${defaultValue},`)
 }
 
 function buildRules(conf, ruleList) {
-  if (conf.vModel === undefined) return
+  if (conf.vModel === undefined)
+    return
   const rules = []
   if (trigger[conf.tag]) {
     if (conf.required) {
@@ -118,32 +123,53 @@ function buildRules(conf, ruleList) {
       if (Array.isArray(conf.defaultValue)) {
         isArrayType = true
         type = 'type: \'array\','
-      } else if (conf.tag === 'u-checkbox-group') {
-        type = 'type: \'array\','
-      } else if (conf.tag === 'u-input-number') {
-        type = 'type: \'number\','
-      } else if (conf.tag === 'u-input' || conf.tag === 'u-select') {
-        transform = 'transform: value => value == null ? null : String(value),'
+      }
+      else {
+        switch (conf.tag) {
+          case 'u-checkbox-group': {
+            type = 'type: \'array\','
+
+            break
+          }
+
+          case 'u-input-number': {
+            type = 'type: \'number\','
+
+            break
+          }
+
+          case 'u-input':
+          case 'u-select': {
+            transform = 'transform: value => value == null ? null : String(value),'
+
+            break
+          }
+ // No default
+        }
       }
 
       let message = isArrayType ? `请至少选择一个${conf.vModel}` : conf.placeholder
-      if (message === undefined) message = `${conf.label}不能为空`
+      if (message === undefined)
+        message = `${conf.label}不能为空`
 
       rules.push(`{ required: true, ${type} ${transform} message: '${message}', trigger: '${trigger[conf.tag]}' }`)
     }
+
     if (conf.regList && Array.isArray(conf.regList)) {
-      conf.regList.forEach(item => {
+      for (const item of conf.regList) {
         if (item.pattern) {
           rules.push(`{ pattern: ${eval(item.pattern)}, message: '${item.message}', trigger: '${trigger[conf.tag]}' }`)
         }
-      })
+      }
     }
+
     ruleList.push(`${conf.vModel}: [${rules.join(',')}],`)
   }
 }
 
 function buildOptions(conf, optionsList) {
-  if (conf.vModel === undefined) return
+  if (conf.vModel === undefined)
+    return
   const str = `${conf.vModel}Options: ${JSON.stringify(conf.options)},`
   optionsList.push(str)
 }

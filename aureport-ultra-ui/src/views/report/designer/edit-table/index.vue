@@ -1,43 +1,35 @@
-<template>
-  <div class="ud-page">
-    <div class="ud-table" ref="contentTableEl"></div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
 import Handsontable from 'handsontable'
-import Context from '@/components/Context.js'
-import * as utils from '@/utils/table'
-import buildMenuConfigure from './utils/ContextMenu'
-import { afterRenderer } from './utils/CellRenderer'
-import { renderRowHeader } from './utils/HeaderUtils'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { loadReport } from '@/api/designer'
+import Context from '@/components/Context.js'
+import { getLibMode } from '@/lib/navigator'
+import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'
 import { addRowHeader } from '@/utils/contextActions'
+import * as utils from '@/utils/table'
 import TableManager from './manager.js'
-import { getLibMode } from '@/lib/navigator'
+import { afterRenderer } from './utils/CellRenderer'
+import buildMenuConfigure from './utils/ContextMenu'
+import { renderRowHeader } from './utils/HeaderUtils'
 
 defineOptions({ name: 'ContentTable' })
-
-const { t } = useI18n()
-const store = useReportStore()
 
 const props = withDefaults(defineProps<{
   reportPath?: string
 }>(), {
-  reportPath: ''
+  reportPath: '',
 })
-
 const emit = defineEmits<{
-  (e: 'cell-selected', data: { rowIndex: number; colIndex: number; row2Index: number; col2Index: number }): void
+  (e: 'cell-selected', data: { rowIndex: number, colIndex: number, row2Index: number, col2Index: number }): void
   (e: 'context-created', context: unknown): void
   (e: 'navigate', data: unknown): void
   (e: 'save', data: unknown): void
   (e: 'error', err: unknown): void
 }>()
+const { t } = useI18n()
+const store = useReportStore()
 
 const contentTableEl = ref<HTMLDivElement | null>(null)
 
@@ -73,7 +65,8 @@ function initTable() {
   let filePath = ''
   if (isLibMode) {
     filePath = internalReportPath.value || 'classpath:template/template.ureport.xml'
-  } else {
+  }
+  else {
     filePath = utils.getParameter('reportPath') || ''
     if (!filePath || filePath === '') {
       filePath = 'classpath:template/template.ureport.xml'
@@ -89,13 +82,14 @@ function initTable() {
 
 function initHandsontable() {
   const el = contentTableEl.value
-  if (!el) return
+  if (!el)
+    return
 
   hot.value = new Handsontable(el, {
     startCols: 1,
     startRows: 1,
     fillHandle: {
-      autoInsertRow: false
+      autoInsertRow: false,
     },
     colHeaders: true,
     rowHeaders: true,
@@ -118,76 +112,76 @@ function initHandsontable() {
 }
 
 function bindRowResizeEvent() {
-  hot.value.addHook('afterRowResize', function(this: any, currentRow: number, newSize: number) {
+  hot.value.addHook('afterRowResize', function (this: any, currentRow: number, newSize: number) {
     let rowHeights = this.getSettings().rowHeights
     let oldRowHeights = rowHeights.concat([])
-    let newRowHeights = rowHeights.concat([])
+    const newRowHeights = rowHeights.concat([])
     newRowHeights.splice(currentRow, 1, newSize)
     this.updateSettings({
       rowHeights: newRowHeights,
-      manualRowResize: newRowHeights
+      manualRowResize: newRowHeights,
     })
     const _this = this
     utils.undoManager.add({
-      redo: function() {
+      redo() {
         rowHeights = _this.getSettings().rowHeights
         oldRowHeights = rowHeights.concat([])
         newRowHeights.splice(currentRow, 1, newSize)
         _this.updateSettings({
           rowHeights: newRowHeights,
-          manualRowResize: newRowHeights
+          manualRowResize: newRowHeights,
         })
         utils.setDirty()
       },
-      undo: function() {
+      undo() {
         _this.updateSettings({
           rowHeights: oldRowHeights,
-          manualRowResize: oldRowHeights
+          manualRowResize: oldRowHeights,
         })
         utils.setDirty()
-      }
+      },
     })
     utils.setDirty()
   })
 }
 
 function bindColumnResizeEvent() {
-  hot.value.addHook('afterColumnResize', function(this: any, currentColumn: number, newSize: number) {
+  hot.value.addHook('afterColumnResize', function (this: any, currentColumn: number, newSize: number) {
     let colWidths = this.getSettings().colWidths
     let newColWidths = colWidths.concat([])
     let oldColWidths = colWidths.concat([])
     newColWidths.splice(currentColumn, 1, newSize)
     this.updateSettings({
       colWidths: newColWidths,
-      manualColumnResize: newColWidths
+      manualColumnResize: newColWidths,
     })
     const _this = this
     utils.undoManager.add({
-      redo: function() {
+      redo() {
         colWidths = _this.getSettings().colWidths
         newColWidths = colWidths.concat([])
         oldColWidths = colWidths.concat([])
         newColWidths.splice(currentColumn, 1, newSize)
         _this.updateSettings({
           colWidths: newColWidths,
-          manualColumnResize: newColWidths
+          manualColumnResize: newColWidths,
         })
         utils.setDirty()
       },
-      undo: function() {
+      undo() {
         _this.updateSettings({
           colWidths: oldColWidths,
-          manualColumnResize: oldColWidths
+          manualColumnResize: oldColWidths,
         })
         utils.setDirty()
-      }
+      },
     })
     utils.setDirty()
   })
 }
 
 function bindSelectionEvent() {
-  Handsontable.hooks.add('afterSelectionEnd', function(rowIndex: number, colIndex: number, row2Index: number, col2Index: number) {
+  Handsontable.hooks.add('afterSelectionEnd', (rowIndex: number, colIndex: number, row2Index: number, col2Index: number) => {
     emit('cell-selected', { rowIndex, colIndex, row2Index, col2Index })
   }, hot.value)
 }
@@ -195,7 +189,7 @@ function bindSelectionEvent() {
 function handleReportLoaded() {
   context.value = new Context({
     reportDef: reportDef.value,
-    cellsMap: cellsMap.value
+    cellsMap: cellsMap.value,
   })
 
   store.setContext(context.value)
@@ -208,9 +202,11 @@ function processRowHeaders() {
     const rows = reportDef.value.rows
     for (const row of rows) {
       const band = row.band
-      if (!band) continue
+      if (!band)
+        continue
       addRowHeader(row.rowNumber - 1, band)
     }
+
     renderRowHeader(hot.value)
   }
 }
@@ -231,25 +227,25 @@ async function loadFile(filePath: string, callback: (...args: unknown[]) => void
       callback(rDef)
     }
 
-    if (filePath !== 'classpath:template/template.ureport.xml') {
-      store.setFileName(filePath)
-    } else {
+    if (filePath === 'classpath:template/template.ureport.xml') {
       store.setFileName(`${t('table.report.tip')}`)
     }
+    else {
+      store.setFileName(filePath)
+    }
+
     const masterElement = document.querySelector('.ht_master') as HTMLElement | null
     if (masterElement) {
-      if (rDef.paper?.bgImage) {
-        masterElement.style.background = `url(${rDef.paper.bgImage}) 50px 26px no-repeat`
-      } else {
-        masterElement.style.background = 'transparent'
-      }
+      masterElement.style.background = rDef.paper?.bgImage ? `url(${rDef.paper.bgImage}) 50px 26px no-repeat` : 'transparent'
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     emit('error', error)
     if (error.msg) {
       showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-    } else {
-      showAlert(t('table.report.load') + `${filePath}` + t('table.report.fail'))
+    }
+    else {
+      showAlert(`${t('table.report.load')}${filePath}${t('table.report.fail')}`)
     }
   }
 }
@@ -262,19 +258,21 @@ function _buildReportData(data: any) {
     const height = row.height
     rowHeights.push(utils.pointToPixel(height))
   }
+
   const columns = data.columns
   const colWidths: number[] = []
   for (const col of columns) {
     const width = col.width
     colWidths.push(utils.pointToPixel(width))
   }
+
   const dataCellsMap = data.cellsMap
   const dataArray: string[][] = []
-  const mergeCells: Array<{ rowspan: number; colspan: number; row: number; col: number }> = []
+  const mergeCells: Array<{ rowspan: number, colspan: number, row: number, col: number }> = []
   for (const row of rows) {
     const rowData: string[] = []
     for (const col of columns) {
-      const key = row.rowNumber + ',' + col.columnNumber
+      const key = `${row.rowNumber},${col.columnNumber}`
       const cell = dataCellsMap[key]
       if (cell) {
         cellsMap.value.set(key, cell)
@@ -282,33 +280,38 @@ function _buildReportData(data: any) {
         let rowspan = cell.rowSpan
         let colspan = cell.colSpan
         if (rowspan > 0 || colspan > 0) {
-          if (rowspan === 0) rowspan = 1
-          if (colspan === 0) colspan = 1
+          if (rowspan === 0)
+            rowspan = 1
+          if (colspan === 0)
+            colspan = 1
           mergeCells.push({
             rowspan,
             colspan,
             row: row.rowNumber - 1,
-            col: col.columnNumber - 1
+            col: col.columnNumber - 1,
           })
         }
-      } else {
+      }
+      else {
         rowData.push('')
       }
     }
+
     dataArray.push(rowData)
   }
+
   hot.value.loadData(dataArray)
   hot.value.updateSettings({
     colWidths,
     rowHeights,
     mergeCells,
-    readOnly: true
+    readOnly: true,
   })
 }
 
 function buildMenu() {
   hot.value.updateSettings({
-    contextMenu: buildMenuConfigure()
+    contextMenu: buildMenuConfigure(),
   })
 }
 
@@ -321,8 +324,14 @@ function saveReport() {
 }
 </script>
 
+<template>
+  <div class="ud-page">
+    <div ref="contentTableEl" class="ud-table" />
+  </div>
+</template>
+
 <style scoped>
-.ud-page{
+.ud-page {
   position: relative;
   display: flex;
   flex: 1;
@@ -330,12 +339,12 @@ function saveReport() {
   background: white;
 }
 
-.ud-slider{
+.ud-slider {
   height: 200px;
   width: 50px;
 }
 
-.ud-table{
+.ud-table {
   width: 100%;
   min-height: 500px;
 }

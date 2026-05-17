@@ -18,6 +18,7 @@ declare module '@/utils/comnon' {
 
 declare module '@/utils/table' {
   import type UndoManager from 'undo-manager'
+
   export function resetTableData(hot: unknown): void
   export function buildNewCellDef(rowNumber: number, columnNumber: number): Record<string, unknown>
   export function tableToXml(context: unknown): string
@@ -28,7 +29,7 @@ declare module '@/utils/table' {
   export function pointToPixel(point: number): number
   export function pixelToPoint(pixel: number): number
   export function formatDate(date: number | Date | string, format: string): string
-  export function buildPageSizeList(): Record<string, { width: number; height: number }>
+  export function buildPageSizeList(): Record<string, { width: number, height: number }>
   export const undoManager: UndoManager
   export function setDirty(): void
   export function resetDirty(): void
@@ -46,7 +47,7 @@ declare module '@/utils/table' {
   export function pointToPixel(point: number): number
   export function pixelToPoint(pixel: number): number
   export function formatDate(date: number | Date | string, format: string): string
-  export function buildPageSizeList(): Record<string, { width: number; height: number }>
+  export function buildPageSizeList(): Record<string, { width: number, height: number }>
   export const undoManager: UndoManager
   export function setDirty(): void
   export function resetDirty(): void
@@ -55,6 +56,7 @@ declare module '@/utils/table' {
 
 declare module '@/utils/contextActions' {
   import type { CellDef, ReportContext, RowHeader } from '@/types'
+
   export function getContext(): ReportContext | null
   export function addCell(cell: CellDef): void
   export function removeCell(cell: CellDef): void
@@ -89,6 +91,7 @@ declare module '@/utils/contextActions' {
 
 declare module '@/utils/contextActions' {
   import type { CellDef, ReportContext, RowHeader } from '@/types'
+
   export function getContext(): ReportContext | null
   export function addCell(cell: CellDef): void
   export function removeCell(cell: CellDef): void
@@ -125,24 +128,26 @@ declare module '@/utils/contextActions' {
 
 declare module '@/components/Context' {
   import type { ReportDef } from '@/types'
+
   class ReportContext {
     reportDef: ReportDef
     cellsMap: Map<string, unknown>
-    rowHeaders: { rowNumber: number; band: string }[]
+    rowHeaders: { rowNumber: number, band: string }[]
     LETTERS: string[]
-    constructor(reportTable: { reportDef: ReportDef; cellsMap: Map<string, unknown> })
+    constructor(reportTable: { reportDef: ReportDef, cellsMap: Map<string, unknown> })
   }
   export default ReportContext
 }
 
 declare module '@/components/Context.js' {
   import type { ReportDef } from '@/types'
+
   class ReportContext {
     reportDef: ReportDef
     cellsMap: Map<string, unknown>
-    rowHeaders: { rowNumber: number; band: string }[]
+    rowHeaders: { rowNumber: number, band: string }[]
     LETTERS: string[]
-    constructor(reportTable: { reportDef: ReportDef; cellsMap: Map<string, unknown> })
+    constructor(reportTable: { reportDef: ReportDef, cellsMap: Map<string, unknown> })
   }
   export default ReportContext
 }
@@ -179,7 +184,7 @@ declare module '@/views/report/designer/edit-table/utils/CellRenderer' {
     col: number,
     prop: string | number,
     value: string,
-    cellProperties: Record<string, unknown>
+    cellProperties: Record<string, unknown>,
   ): void
 }
 
@@ -191,20 +196,20 @@ declare module '@/views/report/designer/edit-table/utils/HeaderUtils' {
 
 declare module '@/lib/navigator' {
   interface Navigator {
-    navigate(options: { target: string; params?: Record<string, unknown>; openInNewTab?: boolean }): void
+    navigate(options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }): void
     openPreview(options: Record<string, unknown>, openInNewTab?: boolean): void
   }
-  export function createNavigator(component: { $router: unknown; $route: unknown }): Navigator
+  export function createNavigator(component: { $router: unknown, $route: unknown }): Navigator
   export function getLibMode(): boolean
   export function setLibMode(mode: boolean): void
 }
 
 declare module '@/lib/navigator.js' {
   interface Navigator {
-    navigate(options: { target: string; params?: Record<string, unknown>; openInNewTab?: boolean }): void
+    navigate(options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }): void
     openPreview(options: Record<string, unknown>, openInNewTab?: boolean): void
   }
-  export function createNavigator(component: { $router: unknown; $route: unknown }): Navigator
+  export function createNavigator(component: { $router: unknown, $route: unknown }): Navigator
   export function getLibMode(): boolean
   export function setLibMode(mode: boolean): void
 }
@@ -291,24 +296,26 @@ declare module '@/views/report/designer/search-form/utils/index' {
 
 declare module '@/views/report/preview/utils/chart' {
   export function convertChartConfig(chartJson: Record<string, unknown>): Record<string, unknown>
-  export function buildChartDatas(chartData: Array<{ id: string; json: string }>): void
+  export function buildChartDatas(chartData: Array<{ id: string, json: string }>): void
   export function buildChart(canvasId: string, chartJson: Record<string, unknown>): Promise<unknown>
 }
 
 declare module '@/views/report/preview/utils/chart.js' {
   export function convertChartConfig(chartJson: Record<string, unknown>): Record<string, unknown>
-  export function buildChartDatas(chartData: Array<{ id: string; json: string }>): void
+  export function buildChartDatas(chartData: Array<{ id: string, json: string }>): void
   export function buildChart(canvasId: string, chartJson: Record<string, unknown>): Promise<unknown>
 }
 
 declare module '@/views/report/designer/search-form/utils/render' {
   import type { Component } from 'vue'
+
   const RenderComponent: Component
   export default RenderComponent
 }
 
 declare module '@/views/report/designer/search-form/utils/render.jsx' {
   import type { Component } from 'vue'
+
   const RenderComponent: Component
   export default RenderComponent
 }
@@ -318,7 +325,6 @@ declare module '@/views/report/preview/utils/render' {
   export function renderTemplateToComponent(componentStr: string, mountNode: HTMLElement | string): Record<string, any>
   export function simplifyObject(obj: unknown): unknown
 }
-
 
 declare module '@/views/report/preview/utils/render.jsx' {
   export function buildLocationSearchParameters(searchFormParameters: Record<string, unknown>): string
@@ -359,8 +365,8 @@ declare module 'codemirror' {
     setSize(width: number | string, height: number | string): void
     refresh(): void
     focus(): void
-    getCursor(): { line: number; ch: number }
-    setCursor(pos: { line: number; ch: number }): void
+    getCursor(): { line: number, ch: number }
+    setCursor(pos: { line: number, ch: number }): void
     getLine(n: number): string
     lineCount(): number
     execCommand(name: string): void

@@ -1,14 +1,3 @@
-<template>
-  <transition
-    @enter="enter"
-    @after-enter="afterEnter"
-    @leave="leave"
-    @after-leave="afterLeave"
-  >
-    <slot></slot>
-  </transition>
-</template>
-
 <script setup lang="ts">
 defineOptions({ name: 'AutoHeight' })
 
@@ -36,3 +25,14 @@ function afterLeave(el: Element) {
   ;(el as HTMLElement).style.height = ''
 }
 </script>
+
+<template>
+  <transition
+    @enter="enter"
+    @after-enter="afterEnter"
+    @leave="leave"
+    @after-leave="afterLeave"
+  >
+    <slot />
+  </transition>
+</template>

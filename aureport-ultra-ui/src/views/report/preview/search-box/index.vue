@@ -1,26 +1,12 @@
-<template>
-  <div class="search-box">
-    <div class="tools-content">
-      <i class="iconfont icon-search"></i>
-      <span class="title">
-        {{ t('preview.searchBox.title') }}
-      </span>
-    </div>
-    <div class="main">
-      <div ref="searchForm"></div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import beautifier from 'js-beautify'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTemplateToComponent } from "@/views/report/preview/utils/render"
-import { beautifierConf, deepClone } from "@/views/report/designer/search-form/utils"
-import { cssStyle, makeUpHtml, vueScript, vueTemplate } from "@/views/report/designer/search-form/utils/html"
-import { makeUpJs } from "@/views/report/designer/search-form/utils/js"
-import { makeUpCss } from "@/views/report/designer/search-form/utils/css"
-import beautifier from "js-beautify"
+import { beautifierConf, deepClone } from '@/views/report/designer/search-form/utils'
+import { makeUpCss } from '@/views/report/designer/search-form/utils/css'
+import { cssStyle, makeUpHtml, vueScript, vueTemplate } from '@/views/report/designer/search-form/utils/html'
+import { makeUpJs } from '@/views/report/designer/search-form/utils/js'
+import { renderTemplateToComponent } from '@/views/report/preview/utils/render'
 
 defineOptions({ name: 'SearchBox' })
 
@@ -68,6 +54,20 @@ onBeforeUnmount(() => {
   }
 })
 </script>
+
+<template>
+  <div class="search-box">
+    <div class="tools-content">
+      <i class="iconfont icon-search" />
+      <span class="title">
+        {{ t('preview.searchBox.title') }}
+      </span>
+    </div>
+    <div class="main">
+      <div ref="searchForm" />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .search-box {

@@ -1,24 +1,5 @@
-<template>
-  <div
-    v-if="visible"
-    class="context-menu"
-    :style="{ left: x + 'px', top: y + 'px' }"
-    @click.stop
-  >
-    <div
-      v-for="(item, index) in items"
-      :key="index"
-      class="context-menu-item"
-      @click="handleItemClick(item)"
-    >
-      <i v-if="item.icon" class="menu-icon" :class="getIconClass(item.icon)"></i>
-      <span>{{ item.name }}</span>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 defineOptions({ name: 'ContextMenu' })
 
@@ -33,6 +14,7 @@ function handleDocumentClick(e: MouseEvent) {
   if (justShown.value) {
     return
   }
+
   if (visible.value && !document.contains(e.target as Node)) {
     hideMenu()
   }
@@ -69,6 +51,7 @@ function show(event: MouseEvent, menuItems: any[], cb: (key: string) => void) {
         if (rect.right > viewportWidth) {
           x.value = viewportWidth - rect.width - 5
         }
+
         if (rect.bottom > viewportHeight) {
           y.value = viewportHeight - rect.height - 5
         }
@@ -85,19 +68,39 @@ function handleItemClick(item: any) {
   if (callback.value) {
     callback.value(item.key)
   }
+
   hideMenu()
 }
 
 function getIconClass(icon: string) {
   const iconMap: Record<string, string> = {
-    'add': 'iconfont icon-plus-circle',
-    'edit': 'iconfont icon-edit',
-    'delete': 'iconfont icon-delete',
-    'loading': 'iconfont icon-refresh'
+    add: 'iconfont icon-plus-circle',
+    edit: 'iconfont icon-edit',
+    delete: 'iconfont icon-delete',
+    loading: 'iconfont icon-refresh',
   }
   return iconMap[icon] || ''
 }
 </script>
+
+<template>
+  <div
+    v-if="visible"
+    class="context-menu"
+    :style="{ left: `${x}px`, top: `${y}px` }"
+    @click.stop
+  >
+    <div
+      v-for="(item, index) in items"
+      :key="index"
+      class="context-menu-item"
+      @click="handleItemClick(item)"
+    >
+      <i v-if="item.icon" class="menu-icon" :class="getIconClass(item.icon)" />
+      <span>{{ item.name }}</span>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .context-menu {

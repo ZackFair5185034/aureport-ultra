@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import { reactive, provide, inject } from 'vue'
 import type { FormItemContext } from '../form-item/index.vue'
+import { inject, provide, reactive } from 'vue'
 
 defineOptions({ name: 'URadioGroup' })
-
-export interface RadioGroupContext {
-  modelValue?: unknown
-  disabled?: boolean
-  button?: boolean
-  onSelect: (label: unknown) => void
-}
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean | string | number
@@ -23,10 +16,17 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
-  change: [value: unknown]
+  'change': [value: unknown]
 }>()
 
-const formItemContext = inject<FormItemContext | undefined>('formItemContext', undefined)
+export interface RadioGroupContext {
+  modelValue?: unknown
+  disabled?: boolean
+  button?: boolean
+  onSelect: (label: unknown) => void
+}
+
+const formItemContext = inject<FormItemContext | undefined>('formItemContext')
 
 const radioGroupContext: RadioGroupContext = reactive({
   get modelValue() { return props.modelValue },
@@ -36,6 +36,7 @@ const radioGroupContext: RadioGroupContext = reactive({
     if (props.modelValue !== label) {
       emit('change', label)
     }
+
     emit('update:modelValue', label)
     formItemContext?.onFieldChange()
   },

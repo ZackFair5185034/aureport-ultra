@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { reactive, inject, onMounted, onBeforeUnmount } from 'vue'
 import type { SelectContext } from '../select/index.vue'
+import { inject, onBeforeUnmount, onMounted, reactive } from 'vue'
 
 defineOptions({ name: 'UOption' })
 
@@ -33,7 +33,8 @@ onBeforeUnmount(() => {
 })
 
 function onClick() {
-  if (props.disabled) return
+  if (props.disabled)
+    return
   selectContext?.onOptionSelect(instance)
 }
 </script>
@@ -63,30 +64,30 @@ function onClick() {
   padding: 0 15px 0 15px;
   font-size: 13px;
   cursor: pointer;
-  position: relative
+  position: relative;
 }
 
 .u-option:hover {
-  background-color: #f5f7fa
+  background-color: #f5f7fa;
 }
 
 .u-option-selected {
   font-weight: 700;
   color: #00554a;
-  background-color: #f5f7fa
+  background-color: #f5f7fa;
 }
 
 .u-option-disabled {
   cursor: not-allowed;
-  color: #c0c4cc
+  color: #c0c4cc;
 }
 
 .u-option-choose {
-  color: #00554a
+  color: #00554a;
 }
 
 .u-option-multi {
-  padding-right: 40px
+  padding-right: 40px;
 }
 
 .u-option-icon {
@@ -96,6 +97,6 @@ function onClick() {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 12px
+  font-size: 12px;
 }
 </style>

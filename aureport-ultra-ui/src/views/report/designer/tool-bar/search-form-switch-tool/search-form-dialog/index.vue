@@ -1,40 +1,22 @@
-<template>
-  <UDialog
-    top="20px"
-    :title="$t('dialog.searchForm.title')"
-    width="1200px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="search-form-dialog-content">
-      <search-form :searchFormConfig="searchFormConfig" ref="searchFormDesigner"></search-form>
-    </div>
-    <template #footer><div style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div></template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
-import SearchForm from "@/views/report/designer/search-form/index.vue"
-import { deepClone } from "@/views/report/designer/search-form/utils"
 import { updateReportDef } from '@/utils/contextActions'
+import SearchForm from '@/views/report/designer/search-form/index.vue'
+import { deepClone } from '@/views/report/designer/search-form/utils'
 
 defineOptions({ name: 'SearchFormDialog' })
-
-const emit = defineEmits<{
-  (e: 'update:visible', value: boolean): void
-}>()
 
 const props = withDefaults(defineProps<{
   visible?: boolean
 }>(), {
-  visible: false
+  visible: false,
 })
+
+const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
+}>()
 
 const { t } = useI18n()
 const store = useReportStore()
@@ -51,7 +33,8 @@ watch(() => props.visible, (newVal) => {
 })
 
 function buildData() {
-  if (!searchFormDesigner.value) return
+  if (!searchFormDesigner.value)
+    return
   searchFormDesigner.value.AssembleFormData()
   const formData = searchFormDesigner.value.formData
   const newReportDef = deepClone(context.value!.reportDef)
@@ -68,6 +51,26 @@ function handleOk() {
   emit('update:visible', false)
 }
 </script>
+
+<template>
+  <UDialog
+    top="20px"
+    :title="$t('dialog.searchForm.title')"
+    width="1200px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="search-form-dialog-content">
+      <SearchForm ref="searchFormDesigner" :searchFormConfig="searchFormConfig" />
+    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 .search-form-dialog-content {

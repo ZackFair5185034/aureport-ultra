@@ -1,4 +1,5 @@
-import {$t} from "@/locales";
+import { $t } from '@/locales'
+
 export const formConf = {
   formRef: 'uForm',
   tag: 'u-form',
@@ -10,7 +11,7 @@ export const formConf = {
   gutter: 15,
   disabled: false,
   span: 24,
-  formBtns: true
+  formBtns: true,
 }
 
 export const inputComponents = [
@@ -26,16 +27,16 @@ export const inputComponents = [
     clearable: true,
     prepend: '',
     append: '',
-    'prefixIcon': '',
-    'suffixIcon': '',
+    prefixIcon: '',
+    suffixIcon: '',
     maxlength: null,
-    'showWordLimit': false,
+    showWordLimit: false,
     readonly: false,
     disabled: false,
     required: true,
     regList: [],
     changeTag: true,
-    document: '/component/input'
+    document: '/component/input',
   },
   {
     label: $t('searchForm.counter'),
@@ -48,15 +49,15 @@ export const inputComponents = [
     min: undefined,
     max: undefined,
     step: undefined,
-    'stepStrictly': false,
+    stepStrictly: false,
     precision: undefined,
-    'controlsPosition': '',
+    controlsPosition: '',
     disabled: false,
     required: true,
     regList: [],
     changeTag: true,
-    document: '/component/input-number'
-  }
+    document: '/component/input-number',
+  },
 ]
 
 export const selectComponents = [
@@ -76,14 +77,14 @@ export const selectComponents = [
     multiple: false,
     options: [{
       label: $t('searchForm.optionOne'),
-      value: 1
+      value: 1,
     }, {
       label: $t('searchForm.optionTwo'),
-      value: 2
+      value: 2,
     }],
     regList: [],
     changeTag: true,
-    document: '/component/select'
+    document: '/component/select',
   },
   {
     label: $t('searchForm.radioGroup'),
@@ -100,14 +101,14 @@ export const selectComponents = [
     required: true,
     options: [{
       label: $t('searchForm.optionOne'),
-      value: 1
+      value: 1,
     }, {
       label: $t('searchForm.optionTwo'),
-      value: 2
+      value: 2,
     }],
     regList: [],
     changeTag: true,
-    document: '/component/radio'
+    document: '/component/radio',
   },
   {
     label: $t('searchForm.checkboxGroup'),
@@ -124,14 +125,14 @@ export const selectComponents = [
     required: true,
     options: [{
       label: $t('searchForm.optionOne'),
-      value: 1
+      value: 1,
     }, {
       label: $t('searchForm.optionTwo'),
-      value: 2
+      value: 2,
     }],
     regList: [],
     changeTag: true,
-    document: '/component/checkbox'
+    document: '/component/checkbox',
   },
   {
     label: $t('searchForm.switch'),
@@ -145,13 +146,13 @@ export const selectComponents = [
     required: true,
     // 'activeText': '',
     // 'inactiveText': '',
-    'activeColor': null,
-    'inactiveColor': null,
-    'activeValue': true,
-    'inactiveValue': false,
+    activeColor: null,
+    inactiveColor: null,
+    activeValue: true,
+    inactiveValue: false,
     regList: [],
     changeTag: true,
-    document: '/component/switch'
+    document: '/component/switch',
   },
 
   {
@@ -168,11 +169,11 @@ export const selectComponents = [
     clearable: true,
     required: true,
     format: 'YYYY-MM-DD',
-    'valueFormat': 'format',
+    valueFormat: 'format',
     readonly: false,
     regList: [],
     changeTag: true,
-    document: '/component/date-picker'
+    document: '/component/date-picker',
   },
 ]
 
@@ -187,7 +188,7 @@ export const layoutComponents = [
     label: $t('searchForm.rowContainer'),
     layoutTree: true,
     children: [],
-    document: '/component/layout'
+    document: '/component/layout',
   },
   {
     layout: 'colFormItem',
@@ -202,8 +203,8 @@ export const layoutComponents = [
     icon: 'icon-search',
     size: 'medium',
     disabled: false,
-    document: '/component/button'
-  }
+    document: '/component/button',
+  },
 ]
 
 // 组件rule的触发方式，无触发方式的组件不生成rule
@@ -213,5 +214,5 @@ export const trigger = {
   'u-select': 'change',
   'u-radio-group': 'change',
   'u-checkbox-group': 'change',
-  'u-date-picker': 'change'
+  'u-date-picker': 'change',
 }

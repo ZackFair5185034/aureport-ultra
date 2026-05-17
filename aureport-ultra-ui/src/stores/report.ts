@@ -1,6 +1,6 @@
+import type { CellDef, ReportContext } from '@/types'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { ReportContext, CellDef } from '@/types'
+import { computed, ref } from 'vue'
 
 export const useReportStore = defineStore('report', () => {
   const context = ref<ReportContext | null>(null)
@@ -25,9 +25,10 @@ export const useReportStore = defineStore('report', () => {
   function setFileName(name: string) {
     const suffix = '.ureport.xml'
     const pos = name.indexOf(suffix)
-    if (pos > -1) {
-      name = name.substring(0, pos)
+    if (pos !== -1) {
+      name = name.slice(0, Math.max(0, pos))
     }
+
     fileName.value = decodeURI(name)
   }
 
@@ -69,7 +70,8 @@ export const useReportStore = defineStore('report', () => {
   }
 
   function getCell(rowIndex: number, colIndex: number): CellDef | null {
-    if (!context.value?.cellsMap) return null
+    if (!context.value?.cellsMap)
+      return null
     const key = `${rowIndex + 1},${colIndex + 1}`
     return context.value.cellsMap.get(key) || null
   }
@@ -84,7 +86,8 @@ export const useReportStore = defineStore('report', () => {
       const target = context.value.rowHeaders.find(h => h.rowNumber === row)
       if (target) {
         target.band = band as import('@/types').BandType
-      } else {
+      }
+      else {
         context.value.rowHeaders.push({ rowNumber: row, band: band as import('@/types').BandType })
       }
     }
@@ -103,17 +106,19 @@ export const useReportStore = defineStore('report', () => {
   function adjustDelRowHeaders(row: number) {
     if (context.value?.rowHeaders) {
       const idx = context.value.rowHeaders.findIndex(h => h.rowNumber === row)
-      if (idx > -1) {
+      if (idx !== -1) {
         context.value.rowHeaders.splice(idx, 1)
       }
     }
   }
 
   function getCellName(rowIndex: number | null, colIndex: number): string {
-    if (!context.value?.LETTERS) return ''
+    if (!context.value?.LETTERS)
+      return ''
     if (rowIndex != null) {
       return context.value.LETTERS[colIndex] + (rowIndex + 1)
     }
+
     return context.value.LETTERS[colIndex]
   }
 
@@ -131,11 +136,28 @@ export const useReportStore = defineStore('report', () => {
   }
 
   return {
-    context, fileName, saveBtnDisable, saveStatus,
-    hasContext, displayName,
-    setContext, clearContext, setFileName, setSaveBtnDisable, setSaveStatus,
-    addCell, removeCell, setCell, deleteCell, getCell, getCellsMap,
-    addRowHeader, adjustInsertRowHeaders, adjustDelRowHeaders,
-    getCellName, updateReportDef, updateProperty,
+    context,
+    fileName,
+    saveBtnDisable,
+    saveStatus,
+    hasContext,
+    displayName,
+    setContext,
+    clearContext,
+    setFileName,
+    setSaveBtnDisable,
+    setSaveStatus,
+    addCell,
+    removeCell,
+    setCell,
+    deleteCell,
+    getCell,
+    getCellsMap,
+    addRowHeader,
+    adjustInsertRowHeaders,
+    adjustDelRowHeaders,
+    getCellName,
+    updateReportDef,
+    updateProperty,
   }
 })

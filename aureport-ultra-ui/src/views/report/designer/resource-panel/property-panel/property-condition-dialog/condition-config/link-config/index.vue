@@ -1,53 +1,5 @@
-<template>
-  <u-checkbox-group>
-    <div class="form-group" style="margin-bottom: 5px;">
-    <div class="u-inline">
-      <u-checkbox v-model="linkChecked" @change="onLinkChange">
-        {{ t('dialog.propCondition.link') }}
-      </u-checkbox>
-    </div>
-    <span v-show="linkChecked" style="margin-left: 10px">
-        <div class="u-inline">
-          <u-input
-              v-model="localLinkUrl"
-              :placeholder="t('dialog.propCondition.linkUrlPlaceholder')"
-              @change="onLinkUrlChange" />
-        </div>
-    </span>
-    <div v-show="linkChecked" style="margin-left: 10px;margin-top: 5px">
-      <span>{{ t('dialog.propCondition.target') }}</span>
-      <div class="u-inline" style="margin-left: 10px">
-        <u-select
-            v-model="localLinkTargetWindow"
-            :clearable="true"
-            @change="onLinkTargetChange"
-        >
-          <u-option
-              v-for="option in linkTargetOptions"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label"
-          />
-        </u-select>
-
-        <u-button @click="configLinkParameter" style="margin-left: 5px">
-            {{ t('dialog.propCondition.urlParameter') }}
-        </u-button>
-      </div>
-    </div>
-
-    </div>
-  </u-checkbox-group>
-    <URLParameterDialog
-      v-model:visible="urlParameterDialogVisible"
-      :parameters="linkParameters || []"
-      @saveAfter="handleUrlParameterSaveAfter"
-      @parameters-change="onLinkParametersChange"
-    />
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onBeforeMount } from 'vue'
+import { onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 import URLParameterDialog from '../../../url-parameter-dialog/index.vue'
@@ -56,8 +8,6 @@ import configOptions from '../constants/config-options.js'
 
 defineOptions({ name: 'LinkConfig' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
   linkUrl?: string
   linkTargetWindow?: string
@@ -65,12 +15,14 @@ const props = withDefaults(defineProps<{
 }>(), {
   linkUrl: '',
   linkTargetWindow: '',
-  linkParameters: () => []
+  linkParameters: () => [],
 })
 
 const emit = defineEmits<{
   (e: 'link-change', value: any): void
 }>()
+
+const { t } = useI18n()
 
 const linkChecked = ref(false)
 const localLinkUrl = ref('')
@@ -92,7 +44,8 @@ function loadLinkProperties() {
   if (linkChecked.value) {
     localLinkUrl.value = props.linkUrl || ''
     localLinkTargetWindow.value = props.linkTargetWindow || ''
-  } else {
+  }
+  else {
     localLinkUrl.value = ''
     localLinkTargetWindow.value = ''
   }
@@ -103,7 +56,7 @@ function onLinkChange() {
     checked: linkChecked.value,
     linkUrl: linkChecked.value ? localLinkUrl.value : null,
     linkTargetWindow: linkChecked.value ? localLinkTargetWindow.value : null,
-    linkParameters: linkChecked.value ? localLinkParameters.value : null
+    linkParameters: linkChecked.value ? localLinkParameters.value : null,
   })
 }
 
@@ -143,6 +96,53 @@ function handleUrlParameterDialogClose() {
   urlParameterDialogVisible.value = false
 }
 
-function handleUrlParameterSaveAfter({ paramItem, operation }: any) {
-}
+function handleUrlParameterSaveAfter({ paramItem, operation }: any) {}
 </script>
+
+<template>
+  <u-checkbox-group>
+    <div class="form-group" style="margin-bottom: 5px;">
+      <div class="u-inline">
+        <u-checkbox v-model="linkChecked" @change="onLinkChange">
+          {{ t('dialog.propCondition.link') }}
+        </u-checkbox>
+      </div>
+      <span v-show="linkChecked" style="margin-left: 10px">
+        <div class="u-inline">
+          <u-input
+            v-model="localLinkUrl"
+            :placeholder="t('dialog.propCondition.linkUrlPlaceholder')"
+            @change="onLinkUrlChange"
+          />
+        </div>
+      </span>
+      <div v-show="linkChecked" style="margin-left: 10px;margin-top: 5px">
+        <span>{{ t('dialog.propCondition.target') }}</span>
+        <div class="u-inline" style="margin-left: 10px">
+          <u-select
+            v-model="localLinkTargetWindow"
+            :clearable="true"
+            @change="onLinkTargetChange"
+          >
+            <u-option
+              v-for="option in linkTargetOptions"
+              :key="option.value"
+              :value="option.value"
+              :label="option.label"
+            />
+          </u-select>
+
+          <u-button style="margin-left: 5px" @click="configLinkParameter">
+            {{ t('dialog.propCondition.urlParameter') }}
+          </u-button>
+        </div>
+      </div>
+    </div>
+  </u-checkbox-group>
+  <URLParameterDialog
+    v-model:visible="urlParameterDialogVisible"
+    :parameters="linkParameters || []"
+    @saveAfter="handleUrlParameterSaveAfter"
+    @parameters-change="onLinkParametersChange"
+  />
+</template>

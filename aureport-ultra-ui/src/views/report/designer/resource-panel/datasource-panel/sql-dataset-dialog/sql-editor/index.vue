@@ -1,55 +1,28 @@
-<template>
-  <div class="sql-editor-container">
-    <div class="row" style="margin: 10px;">
-      {{ $t('dialog.sql.datasetName') }}：
-      <div class="u-inline">
-        <u-input
-          v-model="datasetName"
-          style="width:500px;"
-          @input="handleDatasetNameChange"
-        />
-      </div>
-    </div>
-
-    <div class="row" style="margin:10px;">
-      SQL(<span style="color: #999999;font-size: 12px;">{{ $t('dialog.sql.desc') }}：</span>)
-      <textarea
-        ref="sqlTextarea"
-        placeholder="select username,dept_id from employee where dept_id=:deptId"
-        class="form-control"
-        rows="8"
-        cols="30"
-        style="width: 660px"
-      ></textarea>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
 import CodeMirror from 'codemirror'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { scriptValidation } from '@/api/designer'
+import { showAlert } from '@/utils/comnon'
 import 'codemirror/addon/hint/show-hint.js'
 import 'codemirror/addon/lint/lint.js'
-import { showAlert } from '@/utils/comnon'
-import { scriptValidation } from '@/api/designer'
 
 defineOptions({ name: 'SqlEditor' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   name: string
   sql: string
 }>(), {
   name: '',
-  sql: ''
+  sql: '',
 })
 
 const emit = defineEmits<{
   (e: 'sql-change', sql: string): void
   (e: 'dataset-name-change', name: string): void
 }>()
+
+const { t } = useI18n()
 
 const sqlTextarea = ref<HTMLTextAreaElement | null>(null)
 const datasetName = ref(props.name)
@@ -66,6 +39,7 @@ watch(() => props.sql, (newVal) => {
     isInternalUpdate.value = false
     return
   }
+
   setSql(newVal || '')
 })
 
@@ -88,7 +62,8 @@ function handleDatasetNameChange() {
 
 function initCodeMirror(initialSql = '') {
   const textarea = sqlTextarea.value
-  if (!textarea) return
+  if (!textarea)
+    return
 
   if (codeMirror.value) {
     codeMirror.value.setValue(initialSql || '')
@@ -105,9 +80,9 @@ function initCodeMirror(initialSql = '') {
     gutters: ['CodeMirror-linenumbers', 'CodeMirror-lint-markers'],
     lint: {
       getAnnotations: buildScriptLintFunction(),
-      async: true
+      async: true,
     },
-    lineWrapping: true
+    lineWrapping: true,
   })
   codeMirror.value.setSize('660px', '204px')
 
@@ -129,34 +104,42 @@ function buildScriptLintFunction() {
       updateLinting(editor, [])
       return
     }
+
     if (!text || text === '') {
       return
     }
-    const prefix = text.substring(0, 2)
+
+    const prefix = text.slice(0, 2)
     const suffix = text.substring(text.length - 1, text.length)
     if (prefix === '${' && suffix === '}') {
       text = text.substring(2, text.length - 1)
-    } else {
+    }
+    else {
       return
     }
 
     try {
       const result = await scriptValidation(text) as any[]
       if (result) {
-        for (let item of result) {
+        for (const item of result) {
           item.from = { line: item.line - 1 }
           item.to = { line: item.line - 1 }
         }
+
         updateLinting(editor, result)
-      } else {
+      }
+      else {
         updateLinting(editor, [])
       }
-    } catch (error: any) {
+    }
+    catch (error: any) {
       if (error.msg) {
         showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-      } else {
+      }
+      else {
         showAlert(t('dialog.sql.syntaxCheckError'))
       }
+
       updateLinting(editor, [])
     }
   }
@@ -174,17 +157,20 @@ function getSql() {
   if (codeMirror.value) {
     return codeMirror.value.getValue()
   }
+
   const textarea = sqlTextarea.value
   if (textarea) {
     return textarea.value
   }
+
   return ''
 }
 
 function setSql(sql: string) {
   if (codeMirror.value) {
     codeMirror.value.setValue(sql || '')
-  } else {
+  }
+  else {
     const textarea = sqlTextarea.value
     if (textarea) {
       textarea.value = sql || ''
@@ -192,6 +178,33 @@ function setSql(sql: string) {
   }
 }
 </script>
+
+<template>
+  <div class="sql-editor-container">
+    <div class="row" style="margin: 10px;">
+      {{ $t('dialog.sql.datasetName') }}：
+      <div class="u-inline">
+        <u-input
+          v-model="datasetName"
+          style="width:500px;"
+          @input="handleDatasetNameChange"
+        />
+      </div>
+    </div>
+
+    <div class="row" style="margin:10px;">
+      SQL(<span style="color: #999999;font-size: 12px;">{{ $t('dialog.sql.desc') }}：</span>)
+      <textarea
+        ref="sqlTextarea"
+        placeholder="select username,dept_id from employee where dept_id=:deptId"
+        class="form-control"
+        rows="8"
+        cols="30"
+        style="width: 660px"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .sql-editor-container {

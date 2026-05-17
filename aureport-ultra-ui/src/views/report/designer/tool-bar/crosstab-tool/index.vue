@@ -1,37 +1,25 @@
-<template>
-  <u-button
-      :title="$t('tools.crosstab.title')"
-      type="info"
-      class="info-button"
-      icon="icon-slash-header"
-      @click="handleClick"
-  >
-    <CrosstabDialog :visible="dialogVisible" @saveAfter="handleSaveAfter" @close="dialogVisible = false" />
-  </u-button>
-</template>
-
 <script setup lang="ts">
+import Handsontable from 'handsontable'
 // @ts-nocheck
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
+import { getCell, setCell } from '@/utils/contextActions'
 import { setDirty, undoManager } from '@/utils/table'
 import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class'
 import CrossTabWidgetManager from '@/views/report/designer/edit-table/cross-tab-widget/manager'
-import Handsontable from 'handsontable'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
-import { getCell, setCell } from '@/utils/contextActions'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'CrosstabTool' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
-  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+  selectedCells?: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }
 }>(), {
-  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null }),
 })
+
+const { t } = useI18n()
 
 const isActive = ref(false)
 const dialogVisible = ref(false)
@@ -60,11 +48,13 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
 function handleClick() {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const hot = TableManager.get()
   const selected = hot.getSelected()
@@ -79,7 +69,8 @@ function handleClick() {
 }
 
 function handleSaveAfter(value: string) {
-  if (!selectedCell.value) return
+  if (!selectedCell.value)
+    return
   const { rowIndex, colIndex, cellDef, selected } = selectedCell.value
   const hot = TableManager.get()
 
@@ -91,6 +82,7 @@ function handleSaveAfter(value: string) {
   if (CrossTabWidgetManager.has(widgetKey)) {
     CrossTabWidgetManager.remove(widgetKey)
   }
+
   CrossTabWidgetManager.set(widgetKey, new CrossTabWidget(hot, rowIndex, colIndex, value))
 
   hot.render()
@@ -106,6 +98,7 @@ function handleSaveAfter(value: string) {
       if (CrossTabWidgetManager.has(widgetKey)) {
         CrossTabWidgetManager.remove(widgetKey)
       }
+
       CrossTabWidgetManager.set(widgetKey, new CrossTabWidget(hot, rowIndex, colIndex, value))
       hot.render()
       setDirty()
@@ -118,12 +111,13 @@ function handleSaveAfter(value: string) {
       if (CrossTabWidgetManager.has(widgetKey)) {
         CrossTabWidgetManager.remove(widgetKey)
       }
+
       setCell(rowIndex, colIndex, undoCellDef)
       hot.setDataAtCell(rowIndex, colIndex, oldCellData.value)
       hot.render()
       setDirty()
       Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
-    }
+    },
   })
 }
 
@@ -133,6 +127,18 @@ function refresh(rowIndex: number, colIndex: number, _row2Index: number, _col2In
   isActive.value = !!(cellDef && CrossTabWidgetManager.has(widgetKey))
 }
 </script>
+
+<template>
+  <u-button
+    :title="$t('tools.crosstab.title')"
+    type="info"
+    class="info-button"
+    icon="icon-slash-header"
+    @click="handleClick"
+  >
+    <CrosstabDialog :visible="dialogVisible" @saveAfter="handleSaveAfter" @close="dialogVisible = false" />
+  </u-button>
+</template>
 
 <style scoped>
 </style>

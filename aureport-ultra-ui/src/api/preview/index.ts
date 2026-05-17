@@ -1,13 +1,15 @@
 import { get, post } from '@/utils/request'
 
 function buildQueryString(params: Record<string, string | number | boolean>): string {
-  if (!params || typeof params !== 'object') return ''
+  if (!params || typeof params !== 'object')
+    return ''
   const pairs: string[] = []
   for (const key in params) {
     if (params[key] !== undefined && params[key] !== null) {
-      pairs.push(key + '=' + params[key])
+      pairs.push(`${key}=${params[key]}`)
     }
   }
+
   return pairs.join('&')
 }
 
@@ -77,6 +79,7 @@ export function loadReportData(params: Record<string, string | number | boolean>
       formData.append(key, String(value))
     }
   }
+
   return post('/html/loadData', formData, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })

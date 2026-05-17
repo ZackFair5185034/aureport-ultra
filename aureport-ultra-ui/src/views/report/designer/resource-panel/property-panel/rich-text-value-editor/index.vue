@@ -1,59 +1,13 @@
-<template>
-  <div class="rich-text-editor">
-    <div class="property-quote">
-      {{ t('property.richtext.config') }}
-    </div>
-
-    <div class="toolbar">
-      <button class="tool-btn" @click="toggleBold" :class="{ active: isBold }" title="加粗">
-        <b>B</b>
-      </button>
-      <button class="tool-btn" @click="toggleItalic" :class="{ active: isItalic }" title="斜体">
-        <i>I</i>
-      </button>
-      <button class="tool-btn" @click="toggleUnderline" :class="{ active: isUnderline }" title="下划线">
-        <u>U</u>
-      </button>
-      <span class="separator"></span>
-      <button class="tool-btn" @click="setColor('#FF0000')" title="红色">
-        <span style="color: #FF0000">A</span>
-      </button>
-      <button class="tool-btn" @click="setColor('#00AA00')" title="绿色">
-        <span style="color: #00AA00">A</span>
-      </button>
-      <button class="tool-btn" @click="setColor('#0066CC')" title="蓝色">
-        <span style="color: #0066CC">A</span>
-      </button>
-      <span class="separator"></span>
-      <button class="tool-btn" @click="setHighlight('#FFFF00')" title="黄色背景">
-        <span style="background: #FFFF00">A</span>
-      </button>
-      <button class="tool-btn" @click="setHighlight('#90EE90')" title="浅绿背景">
-        <span style="background: #90EE90">A</span>
-      </button>
-    </div>
-
-    <div class="editor-content" ref="editorRef" contenteditable="true" @input="onContentChange" @blur="onContentChange"></div>
-
-    <div class="tip">
-      {{ t('property.richtext.tip') }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useReportStore } from '@/stores/report'
-import { setDirty } from '@/utils/table'
 import { deepCopy } from '@/components/utils'
-import { setCell, getCell } from '@/utils/contextActions'
+import { useReportStore } from '@/stores/report'
+import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'RichTextEditor' })
-
-const { t } = useI18n()
-const store = useReportStore()
 
 const props = withDefaults(defineProps<{
   rowIndex?: number
@@ -64,8 +18,10 @@ const props = withDefaults(defineProps<{
   rowIndex: 0,
   colIndex: 0,
   row2Index: 0,
-  col2Index: 0
+  col2Index: 0,
 })
+const { t } = useI18n()
+const store = useReportStore()
 
 const content = ref('')
 const editorRef = ref<HTMLElement | null>(null)
@@ -87,7 +43,8 @@ function loadCellData() {
     content.value = cellDef.value.value
     updateEditorContent(content.value)
     updateToolbarState()
-  } else {
+  }
+  else {
     content.value = ''
     updateEditorContent('')
   }
@@ -146,6 +103,7 @@ function onContentChange() {
     if (!newCellDef.value) {
       newCellDef.value = { type: 'richtext', value: '' }
     }
+
     newCellDef.value.type = 'richtext'
     newCellDef.value.value = html
     setCell(props.rowIndex, props.colIndex, newCellDef)
@@ -179,6 +137,49 @@ onBeforeUnmount(() => {
 watch(() => props.rowIndex, () => { loadCellData() })
 watch(() => props.colIndex, () => { loadCellData() })
 </script>
+
+<template>
+  <div class="rich-text-editor">
+    <div class="property-quote">
+      {{ t('property.richtext.config') }}
+    </div>
+
+    <div class="toolbar">
+      <button class="tool-btn" :class="{ active: isBold }" title="加粗" @click="toggleBold">
+        <b>B</b>
+      </button>
+      <button class="tool-btn" :class="{ active: isItalic }" title="斜体" @click="toggleItalic">
+        <i>I</i>
+      </button>
+      <button class="tool-btn" :class="{ active: isUnderline }" title="下划线" @click="toggleUnderline">
+        <u>U</u>
+      </button>
+      <span class="separator" />
+      <button class="tool-btn" title="红色" @click="setColor('#FF0000')">
+        <span style="color: #FF0000">A</span>
+      </button>
+      <button class="tool-btn" title="绿色" @click="setColor('#00AA00')">
+        <span style="color: #00AA00">A</span>
+      </button>
+      <button class="tool-btn" title="蓝色" @click="setColor('#0066CC')">
+        <span style="color: #0066CC">A</span>
+      </button>
+      <span class="separator" />
+      <button class="tool-btn" title="黄色背景" @click="setHighlight('#FFFF00')">
+        <span style="background: #FFFF00">A</span>
+      </button>
+      <button class="tool-btn" title="浅绿背景" @click="setHighlight('#90EE90')">
+        <span style="background: #90EE90">A</span>
+      </button>
+    </div>
+
+    <div ref="editorRef" class="editor-content" contenteditable="true" @input="onContentChange" @blur="onContentChange" />
+
+    <div class="tip">
+      {{ t('property.richtext.tip') }}
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .rich-text-editor {
@@ -249,7 +250,7 @@ watch(() => props.colIndex, () => { loadCellData() })
 
 .editor-content:focus {
   outline: none;
-  border-color: #409EFF;
+  border-color: #409eff;
 }
 
 .editor-content:empty::before {

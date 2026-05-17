@@ -1,111 +1,24 @@
-<template>
-  <UDialog
-    :title="$t('dialog.open.title')"
-    width="800px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="open-dialog-content">
-      <div class="form-group">
-        <label>{{ $t('dialog.open.source') }}：</label>
-        <div class="u-inline">
-          <u-select
-            v-model="selectedProvider"
-            @change="handleProviderChange"
-          >
-            <u-option
-              v-for="option in providerOptions"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label"
-            />
-          </u-select>
-        </div>
-      </div>
-
-      <div class="path-bar" v-if="currentPath || canGoBack">
-        <div class="path-display">
-          <span class="path-label">{{ $t('dialog.save.currentPath') }}：</span>
-          <span class="path-text">{{ currentPath || '/' }}</span>
-        </div>
-        <u-button
-          v-if="canGoBack"
-          @click="goBack"
-          type="primary"
-          size="small"
-          icon="icon-left"
-        >
-          {{ $t('dialog.save.backToParent') }}
-        </u-button>
-      </div>
-
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr class="data-table-header">
-              <td><span>{{ $t('dialog.open.fileName') }}</span></td>
-              <td style="width:200px;"><span>{{ $t('dialog.open.modDate') }}</span></td>
-              <td style="width:50px;"><span>{{ $t('dialog.open.open') }}</span></td>
-              <td style="width:50px;"><span>{{ $t('dialog.open.del') }}</span></td>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(file, index) in currentFiles" :key="index" style="height: 35px;">
-             <td>
-               <span
-                 :class="{ 'folder-name': file.directory }"
-                 @click="handleFileClick(file)"
-                 :style="{ cursor: file.directory ? 'pointer' : 'default' }"
-               >
-                 <i v-if="file.directory" class="iconfont icon-folder"></i>
-                 {{ file.name }}
-               </span>
-             </td>
-             <td><span>{{ formatDateLocal(file.updateDate) }}</span></td>
-              <td class="data-table-btn">
-                <a @click.stop="openFile(file)">
-                  <i :class="file.directory ? 'iconfont icon-folder-open' : 'iconfont icon-open'" class="open-button"></i>
-                </a>
-              </td>
-              <td class="data-table-btn" v-if="!file.directory">
-                <a @click.stop="deleteFile(file, index)">
-                  <i class="iconfont icon-delete del-button"></i>
-                </a>
-              </td>
-              <td v-else></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <template #footer><div style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-    </div></template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatDate } from '@/utils/table'
-import { showAlert, showConfirm } from '@/utils/comnon'
-import { loadReportProviders, loadReportProvidersByPath, deleteReportFile } from '@/api/designer'
+import { useRoute, useRouter } from 'vue-router'
+import { deleteReportFile, loadReportProviders, loadReportProvidersByPath } from '@/api/designer'
 import { createNavigator, getLibMode } from '@/lib/navigator'
-import { useRouter, useRoute } from 'vue-router'
+import { showAlert, showConfirm } from '@/utils/comnon'
+import { formatDate } from '@/utils/table'
 
 defineOptions({ name: 'OpenDialog' })
+
+const props = withDefaults(defineProps<{
+  visible?: boolean
+}>(), {
+  visible: false,
+})
 
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'open-file', value: string): void
 }>()
-
-const props = withDefaults(defineProps<{
-  visible?: boolean
-}>(), {
-  visible: false
-})
 
 const { t } = useI18n()
 const router = useRouter()
@@ -121,7 +34,7 @@ const pathHistory = ref<string[]>([])
 const providerOptions = computed(() => {
   return providers.value.map((provider: any) => ({
     value: provider.prefix,
-    label: provider.name
+    label: provider.name,
   }))
 })
 
@@ -148,8 +61,8 @@ function loadProviders() {
     .then((response: any) => {
       providers.value = response
 
-      for (let provider of response) {
-        let { reportFiles, prefix } = provider
+      for (const provider of response) {
+        const { reportFiles, prefix } = provider
         reportFilesData.value[prefix] = reportFiles
       }
 
@@ -162,7 +75,8 @@ function loadProviders() {
       console.error('Error loading providers:', error)
       if (error.msg) {
         showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-      } else {
+      }
+      else {
         showAlert(t('dialog.open.loadFail'))
       }
     })
@@ -171,17 +85,19 @@ function loadProviders() {
 function loadProvidersByPath(path: string) {
   loadReportProvidersByPath(path)
     .then((result: any) => {
-      for (let prefix in result) {
-        let providerData = result[prefix]
+      for (const prefix in result) {
+        const providerData = result[prefix]
         reportFilesData.value[`${prefix}:${path}`] = providerData.reportFiles
       }
+
       onProviderChange()
     })
     .catch((error: any) => {
       console.error('Error loading providers by path:', error)
       if (error.msg) {
         showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-      } else {
+      }
+      else {
         showAlert(t('dialog.open.loadFail'))
       }
     })
@@ -215,18 +131,19 @@ function openFile(file: any) {
     return
   }
 
-  showConfirm(`${t('dialog.open.openConfirm')}[${file.name}]？`).then(function () {
-    let fullFile = selectedProvider.value + encodeURI(encodeURI(file.path || file.name))
+  showConfirm(`${t('dialog.open.openConfirm')}[${file.name}]？`).then(() => {
+    const fullFile = selectedProvider.value + encodeURI(encodeURI(file.path || file.name))
 
     handleClose()
 
     if (isLibMode.value) {
       ;(emit as any)('open-file', fullFile)
       ;(navigator.value as any).openDesigner({
-        reportPath: fullFile
+        reportPath: fullFile,
       }, false)
-    } else {
-      window.location.replace("?reportPath=" + fullFile)
+    }
+    else {
+      window.location.replace(`?reportPath=${fullFile}`)
     }
   })
 }
@@ -242,24 +159,25 @@ function goBack() {
     currentPath.value = pathHistory.value.pop() || ''
     if (currentPath.value === '') {
       onProviderChange()
-    } else {
+    }
+    else {
       loadProvidersByPath(currentPath.value)
     }
   }
 }
 
 function deleteFile(file: any, index: number) {
-  showConfirm(`${t('dialog.open.delConfirm')}` + file.name).then(function () {
-    let fullFile = selectedProvider.value + (file.path || file.name)
+  showConfirm(`${t('dialog.open.delConfirm')}${file.name}`).then(() => {
+    const fullFile = selectedProvider.value + (file.path || file.name)
 
     deleteReportFile(fullFile)
       .then(() => {
         currentFiles.value.splice(index, 1)
 
-        let reportFiles = reportFilesData.value[selectedProvider.value]
+        const reportFiles = reportFilesData.value[selectedProvider.value]
         if (reportFiles) {
-          let dataIndex = reportFiles.indexOf(file)
-          if (dataIndex > -1) {
+          const dataIndex = reportFiles.indexOf(file)
+          if (dataIndex !== -1) {
             reportFiles.splice(dataIndex, 1)
           }
         }
@@ -268,7 +186,8 @@ function deleteFile(file: any, index: number) {
         console.error('Error deleting file:', error)
         if (error.msg) {
           showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-        } else {
+        }
+        else {
           showAlert(t('dialog.open.delFail'))
         }
       })
@@ -281,6 +200,95 @@ function handleClose() {
   pathHistory.value = []
 }
 </script>
+
+<template>
+  <UDialog
+    :title="$t('dialog.open.title')"
+    width="800px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="open-dialog-content">
+      <div class="form-group">
+        <label>{{ $t('dialog.open.source') }}：</label>
+        <div class="u-inline">
+          <u-select
+            v-model="selectedProvider"
+            @change="handleProviderChange"
+          >
+            <u-option
+              v-for="option in providerOptions"
+              :key="option.value"
+              :value="option.value"
+              :label="option.label"
+            />
+          </u-select>
+        </div>
+      </div>
+
+      <div v-if="currentPath || canGoBack" class="path-bar">
+        <div class="path-display">
+          <span class="path-label">{{ $t('dialog.save.currentPath') }}：</span>
+          <span class="path-text">{{ currentPath || '/' }}</span>
+        </div>
+        <u-button
+          v-if="canGoBack"
+          type="primary"
+          size="small"
+          icon="icon-left"
+          @click="goBack"
+        >
+          {{ $t('dialog.save.backToParent') }}
+        </u-button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr class="data-table-header">
+              <td><span>{{ $t('dialog.open.fileName') }}</span></td>
+              <td style="width:200px;"><span>{{ $t('dialog.open.modDate') }}</span></td>
+              <td style="width:50px;"><span>{{ $t('dialog.open.open') }}</span></td>
+              <td style="width:50px;"><span>{{ $t('dialog.open.del') }}</span></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(file, index) in currentFiles" :key="index" style="height: 35px;">
+              <td>
+                <span
+                  :class="{ 'folder-name': file.directory }"
+                  :style="{ cursor: file.directory ? 'pointer' : 'default' }"
+                  @click="handleFileClick(file)"
+                >
+                  <i v-if="file.directory" class="iconfont icon-folder" />
+                  {{ file.name }}
+                </span>
+              </td>
+              <td><span>{{ formatDateLocal(file.updateDate) }}</span></td>
+              <td class="data-table-btn">
+                <a @click.stop="openFile(file)">
+                  <i :class="file.directory ? 'iconfont icon-folder-open' : 'iconfont icon-open'" class="open-button" />
+                </a>
+              </td>
+              <td v-if="!file.directory" class="data-table-btn">
+                <a @click.stop="deleteFile(file, index)">
+                  <i class="iconfont icon-delete del-button" />
+                </a>
+              </td>
+              <td v-else />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 .open-dialog-content {
@@ -348,13 +356,13 @@ function handleClose() {
   margin-right: 5px;
   color: #ffc107;
 }
-.open-button{
+.open-button {
   color: #008ed3;
   font-size: 14pt;
 }
-.del-button{
+.del-button {
   color: red;
   font-size: 14pt;
-  cursor: pointer
+  cursor: pointer;
 }
 </style>

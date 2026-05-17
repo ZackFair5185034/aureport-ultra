@@ -1,16 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 defineOptions({ name: 'ButtonGroup' })
-
-interface MenuItem {
-  text: string
-  icon?: string
-  iconStyle?: Record<string, string>
-  class?: string
-  disabled?: boolean
-  action?: (item: MenuItem) => void
-}
 
 const props = withDefaults(defineProps<{
   iconClass?: string
@@ -43,6 +34,15 @@ const emit = defineEmits<{
   'menu-item-click': [item: MenuItem]
 }>()
 
+interface MenuItem {
+  text: string
+  icon?: string
+  iconStyle?: Record<string, string>
+  class?: string
+  disabled?: boolean
+  action?: (item: MenuItem) => void
+}
+
 const isDropdownOpen = ref(false)
 const dropdown = ref<HTMLElement | null>(null)
 const mainButton = ref<HTMLElement | null>(null)
@@ -52,6 +52,7 @@ function toggleDropdown() {
     emit('button-click')
     return
   }
+
   isDropdownOpen.value = !isDropdownOpen.value
   emit('dropdown-toggle', isDropdownOpen.value)
 }
@@ -68,11 +69,13 @@ function handleClickOutside(event: MouseEvent) {
 }
 
 function handleMenuItemClick(item: MenuItem) {
-  if (item.disabled) return
+  if (item.disabled)
+    return
   emit('menu-item-click', item)
   if (item.action && typeof item.action === 'function') {
     item.action(item)
   }
+
   closeDropdown()
 }
 
@@ -100,18 +103,18 @@ onBeforeUnmount(() => {
       @click="toggleDropdown"
     >
       <span v-if="showText" class="button-text">{{ buttonText }}</span>
-      <span v-if="hasDropdown" class="caret"></span>
+      <span v-if="hasDropdown" class="caret" />
     </UButton>
     <ul
       v-if="hasDropdown"
       ref="dropdown"
       class="dropdown-menu"
       role="menu"
-      :style="{ display: isDropdownOpen ? 'block' : 'none', maxHeight: maxMenuHeight + 'px', overflowY: 'auto' }"
+      :style="{ display: isDropdownOpen ? 'block' : 'none', maxHeight: `${maxMenuHeight}px`, overflowY: 'auto' }"
     >
       <li v-for="(item, index) in menuItems" :key="index" :class="item.class">
-        <a href="javascript:void(0)" @click="handleMenuItemClick(item)" style="text-decoration: none">
-          <i v-if="item.icon" :class="item.icon" :style="item.iconStyle"></i> {{ item.text }}
+        <a href="javascript:void(0)" style="text-decoration: none" @click="handleMenuItemClick(item)">
+          <i v-if="item.icon" :class="item.icon" :style="item.iconStyle" /> {{ item.text }}
         </a>
       </li>
     </ul>

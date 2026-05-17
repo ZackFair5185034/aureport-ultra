@@ -1,46 +1,42 @@
-<template>
-  <div class="u-inline">
-    <ButtonGroup
-      :buttonText="currentFontFamily"
-      :showText="true"
-      :title="$t('tools.font.font')"
-      :customClass="'font-family-tool-dropdown'"
-      :menuItems="menuItems"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty } from '@/utils/table'
-import { showAlert } from '@/utils/comnon'
-import { deepCopy } from '@/components/utils/index'
 import ButtonGroup from '@/components/button-group/index.vue'
+import { deepCopy } from '@/components/utils/index'
+import { showAlert } from '@/utils/comnon'
 import { getCell, setCell } from '@/utils/contextActions'
+import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'FontFamilyTool' })
 
-const { t } = useI18n()
-
 const props = withDefaults(defineProps<{
-  selectedCells?: { rowIndex: number | null; colIndex: number | null; row2Index: number | null; col2Index: number | null }
+  selectedCells?: { rowIndex: number | null, colIndex: number | null, row2Index: number | null, col2Index: number | null }
 }>(), {
-  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null })
+  selectedCells: () => ({ rowIndex: null, colIndex: null, row2Index: null, col2Index: null }),
 })
+
+const { t } = useI18n()
 
 const currentFontFamily = ref('宋体')
 const fontFamilies = ref([
-  "宋体", "仿宋", "黑体", "楷体", "微软雅黑",
-  "Arial", "Impact", "Times New Roman", "Comic Sans MS", "Courier New"
+  '宋体',
+  '仿宋',
+  '黑体',
+  '楷体',
+  '微软雅黑',
+  'Arial',
+  'Impact',
+  'Times New Roman',
+  'Comic Sans MS',
+  'Courier New',
 ])
 
 const menuItems = computed(() => {
   return fontFamilies.value.map(font => ({
     text: font,
-    action: () => applyFontFamily(font)
+    action: () => applyFontFamily(font),
   }))
 })
 
@@ -57,17 +53,20 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
+
   return true
 }
 
 function applyFontFamily(fontFamily: string) {
-  if (!checkSelection()) return
+  if (!checkSelection())
+    return
 
   const table = TableManager.get()
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   const oldFontFamily = updateFontFamily(startRow, startCol, endRow, endCol, fontFamily)
@@ -83,7 +82,7 @@ function applyFontFamily(fontFamily: string) {
       restoreFontFamily(startRow, startCol, endRow, endCol, oldFontFamily)
       table.render()
       setDirty()
-    }
+    },
   })
 
   setDirty()
@@ -95,11 +94,12 @@ function updateFontFamily(startRow: number, startCol: number, endRow: number, en
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldFontFamily[i + ',' + j] = newCellDef.cellStyle.fontFamily
+      oldFontFamily[`${i},${j}`] = newCellDef.cellStyle.fontFamily
       cellStyle.fontFamily = fontFamily
       setCell(i, j, newCellDef)
 
@@ -116,15 +116,16 @@ function restoreFontFamily(startRow: number, startCol: number, endRow: number, e
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      cellStyle.fontFamily = oldFontFamily[i + ',' + j]
+      cellStyle.fontFamily = oldFontFamily[`${i},${j}`]
       setCell(i, j, newCellDef)
 
       if (i === startRow && j === startCol) {
-        currentFontFamily.value = cellStyle.fontFamily || "宋体"
+        currentFontFamily.value = cellStyle.fontFamily || '宋体'
       }
     }
   }
@@ -132,21 +133,35 @@ function restoreFontFamily(startRow: number, startCol: number, endRow: number, e
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
   if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+
   if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
       const cellDef = getCell(i, j)
-      if (!cellDef) continue
+      if (!cellDef)
+        continue
 
       const cellStyle = cellDef.cellStyle
-      const fontFamily = cellStyle.fontFamily || "宋体"
+      const fontFamily = cellStyle.fontFamily || '宋体'
       currentFontFamily.value = fontFamily
       return
     }
   }
 }
 </script>
+
+<template>
+  <div class="u-inline">
+    <ButtonGroup
+      :buttonText="currentFontFamily"
+      :showText="true"
+      :title="$t('tools.font.font')"
+      customClass="font-family-tool-dropdown"
+      :menuItems="menuItems"
+    />
+  </div>
+</template>
 
 <style scoped>
 .font-family-tool-dropdown :deep(.button-text) {

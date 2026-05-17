@@ -1,19 +1,8 @@
-<template>
-  <u-button
-      type="info"
-      :title="$t('mergeSplitCells')"
-      class="info-button"
-      icon="icon-merge"
-      @click="handleClick"
-  >
-  </u-button>
-</template>
-
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { undoManager, setDirty, buildNewCellDef } from '@/utils/table'
 import { showAlert } from '@/utils/comnon'
 import { addCell, getCell } from '@/utils/contextActions'
+import { buildNewCellDef, setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'MergeTool' })
@@ -38,6 +27,7 @@ function handleClick() {
     endRow = startRow
     startRow = tmp
   }
+
   tmp = endCol
   if (startCol > endCol) {
     endCol = startCol
@@ -47,32 +37,33 @@ function handleClick() {
   doMergeCells(startRow, startCol, endRow, endCol, table)
 
   undoManager.add({
-    redo: function () {
+    redo() {
       mergeCells = table.getSettings().mergeCells || []
       oldMergeCells = mergeCells.concat([])
       doMergeCells(startRow, startCol, endRow, endCol, table)
       setDirty()
     },
-    undo: function () {
+    undo() {
       table.updateSettings({ mergeCells: oldMergeCells })
       setDirty()
-    }
+    },
   })
 
   setDirty()
 }
 
 function doMergeCells(startRow: number, startCol: number, endRow: number, endCol: number, table: any) {
-  let doMerge = true, doSplit = false
+  let doMerge = true; let doSplit = false
   const mergeCells = table.getSettings().mergeCells || []
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
-      let td = table.getCell(i, j)
-      if (!td) continue
+      const td = table.getCell(i, j)
+      if (!td)
+        continue
 
-      let colSpan = td.colSpan || 1
-      let rowSpan = td.rowSpan || 1
+      const colSpan = td.colSpan || 1
+      const rowSpan = td.rowSpan || 1
 
       if (colSpan > 1 || rowSpan > 1) {
         let index = 0
@@ -80,12 +71,13 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
         doMerge = false
 
         while (index < mergeCells.length) {
-          let mergeItem = mergeCells[index]
-          let row = mergeItem.row, col = mergeItem.col
+          const mergeItem = mergeCells[index]
+          const row = mergeItem.row; const col = mergeItem.col
           if (row === i && col === j) {
             mergeCells.splice(index, 1)
             break
           }
+
           index++
         }
       }
@@ -94,31 +86,36 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
 
   if (doMerge) {
     if (endRow < startRow) {
-      let tmp = startRow
+      const tmp = startRow
       startRow = endRow
       endRow = tmp
     }
+
     if (endCol < startCol) {
-      let tmp = startCol
+      const tmp = startCol
       startCol = endCol
       endCol = tmp
     }
 
-    let rowSpan = endRow - startRow, colSpan = endCol - startCol
+    let rowSpan = endRow - startRow; let colSpan = endCol - startCol
     if (rowSpan === 0) {
       rowSpan = 1
-    } else {
+    }
+    else {
       rowSpan++
     }
+
     if (colSpan === 0) {
       colSpan = 1
-    } else {
+    }
+    else {
       colSpan++
     }
 
     const newMergeItem = { row: startRow, col: startCol, rowspan: rowSpan, colspan: colSpan }
     mergeCells.push(newMergeItem)
-  } else {
+  }
+  else {
     if (doSplit) {
       for (let i = startRow; i <= endRow; i++) {
         for (let j = startCol; j <= endCol; j++) {
@@ -129,7 +126,8 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
           }
         }
       }
-    } else {
+    }
+    else {
       showAlert(t('selectMultiTargetCellFirst'))
     }
   }
@@ -137,6 +135,16 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
   table.updateSettings({ mergeCells })
 }
 </script>
+
+<template>
+  <u-button
+    type="info"
+    :title="$t('mergeSplitCells')"
+    class="info-button"
+    icon="icon-merge"
+    @click="handleClick"
+  />
+</template>
 
 <style scoped>
 /* 按钮样式继承自父组件 */

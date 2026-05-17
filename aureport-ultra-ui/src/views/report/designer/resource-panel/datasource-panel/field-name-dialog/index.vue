@@ -1,43 +1,16 @@
-<template>
-  <UDialog
-    :title="$t('tree.addField')"
-    width="500px"
-    :visible="visible"
-    @close="handleClose"
-  >
-    <div class="dialog-content">
-      <u-form ref="form" :model="formData" :rules="rules" :label-width="100">
-        <u-form-item :label="$t('tree.fieldName')" prop="fieldName">
-          <u-input
-            :placeholder="$t('tree.inputTip')"
-            v-model="formData.fieldName"
-            ref="input"
-            @keyup.enter="handleOk"
-          />
-        </u-form-item>
-      </u-form>
-    </div>
-    <template #footer><div style="text-align: right">
-      <u-button @click="handleClose" type="info" style="margin-right: 10px;">{{ $t('dialog.common.cancel') }}</u-button>
-      <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
-    </div></template>
-  </UDialog>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+/* eslint-disable vue/no-unused-refs */
+import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'FieldNameDialog' })
-
-const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   visible: boolean
   dataset: any
 }>(), {
   visible: false,
-  dataset: null
+  dataset: null,
 })
 
 const emit = defineEmits<{
@@ -45,16 +18,18 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const form = ref<any>(null)
+const { t } = useI18n()
+
+const _form = ref<any>(null)
 const formData = reactive({
-  fieldName: ''
+  fieldName: '',
 })
 const rules = reactive({
   fieldName: [{
     required: true,
     message: t('tree.inputTip'),
-    trigger: 'blur'
-  }]
+    trigger: 'blur',
+  }],
 })
 
 watch(() => props.visible, (newVal) => {
@@ -88,6 +63,7 @@ async function handleOk() {
   if (!valid) {
     return
   }
+
   emit('save', formData.fieldName.trim(), props.dataset)
   emit('close')
 }
@@ -100,13 +76,39 @@ function handleClose() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (props.visible) {
-    if (e.key === 'Escape') {
-      handleClose()
-    }
+  if (props.visible && e.key === 'Escape') {
+    handleClose()
   }
 }
 </script>
+
+<template>
+  <UDialog
+    :title="$t('tree.addField')"
+    width="500px"
+    :visible="visible"
+    @close="handleClose"
+  >
+    <div class="dialog-content">
+      <u-form ref="_form" :model="formData" :rules="rules" :label-width="100">
+        <u-form-item :label="$t('tree.fieldName')" prop="fieldName">
+          <u-input
+            ref="_input"
+            v-model="formData.fieldName"
+            :placeholder="$t('tree.inputTip')"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+      </u-form>
+    </div>
+    <template #footer>
+      <div style="text-align: right">
+        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
+      </div>
+    </template>
+  </UDialog>
+</template>
 
 <style scoped>
 </style>
