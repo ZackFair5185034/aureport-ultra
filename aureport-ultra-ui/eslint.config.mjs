@@ -30,6 +30,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '*.config.*', 'public/'],
+    ignores: ['dist/', 'node_modules/', '*.config.*', 'public/', 'src/assets/'],
   },
 ]
