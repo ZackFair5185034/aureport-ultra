@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workbook>
+    <props>
+        <prop name="name">Tooltip Test Report</prop>
+        <prop name="description">Test tooltip functionality</prop>
+    </props>
+    <paper orientation="portrait" width="842" height="595" marginTop="20" marginBottom="20" marginLeft="20" marginRight="20" />
+    <columns>
+        <column width="150"></column>
+        <column width="200"></column>
+        <column width="200"></column>
+    </columns>
+    <rows>
+        <row height="35">
+            <cell name="A1" row="1" col="1" col-span="3">
+                <simple-value>Tooltip Functionality Test</simple-value>
+                <cell-style forecolor="255,0,0" font-size="16" bold="true" align="center" />
+            </cell>
+        </row>
+        <row height="30">
+            <cell name="A2" row="2" col="1">
+                <simple-value>Cell Name</simple-value>
+                <cell-style forecolor="0,0,0" bold="true" bgcolor="200,200,255" />
+            </cell>
+            <cell name="B2" row="2" col="2">
+                <simple-value>Description</simple-value>
+                <cell-style forecolor="0,0,0" bold="true" bgcolor="200,200,255" />
+            </cell>
+            <cell name="C2" row="2" col="3">
+                <simple-value>Tooltip Value</simple-value>
+                <cell-style forecolor="0,0,0" bold="true" bgcolor="200,200,255" />
+            </cell>
+        </row>
+        <row height="30">
+            <cell name="A3" row="3" col="1">
+                <simple-value>Static Text</simple-value>
+                <cell-style forecolor="0,0,255" />
+            </cell>
+            <cell name="B3" row="3" col="2">
+                <simple-value>Hover to see static tooltip</simple-value>
+            </cell>
+            <cell name="C3" row="3" col="3" tooltip="This is a static tooltip">
+                <simple-value>Static tooltip here</simple-value>
+                <cell-style forecolor="0,128,0" />
+            </cell>
+        </row>
+        <row height="30">
+            <cell name="A4" row="4" col="1">
+                <simple-value>Expression</simple-value>
+                <cell-style forecolor="0,0,255" />
+            </cell>
+            <cell name="B4" row="4" col="2">
+                <simple-value>Hover to see expression tooltip</simple-value>
+            </cell>
+            <cell name="C4" row="4" col="3" tooltip="${C3} + - dynamic value">
+                <simple-value>Dynamic tooltip here</simple-value>
+                <cell-style forecolor="128,0,128" />
+            </cell>
+        </row>
+    </rows>
+</workbook>
