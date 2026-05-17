@@ -3,6 +3,8 @@
     :title="$t('dialog.setting.title')"
     width="800px"
     :visible="dialogVisible"
+    :show-close="true"
+    @update:visible="handleDialogVisibleChange"
     @close="handleClose"
   >
     <div class="settings-dialog">
@@ -107,6 +109,7 @@ import { updateReportDef } from '@/utils/contextActions'
 defineOptions({ name: 'SettingsDialog' })
 
 const emit = defineEmits<{
+  (e: 'update:visible', value: boolean): void
   (e: 'close'): void
   (e: 'ok'): void
 }>()
@@ -211,15 +214,27 @@ function initializeData() {
 
 function handleClose() {
   dialogVisible.value = false
+  emit('update:visible', false)
   emit('close')
+}
+
+function handleDialogVisibleChange(val: boolean) {
+  dialogVisible.value = val
+  if (!val) {
+    emit('close')
+  }
 }
 
 function handleOk() {
   if (!context.value || !context.value.reportDef) {
-    dialogVisible.value = false
+    emit('update:visible', false)
     emit('ok')
+    dialogVisible.value = false
     return
   }
+
+  emit('update:visible', false)
+  emit('ok')
 
   const newPaper = deepCopy(paper.value)
   const newHeader = deepCopy(header.value)
@@ -233,7 +248,6 @@ function handleOk() {
   })
 
   dialogVisible.value = false
-  emit('ok')
 }
 
 function updatePaperSize() {

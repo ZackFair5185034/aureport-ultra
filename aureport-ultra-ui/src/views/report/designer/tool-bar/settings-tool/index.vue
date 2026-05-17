@@ -5,11 +5,12 @@
       icon="icon-settings"
       @click="handleClick"
   >
-    <SettingsDialog
-        :visible="dialogVisible"
-        @close="handleDialogClose"
-        @ok="handleDialogOk"
-    />
+  <SettingsDialog
+      :visible="dialogVisible"
+      @update:visible="dialogVisible = $event"
+      @close="handleDialogClose"
+      @ok="handleDialogOk"
+  />
   </u-button>
 </template>
 
