@@ -9,13 +9,11 @@ Aureport Ultra 报表引擎变更记录。
 ### 新增
 
 #### 核心引擎
-- **RichTextValue 富文本单元格**：新增 `richtext` 值类型，支持 HTML 富文本内容渲染（b/i/u/s/em/strong/span 标签），内置 XSS 白名单防护。
 - **ProgressBarValue 进度条单元格**：新增 `progressbar` 值类型，支持百分比进度条展示（value/max 属性）。
 - **Tooltip 悬浮提示**：单元格新增 `tooltip` 属性，鼠标悬停显示提示内容。
 - **GroupStatAggregate 分组聚合**：新增 `groupstat` 聚合类型，支持从父格 BindData 读取统计字段。
 
 #### 前端设计器
-- **富文本编辑器**：基于原生 `contenteditable` + `execCommand` 实现，支持粗体、斜体、下划手、删除线格式，不依赖 tiptap。
 - **ProgressBarValueEditor**：进度条单元格值编辑器，支持配置 value/max 属性。
 - **Tooltip 配置**：单元格属性面板新增 tooltip 配置项。
 
