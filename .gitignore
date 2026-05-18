@@ -33,6 +33,9 @@ logs/
 # OMC
 **/.omc/
 
+# Playwright MCP
+.playwright-mcp/
+
 # IDE - IntelliJ IDEA
 .idea/
 *.iws
