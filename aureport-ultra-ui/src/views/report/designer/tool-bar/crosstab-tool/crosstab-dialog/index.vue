@@ -57,10 +57,9 @@ function handleClose() {
     @close="handleClose"
   >
     <div class="dialog-content">
-      <u-form ref="form" :label-width="60">
+      <u-form :label-width="60">
         <u-form-item :label="$t('dialog.crosstab.crosstab')">
           <u-input
-            ref="input"
             v-model="crosstabValue"
             style="width: 300px"
             :placeholder="$t('dialog.crosstab.tip')"

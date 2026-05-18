@@ -204,11 +204,11 @@ function getReportParams(pageIdx: string | number | null | undefined) {
 function mergeSearchFormParams(target: Record<string, any>) {
   if (!searchFormParameters.value)
     return
-  Object.keys(searchFormParameters.value).forEach((key: string) => {
+  for (const key of Object.keys(searchFormParameters.value)) {
     if ((searchFormParameters.value as Record<string, any>)[key]) {
       target[key] = (searchFormParameters.value as Record<string, any>)[key]
     }
-  })
+  }
 }
 
 function renderReportContent(reportDataObj: any) {

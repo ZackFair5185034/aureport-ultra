@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CodeMirror from 'codemirror'
-// @ts-nocheck
+// @ts-expect-error Vue module
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { scriptValidation } from '@/api/designer/index'
@@ -149,35 +149,37 @@ function loadCellData() {
   }
 }
 
-function buildScriptLintFunction() {
-  return async (text: string, updateLinting: Function, options: any, editor: any) => {
-    if (text === '') {
+async function lintCallback(text: string, updateLinting: (editor: any, annotations: any[]) => void, _options: any, editor: any) {
+  if (text === '') {
+    updateLinting(editor, [])
+    return
+  }
+
+  if (!text || text === '') {
+    return
+  }
+
+  try {
+    const result = await scriptValidation(text)
+    if (result) {
+      for (const item of result) {
+        item.from = { line: item.line - 1 }
+        item.to = { line: item.line - 1 }
+      }
+
+      updateLinting(editor, result)
+    }
+    else {
       updateLinting(editor, [])
-      return
-    }
-
-    if (!text || text === '') {
-      return
-    }
-
-    try {
-      const result = await scriptValidation(text)
-      if (result) {
-        for (const item of result) {
-          item.from = { line: item.line - 1 }
-          item.to = { line: item.line - 1 }
-        }
-
-        updateLinting(editor, result)
-      }
-      else {
-        updateLinting(editor, [])
-      }
-    }
-    catch {
-      showAlert(t('property.base.syntaxError'))
     }
   }
+  catch {
+    showAlert(t('property.base.syntaxError'))
+  }
+}
+
+function buildScriptLintFunction() {
+  return lintCallback
 }
 
 function handleWidthChange() {

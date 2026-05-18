@@ -4,12 +4,11 @@
  */
 
 // 日期格式化
-export function parseTime(time, pattern) {
+export function parseTime(time, pattern = '{y}-{m}-{d} {h}:{i}:{s}') {
   if (arguments.length === 0 || !time) {
     return null
   }
 
-  const format = pattern || '{y}-{m}-{d} {h}:{i}:{s}'
   let date
   if (typeof time === 'object') {
     date = time
@@ -19,7 +18,7 @@ export function parseTime(time, pattern) {
       time = parseInt(time)
     }
     else if (typeof time === 'string') {
-      time = time.replaceAll(new RegExp(/-/g), '/').replace('T', ' ').replaceAll(new RegExp(/\.\d{3}/g), '')
+      time = time.replaceAll('-', '/').replace('T', ' ').replaceAll(/\.\d{3}/gu, '')
     }
 
     if ((typeof time === 'number') && (time.toString().length === 10)) {
@@ -38,10 +37,12 @@ export function parseTime(time, pattern) {
     s: date.getSeconds(),
     a: date.getDay(),
   }
-  const time_str = format.replaceAll(/\{([ymdhisa])+\}/g, (result, key) => {
+  const time_str = pattern.replaceAll(/\{([ymdhisa])+\}/g, (result, key) => {
     let value = formatObj[key]
     // Note: getDay() returns 0 on Sunday
-    if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value] }
+    if (key === 'a') {
+      return ['日', '一', '二', '三', '四', '五', '六'][value]
+    }
 
     if (result.length > 0 && value < 10) {
       value = `0${value}`
@@ -129,14 +130,14 @@ export function getQueryObject(url) {
 }
 
 /**
- * @param {string} input value
+ * @param {string} str
  * @returns {number} output value
  */
 export function byteLength(str) {
   // returns the byte length of an utf8 string
   let s = str.length
   for (let i = str.length - 1; i >= 0; i--) {
-    const code = str.charCodeAt(i)
+    const code = str.codePointAt(i)
     if (code > 0x7F && code <= 0x7FF)
       s++
     else if (code > 0x7FF && code <= 0xFFFF)
@@ -195,7 +196,7 @@ export function param2Obj(url) {
     const index = v.indexOf('=')
     if (index !== -1) {
       const name = v.slice(0, Math.max(0, index))
-      const val = v.substring(index + 1, v.length)
+      const val = v.slice(index + 1)
       obj[name] = val
     }
   }
@@ -210,7 +211,7 @@ export function param2Obj(url) {
 export function html2Text(val) {
   const div = document.createElement('div')
   div.innerHTML = val
-  return div.textContent || div.innerText
+  return div.textContent
 }
 
 /**
@@ -274,9 +275,9 @@ export function getTime(type) {
  * @return {*}
  */
 export function debounce(func, wait, immediate) {
-  let timeout, args, context, timestamp, result
+  let timeout, timestamp, result
 
-  const later = function () {
+  const later = (...args) => {
     // 据上一次触发时间间隔
     const last = Date.now() - timestamp
 
@@ -288,23 +289,19 @@ export function debounce(func, wait, immediate) {
       timeout = null
       // 如果设定为immediate===true，因为开始边界已经调用过了此处无需调用
       if (!immediate) {
-        result = func.apply(context, args)
-        if (!timeout)
-          context = args = null
+        result = Reflect.apply(func, this, args)
       }
     }
   }
 
   return function (...args) {
-    context = this
     timestamp = Date.now()
     const callNow = immediate && !timeout
     // 如果延时不存在，重新设定延时
     if (!timeout)
       timeout = setTimeout(later, wait)
     if (callNow) {
-      result = func.apply(context, args)
-      context = args = null
+      result = Reflect.apply(func, this, args)
     }
 
     return result
@@ -350,7 +347,7 @@ export function createUniqueString() {
 
 /**
  * Check if an element has a class
- * @param {HTMLElement} elm
+ * @param {HTMLElement} ele
  * @param {string} cls
  * @returns {boolean}
  */
@@ -360,7 +357,7 @@ export function hasClass(ele, cls) {
 
 /**
  * Add class to element
- * @param {HTMLElement} elm
+ * @param {HTMLElement} ele
  * @param {string} cls
  */
 export function addClass(ele, cls) {
@@ -370,7 +367,7 @@ export function addClass(ele, cls) {
 
 /**
  * Remove class from element
- * @param {HTMLElement} elm
+ * @param {HTMLElement} ele
  * @param {string} cls
  */
 export function removeClass(ele, cls) {

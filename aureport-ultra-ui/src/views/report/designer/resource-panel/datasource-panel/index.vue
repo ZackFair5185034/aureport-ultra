@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils'
@@ -196,7 +195,6 @@ function buildPanel() {
       <DatabaseTree
         v-for="(datasource, index) in jdbcDatasources"
         :key="`jdbc_` + `_${index}`"
-        ref="databaseTree"
         :datasources="datasources"
         :ds="datasource"
         @remove="removeDatasource"

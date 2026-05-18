@@ -8,8 +8,8 @@ import { setDirty } from '@/utils/table'
 defineOptions({ name: 'BuildinDatasourceSelectDialog' })
 
 const props = withDefaults(defineProps<{
-  datasources: any[]
-  visible: boolean
+  datasources?: any[]
+  visible?: boolean
 }>(), {
   datasources: () => [],
   visible: false,

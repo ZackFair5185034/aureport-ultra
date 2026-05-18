@@ -7,9 +7,9 @@ import { setDirty } from '@/utils/table'
 defineOptions({ name: 'SpringDialog' })
 
 const props = withDefaults(defineProps<{
-  datasources: any[]
-  visible: boolean
-  datasource: any
+  datasources?: any[]
+  visible?: boolean
+  datasource?: any
 }>(), {
   datasources: () => [],
   visible: false,

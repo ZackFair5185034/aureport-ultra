@@ -115,7 +115,7 @@ export function renderTemplateToComponent(componentStr: string, mountNode: HTMLE
 
   const template = templateMatch[1].trim()
 
-  const eventHandlers: Record<string, Function[]> = {}
+  const eventHandlers: Record<string, Array<(...args: any[]) => void>> = {}
   const componentOptions: Record<string, any> = {
     template,
     components: { ...componentMap },
@@ -128,6 +128,7 @@ export function renderTemplateToComponent(componentStr: string, mountNode: HTMLE
         .replaceAll(/import\s+(?:\S.*?)??from\s+['"].*?['"];?\s*/g, '')
         .replace(/export\s+default\s+/, '')
 
+      // eslint-disable-next-line no-new-func
       const fn = new Function(
         ...Object.keys(componentMap),
         `return ${cleanedScript}`,
@@ -178,7 +179,7 @@ export function renderTemplateToComponent(componentStr: string, mountNode: HTMLE
   }
 
   return {
-    $on(event: string, handler: Function) {
+    $on(event: string, handler: (...args: any[]) => void) {
       if (!eventHandlers[event])
         eventHandlers[event] = []
       eventHandlers[event].push(handler)

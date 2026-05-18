@@ -6,7 +6,7 @@ function enter(el: Element) {
   htmlEl.style.height = 'auto'
   const endWidth = window.getComputedStyle(htmlEl).height
   htmlEl.style.height = '0px'
-  htmlEl.offsetHeight
+  void htmlEl.offsetHeight
   htmlEl.style.height = endWidth
 }
 
@@ -17,7 +17,7 @@ function afterEnter(el: Element) {
 function leave(el: Element) {
   const htmlEl = el as HTMLElement
   htmlEl.style.height = window.getComputedStyle(htmlEl).height
-  htmlEl.offsetHeight
+  void htmlEl.offsetHeight
   htmlEl.style.height = '0px'
 }
 

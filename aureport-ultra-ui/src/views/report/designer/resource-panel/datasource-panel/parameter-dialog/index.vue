@@ -6,8 +6,8 @@ import { showAlert } from '@/utils/comnon'
 defineOptions({ name: 'ParameterDialog' })
 
 const props = withDefaults(defineProps<{
-  visible: boolean
-  editData: any
+  visible?: boolean
+  editData?: any
 }>(), {
   visible: false,
   editData: null,

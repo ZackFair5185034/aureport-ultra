@@ -31,7 +31,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const store = useReportStore()
 const context = computed(() => store.context || {})
-// @ts-ignore
 const datasources = computed(() => context.value.reportDef?.datasources || [])
 
 const conditionList = ref<HTMLSelectElement | null>(null)

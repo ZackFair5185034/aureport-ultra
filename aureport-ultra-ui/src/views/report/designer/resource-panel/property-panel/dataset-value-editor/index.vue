@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -135,7 +134,7 @@ function loadInitialValues(cellDef: any) {
     fillBlankRows.value = 'custom'
   }
 
-  selectedExpand.value = cellDef.expand ? cellDef.expand : 'None'
+  selectedExpand.value = cellDef.expand || 'None'
 
   const value = cellDef.value
   if (value) {
@@ -154,9 +153,9 @@ function loadInitialValues(cellDef: any) {
     groupFoot.value = value.groupFoot || false
   }
 
-  conditionPropertyItems.value = cellDef.conditionPropertyItems ? [...cellDef.conditionPropertyItems] : []
+  conditionPropertyItems.value = cellDef.conditionPropertyItems ?? []
 
-  groupItems.value = cellDef.value.groupItems ? [...cellDef.value.groupItems] : []
+  groupItems.value = cellDef.value.groupItems ?? []
 
   handleDatasetChange()
 

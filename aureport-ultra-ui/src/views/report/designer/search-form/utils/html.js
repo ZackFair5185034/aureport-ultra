@@ -85,39 +85,9 @@ function colWrapper(element, str) {
   return str
 }
 
-const layouts = {
-  colFormItem(element) {
-    let labelWidth = ''
-    if (element.labelWidth && element.labelWidth !== confGlobal.labelWidth) {
-      labelWidth = `:label-width="${element.labelWidth}"`
-    }
-
-    const required = !trigger[element.tag] && element.required ? 'required' : ''
-    const tagDom = tags[element.tag] ? tags[element.tag](element) : null
-    let str = `<u-form-item ${labelWidth} label="${element.label}" prop="${element.vModel}" ${required}>
-        ${tagDom}
-      </u-form-item>`
-    str = colWrapper(element, str)
-    return str
-  },
-  rowFormItem(element) {
-    const type = element.type === 'default' ? '' : `type="${element.type}"`
-    const justify = element.type === 'default' ? '' : `justify="${element.justify}"`
-    const align = element.type === 'default' ? '' : `align="${element.align}"`
-    const gutter = element.gutter ? `:gutter="${element.gutter}"` : ''
-    const children = element.children && Array.isArray(element.children) ? element.children.map(el => layouts[el.layout](el)) : []
-    let str = `<u-row ${type} ${justify} ${align} ${gutter}>
-      ${children.join('\n')}
-    </u-row>`
-    str = colWrapper(element, str)
-    return str
-  },
-}
-
 const tags = {
   'u-button': (el) => {
     const {
-      tag,
       disabled,
     } = attrBuilder(el)
     const type = el.type ? `type="${el.type}"` : ''
@@ -243,6 +213,35 @@ const tags = {
     return `<${el.tag} ${type} ${vModel} ${format} ${valueFormat} ${width} ${placeholder} ${startPlaceholder} ${endPlaceholder} ${rangeSeparator} ${clearable} ${readonly} ${disabled}></${el.tag}>`
   },
 
+}
+
+const layouts = {
+  colFormItem(element) {
+    let labelWidth = ''
+    if (element.labelWidth && element.labelWidth !== confGlobal.labelWidth) {
+      labelWidth = `:label-width="${element.labelWidth}"`
+    }
+
+    const required = !trigger[element.tag] && element.required ? 'required' : ''
+    const tagDom = tags[element.tag] ? tags[element.tag](element) : null
+    let str = `<u-form-item ${labelWidth} label="${element.label}" prop="${element.vModel}" ${required}>
+        ${tagDom}
+      </u-form-item>`
+    str = colWrapper(element, str)
+    return str
+  },
+  rowFormItem(element) {
+    const type = element.type === 'default' ? '' : `type="${element.type}"`
+    const justify = element.type === 'default' ? '' : `justify="${element.justify}"`
+    const align = element.type === 'default' ? '' : `align="${element.align}"`
+    const gutter = element.gutter ? `:gutter="${element.gutter}"` : ''
+    const children = element.children && Array.isArray(element.children) ? element.children.map(el => layouts[el.layout](el)) : []
+    let str = `<u-row ${type} ${justify} ${align} ${gutter}>
+      ${children.join('\n')}
+    </u-row>`
+    str = colWrapper(element, str)
+    return str
+  },
 }
 
 function attrBuilder(el) {

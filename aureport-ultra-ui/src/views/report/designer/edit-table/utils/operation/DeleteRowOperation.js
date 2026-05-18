@@ -22,7 +22,7 @@ function parseCellName(cellName) {
   let colIndex = 0
   const colStr = match[1]
   for (let i = 0; i < colStr.length; i++) {
-    colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64)
+    colIndex = colIndex * 26 + (colStr.codePointAt(i) - 64)
   }
 
   return { colIndex: colIndex - 1, rowNumber: parseInt(match[2]) }
@@ -52,19 +52,21 @@ export function doDeleteRow() {
     return
   }
 
-  let [startRow, startCol, endRow, endCol] = selected[0]
+  let [startRow, , endRow] = selected[0]
   if (endRow < startRow) {
     const tempStartRow = startRow
     startRow = endRow
     endRow = tempStartRow
   }
 
-  let rowHeights = this.getSettings().rowHeights; let mergeCells = this.getSettings().mergeCells
+  let rowHeights = this.getSettings().rowHeights
+  let mergeCells = this.getSettings().mergeCells
   let oldMergeCells = []
   let newMergeCells = mergeCells.concat([])
   for (const mergeItem of mergeCells) {
     oldMergeCells.push(Object.assign({}, mergeItem))
-    const row = mergeItem.row; const rowspan = mergeItem.rowspan
+    const row = mergeItem.row
+    const rowspan = mergeItem.rowspan
     const rowEnd = row + rowspan - 1
     const index = newMergeCells.indexOf(mergeItem)
     if (row >= startRow && rowEnd <= endRow) {
@@ -105,7 +107,8 @@ export function doDeleteRow() {
   let oldRowHeights = rowHeights.concat([])
   let newRowHeights = rowHeights.concat([])
   newRowHeights.splice(startRow, dif)
-  let countCols = this.countCols(); const removeCells = []
+  let countCols = this.countCols()
+  const removeCells = []
   for (let i = endRow; i >= startRow; i--) {
     for (let j = 0; j < countCols; j++) {
       const cell = getCell(i, j)
@@ -120,7 +123,8 @@ export function doDeleteRow() {
   }
 
   renderRowHeader(this)
-  const cellsMap = context.cellsMap; const changeCells = []
+  const cellsMap = context.cellsMap
+  const changeCells = []
   for (const cell of cellsMap.values()) {
     const rowIndex = cell.rowNumber - 1
     if (rowIndex >= endRow) {
@@ -143,15 +147,16 @@ export function doDeleteRow() {
   resetTableData(this, context)
   setDirty()
 
-  const _this = this
   undoManager.add({
-    redo() {
-      rowHeights = _this.getSettings().rowHeights, mergeCells = _this.getSettings().mergeCells
+    redo: () => {
+      rowHeights = this.getSettings().rowHeights
+      mergeCells = this.getSettings().mergeCells
       oldMergeCells = []
       newMergeCells = mergeCells.concat([])
       for (const mergeItem of mergeCells) {
         oldMergeCells.push(Object.assign({}, mergeItem))
-        const row = mergeItem.row; const rowspan = mergeItem.rowspan
+        const row = mergeItem.row
+        const rowspan = mergeItem.rowspan
         const rowEnd = row + rowspan - 1
         const index = newMergeCells.indexOf(mergeItem)
         if (row >= startRow && rowEnd <= endRow) {
@@ -187,11 +192,11 @@ export function doDeleteRow() {
         }
       }
 
-      _this.updateSettings({ mergeCells: [] })
+      this.updateSettings({ mergeCells: [] })
       oldRowHeights = rowHeights.concat([])
       newRowHeights = rowHeights.concat([])
       newRowHeights.splice(startRow, dif)
-      countCols = _this.countCols()
+      countCols = this.countCols()
       removeCells.splice(0)
       for (let i = endRow; i >= startRow; i--) {
         for (let j = 0; j < countCols; j++) {
@@ -202,11 +207,11 @@ export function doDeleteRow() {
           }
         }
 
-        _this.alter('remove_row', i)
+        this.alter('remove_row', i)
         adjustDelRowHeaders(i)
       }
 
-      renderRowHeader(_this)
+      renderRowHeader(this)
       changeCells.splice(0)
       for (const cell of cellsMap.values()) {
         const rowIndex = cell.rowNumber - 1
@@ -226,17 +231,17 @@ export function doDeleteRow() {
         addCell(newCell)
       }
 
-      _this.updateSettings({ rowHeights: newRowHeights, mergeCells: newMergeCells })
-      resetTableData(_this, context)
+      this.updateSettings({ rowHeights: newRowHeights, mergeCells: newMergeCells })
+      resetTableData(this, context)
       setDirty()
     },
-    undo() {
+    undo: () => {
       for (let i = endRow; i >= startRow; i--) {
-        _this.alter('insert_row', i)
+        this.alter('insert_row', i)
         adjustInsertRowHeaders(i)
       }
 
-      renderRowHeader(_this)
+      renderRowHeader(this)
       changeCells.splice(0)
       for (const cell of cellsMap.values()) {
         const rowIndex = cell.rowNumber - 1
@@ -260,8 +265,8 @@ export function doDeleteRow() {
         addCell(cell)
       }
 
-      _this.updateSettings({ rowHeights: oldRowHeights, mergeCells: oldMergeCells })
-      resetTableData(_this, context)
+      this.updateSettings({ rowHeights: oldRowHeights, mergeCells: oldMergeCells })
+      resetTableData(this, context)
       setDirty()
     },
   })

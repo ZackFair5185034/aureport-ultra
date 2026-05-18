@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -45,9 +44,13 @@ function handleClick() {
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    ;[startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    ;[startCol, endCol] = [endCol, startCol]
+  }
 
   const oldItalicStyle = updateCellsItalicStyle(startRow, startCol, endRow, endCol)
   table.render()
@@ -83,7 +86,9 @@ function updateCellsItalicStyle(startRow: number, startCol: number, endRow: numb
       cellStyle.italic = !cellStyle.italic
       setCell(i, j, newCellDef)
 
-      if (i === startRow && j === startCol) { isActive.value = cellStyle.italic }
+      if (i === startRow && j === startCol) {
+        isActive.value = cellStyle.italic
+      }
     }
   }
 
@@ -102,15 +107,21 @@ function restoreItalicStyle(startRow: number, startCol: number, endRow: number, 
       cellStyle.italic = oldItalicStyle[`${i},${j}`]
       setCell(i, j, newCellDef)
 
-      if (i === startRow && j === startCol) { isActive.value = cellStyle.italic }
+      if (i === startRow && j === startCol) {
+        isActive.value = cellStyle.italic
+      }
     }
   }
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    ;[startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    ;[startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-// @ts-nocheck
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -46,11 +45,13 @@ function insertQRCode() {
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
   let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value); let oldCellData = hot.getDataAtCell(startRow, startCol)
+  let oldValue = deepCopy(cellDef.value)
+  let oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
   let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot); let height = _buildHeight(startRow, td.rowSpan, hot)
+  let width = _buildWidth(startCol, td.colSpan, hot)
+  let height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
@@ -63,10 +64,12 @@ function insertQRCode() {
   undoManager.add({
     redo: () => {
       cellDef = getCell(startRow, startCol)
-      oldValue = deepCopy(cellDef.value), oldCellData = hot.getDataAtCell(startRow, startCol)
+      oldValue = deepCopy(cellDef.value)
+      oldCellData = hot.getDataAtCell(startRow, startCol)
       hot.setDataAtCell(startRow, startCol, '')
       td = hot.getCell(startRow, startCol)
-      width = _buildWidth(startCol, td.colSpan, hot), height = _buildHeight(startRow, td.rowSpan, hot)
+      width = _buildWidth(startCol, td.colSpan, hot)
+      height = _buildHeight(startRow, td.rowSpan, hot)
       const newCellDef = deepCopy(cellDef)
       newCellDef.value = { width, height, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
       setCell(startRow, startCol, newCellDef)
@@ -95,11 +98,13 @@ function insertBarCode() {
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
   let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value); let oldCellData = hot.getDataAtCell(startRow, startCol)
+  let oldValue = deepCopy(cellDef.value)
+  let oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
   let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot); let height = _buildHeight(startRow, td.rowSpan, hot)
+  let width = _buildWidth(startCol, td.colSpan, hot)
+  let height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
@@ -112,10 +117,12 @@ function insertBarCode() {
   undoManager.add({
     redo: () => {
       cellDef = getCell(startRow, startCol)
-      oldValue = deepCopy(cellDef.value), oldCellData = hot.getDataAtCell(startRow, startCol)
+      oldValue = deepCopy(cellDef.value)
+      oldCellData = hot.getDataAtCell(startRow, startCol)
       hot.setDataAtCell(startRow, startCol, '')
       td = hot.getCell(startRow, startCol)
-      width = _buildWidth(startCol, td.colSpan, hot), height = _buildHeight(startRow, td.rowSpan, hot)
+      width = _buildWidth(startCol, td.colSpan, hot)
+      height = _buildHeight(startRow, td.rowSpan, hot)
       const newCellDef = deepCopy(cellDef)
       newCellDef.value = { width, height, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
       setCell(startRow, startCol, newCellDef)
@@ -138,9 +145,11 @@ function insertBarCode() {
 
 function _buildWidth(colIndex: number, colspan: number, hot: any) {
   let width = hot.getColWidth(colIndex) - 3
-  if (!colspan || colspan < 2)
+  if (!colspan || colspan < 2) {
     return width
-  const start = colIndex + 1; const end = colIndex + colspan
+  }
+  const start = colIndex + 1
+  const end = colIndex + colspan
   for (let i = start; i < end; i++) {
     width += hot.getColWidth(i)
   }
@@ -150,9 +159,11 @@ function _buildWidth(colIndex: number, colspan: number, hot: any) {
 
 function _buildHeight(rowIndex: number, rowspan: number, hot: any) {
   let height = hot.getRowHeight(rowIndex) - 3
-  if (!rowspan || rowspan < 2)
+  if (!rowspan || rowspan < 2) {
     return height
-  const start = rowIndex + 1; const end = rowIndex + rowspan
+  }
+  const start = rowIndex + 1
+  const end = rowIndex + rowspan
   for (let i = start; i < end; i++) {
     height += hot.getRowHeight(i)
   }

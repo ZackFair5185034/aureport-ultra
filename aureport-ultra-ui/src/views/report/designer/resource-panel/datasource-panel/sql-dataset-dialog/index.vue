@@ -13,9 +13,9 @@ import SqlEditor from './sql-editor/index.vue'
 defineOptions({ name: 'SqlDatasetDialog' })
 
 const props = withDefaults(defineProps<{
-  visible: boolean
-  db: any
-  datasetData: any
+  visible?: boolean
+  db?: any
+  datasetData?: any
 }>(), {
   visible: false,
   db: null,

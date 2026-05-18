@@ -7,8 +7,8 @@ import { showAlert } from '@/utils/comnon'
 defineOptions({ name: 'MethodSelectDialog' })
 
 const props = withDefaults(defineProps<{
-  visible: boolean
-  beanId: string
+  visible?: boolean
+  beanId?: string
 }>(), {
   visible: false,
   beanId: '',

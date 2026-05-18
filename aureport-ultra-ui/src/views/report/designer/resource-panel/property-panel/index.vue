@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { ref, watch } from 'vue'
 import { deepCopy } from '@/components/utils/index'
 import { useReportStore } from '@/stores/report'
@@ -205,7 +204,7 @@ function refreshProperty() {
   }
 
   const oldCellDef = getCell(props.rowIndex, props.colIndex)
-  const typeChanged = cellDef.value.type !== cellDef.value.type
+  const typeChanged = cellDef.value.type !== (oldCellDef ? oldCellDef.value.type : undefined)
   const crossTabWidgetChanged = !!(cellDef.crossTabWidget) !== !!(oldCellDef && oldCellDef.crossTabWidget)
 
   if (typeChanged || crossTabWidgetChanged) {
@@ -214,7 +213,7 @@ function refreshProperty() {
 }
 
 function handleSelectRenderer() {
-  // TODO: implement
+  // TODO
 }
 
 function handleCellTypeChange(value: string) {
@@ -366,7 +365,8 @@ function buildWidth(colIndex: number, colspan: number, hot: any): number {
     return width
   }
 
-  const start = colIndex + 1; const end = colIndex + colspan
+  const start = colIndex + 1
+  const end = colIndex + colspan
   for (let i = start; i < end; i++) {
     width += hot.getColWidth(i)
   }
@@ -380,7 +380,8 @@ function buildHeight(rowIndex: number, rowspan: number, hot: any): number {
     return height
   }
 
-  const start = rowIndex + 1; const end = rowIndex + rowspan
+  const start = rowIndex + 1
+  const end = rowIndex + rowspan
   for (let i = start; i < end; i++) {
     height += hot.getRowHeight(i)
   }

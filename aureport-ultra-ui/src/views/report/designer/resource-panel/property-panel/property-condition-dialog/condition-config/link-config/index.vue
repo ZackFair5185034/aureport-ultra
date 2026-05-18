@@ -3,7 +3,6 @@ import { onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 import URLParameterDialog from '../../../url-parameter-dialog/index.vue'
-// @ts-ignore
 import configOptions from '../constants/config-options.js'
 
 defineOptions({ name: 'LinkConfig' })
@@ -35,9 +34,15 @@ onBeforeMount(() => {
   linkTargetOptions.value = configOptions.getLinkTargetOptions(t)
 })
 
-watch(() => props.linkUrl, () => { loadLinkProperties() }, { immediate: true })
-watch(() => props.linkTargetWindow, () => { loadLinkProperties() }, { immediate: true })
-watch(() => props.linkParameters, (newVal) => { localLinkParameters.value = newVal || [] }, { immediate: true })
+watch(() => props.linkUrl, () => {
+  loadLinkProperties()
+}, { immediate: true })
+watch(() => props.linkTargetWindow, () => {
+  loadLinkProperties()
+}, { immediate: true })
+watch(() => props.linkParameters, (newVal) => {
+  localLinkParameters.value = newVal || []
+}, { immediate: true })
 
 function loadLinkProperties() {
   linkChecked.value = props.linkUrl != null
@@ -62,20 +67,35 @@ function onLinkChange() {
 
 function onLinkUrlChange() {
   if (linkChecked.value) {
-    emit('link-change', { checked: true, linkUrl: localLinkUrl.value, linkTargetWindow: localLinkTargetWindow.value, linkParameters: localLinkParameters.value })
+    emit('link-change', {
+      checked: true,
+      linkUrl: localLinkUrl.value,
+      linkTargetWindow: localLinkTargetWindow.value,
+      linkParameters: localLinkParameters.value,
+    })
   }
 }
 
 function onLinkTargetChange() {
   if (linkChecked.value) {
-    emit('link-change', { checked: true, linkUrl: localLinkUrl.value, linkTargetWindow: localLinkTargetWindow.value, linkParameters: localLinkParameters.value })
+    emit('link-change', {
+      checked: true,
+      linkUrl: localLinkUrl.value,
+      linkTargetWindow: localLinkTargetWindow.value,
+      linkParameters: localLinkParameters.value,
+    })
   }
 }
 
 function onLinkParametersChange(parameters: any[]) {
   localLinkParameters.value = parameters
   if (linkChecked.value) {
-    emit('link-change', { checked: true, linkUrl: localLinkUrl.value, linkTargetWindow: localLinkTargetWindow.value, linkParameters: localLinkParameters.value })
+    emit('link-change', {
+      checked: true,
+      linkUrl: localLinkUrl.value,
+      linkTargetWindow: localLinkTargetWindow.value,
+      linkParameters: localLinkParameters.value,
+    })
   }
 }
 

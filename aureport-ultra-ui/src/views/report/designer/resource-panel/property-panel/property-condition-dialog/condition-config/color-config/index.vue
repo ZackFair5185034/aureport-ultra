@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-// @ts-ignore
+/// @ts-expect-error JS module
 import configOptions from '../constants/config-options.js'
 
 defineOptions({ name: 'ColorConfig' })
@@ -63,7 +63,7 @@ function convertColorToRgb(color: string) {
     }
   }
   else if (color.length > 5 && color.startsWith('rgb')) {
-    return color.substring(4, color.length - 1)
+    return color.slice(4, -1)
   }
 
   return color

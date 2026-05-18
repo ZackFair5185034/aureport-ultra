@@ -1,25 +1,8 @@
 // @ts-check
-import { computed, defineComponent, h, ref } from 'vue'
-import UButton from '@/components/button/index.vue'
-
-import UCheckboxGroup from '@/components/checkbox-group/index.vue'
+import { defineComponent, h } from 'vue'
 import UCheckbox from '@/components/checkbox/index.vue'
-import UCol from '@/components/col/index.vue'
-import UDatePicker from '@/components/date-picker/index.vue'
-import UDialog from '@/components/dialog/index.vue'
-import UFormItem from '@/components/form-item/index.vue'
-import UForm from '@/components/form/index.vue'
-import UInputNumber from '@/components/input-number/index.vue'
-import UInput from '@/components/input/index.vue'
 import UOption from '@/components/option/index.vue'
-import URadioGroup from '@/components/radio-group/index.vue'
 import URadio from '@/components/radio/index.vue'
-import URow from '@/components/row/index.vue'
-import USelect from '@/components/select/index.vue'
-import USwitch from '@/components/switch/index.vue'
-import UTabs from '@/components/tabs/index.vue'
-import UTabPane from '@/components/tabs/pane.vue'
-import UTree from '@/components/tree/index.vue'
 import { makeMap } from './index'
 
 const isAttr = makeMap(
@@ -108,7 +91,7 @@ export default defineComponent({
         on: {},
         style: {},
       }
-      const confClone = JSON.parse(JSON.stringify(props.conf))
+      const confClone = structuredClone(props.conf)
       const children = []
 
       const childObjs = componentChild[confClone.tag]

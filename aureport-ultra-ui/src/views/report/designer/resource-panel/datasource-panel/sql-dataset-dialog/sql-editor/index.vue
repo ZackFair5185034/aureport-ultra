@@ -10,8 +10,8 @@ import 'codemirror/addon/lint/lint.js'
 defineOptions({ name: 'SqlEditor' })
 
 const props = withDefaults(defineProps<{
-  name: string
-  sql: string
+  name?: string
+  sql?: string
 }>(), {
   name: '',
   sql: '',
@@ -99,7 +99,12 @@ function initCodeMirror(initialSql = '') {
 }
 
 function buildScriptLintFunction() {
-  return async function (text: string, updateLinting: Function, options: any, editor: any) {
+  return async function (
+    text: string,
+    updateLinting: (editor: any, annotations: any[]) => void,
+    options: any,
+    editor: any,
+  ) {
     if (text === '') {
       updateLinting(editor, [])
       return
@@ -110,9 +115,9 @@ function buildScriptLintFunction() {
     }
 
     const prefix = text.slice(0, 2)
-    const suffix = text.substring(text.length - 1, text.length)
+    const suffix = text.slice(-1)
     if (prefix === '${' && suffix === '}') {
-      text = text.substring(2, text.length - 1)
+      text = text.slice(2, -1)
     }
     else {
       return

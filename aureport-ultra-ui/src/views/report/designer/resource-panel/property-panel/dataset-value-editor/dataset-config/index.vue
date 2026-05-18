@@ -181,21 +181,51 @@ const fillBlankRowsOptions = computed(() => [
   { value: 'custom', label: t('property.base.close') },
 ])
 
-watch(() => props.selectedDataset, (val) => { internalSelectedDataset.value = val })
-watch(() => props.selectedProperty, (val) => { internalSelectedProperty.value = val })
-watch(() => props.selectedAggregate, (val) => { internalSelectedAggregate.value = val })
-watch(() => props.selectedSort, (val) => { internalSelectedSort.value = val })
-watch(() => props.selectedExpand, (val) => { internalSelectedExpand.value = val })
-watch(() => props.lineHeight, (val) => { internalLineHeight.value = val })
-watch(() => props.wrapCompute, (val) => { internalWrapCompute.value = val })
-watch(() => props.format, (val) => { internalFormat.value = val })
-watch(() => props.fillBlankRows, (val) => { internalFillBlankRows.value = val })
-watch(() => props.multiple, (val) => { internalMultiple.value = val })
-watch(() => props.showSortOptions, (val) => { internalShowSortOptions.value = val })
-watch(() => props.showExpandOptions, (val) => { internalShowExpandOptions.value = val })
-watch(() => props.selectedNestProperty, (val) => { internalNestProperty.value = val })
-watch(() => props.groupHead, (val) => { internalGroupHead.value = val })
-watch(() => props.groupFoot, (val) => { internalGroupFoot.value = val })
+watch(() => props.selectedDataset, (val) => {
+  internalSelectedDataset.value = val
+})
+watch(() => props.selectedProperty, (val) => {
+  internalSelectedProperty.value = val
+})
+watch(() => props.selectedAggregate, (val) => {
+  internalSelectedAggregate.value = val
+})
+watch(() => props.selectedSort, (val) => {
+  internalSelectedSort.value = val
+})
+watch(() => props.selectedExpand, (val) => {
+  internalSelectedExpand.value = val
+})
+watch(() => props.lineHeight, (val) => {
+  internalLineHeight.value = val
+})
+watch(() => props.wrapCompute, (val) => {
+  internalWrapCompute.value = val
+})
+watch(() => props.format, (val) => {
+  internalFormat.value = val
+})
+watch(() => props.fillBlankRows, (val) => {
+  internalFillBlankRows.value = val
+})
+watch(() => props.multiple, (val) => {
+  internalMultiple.value = val
+})
+watch(() => props.showSortOptions, (val) => {
+  internalShowSortOptions.value = val
+})
+watch(() => props.showExpandOptions, (val) => {
+  internalShowExpandOptions.value = val
+})
+watch(() => props.selectedNestProperty, (val) => {
+  internalNestProperty.value = val
+})
+watch(() => props.groupHead, (val) => {
+  internalGroupHead.value = val
+})
+watch(() => props.groupFoot, (val) => {
+  internalGroupFoot.value = val
+})
 
 initData()
 

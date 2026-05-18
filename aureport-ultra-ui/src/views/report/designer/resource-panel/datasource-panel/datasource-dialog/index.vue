@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { testConnection } from '@/api/designer'
@@ -9,9 +8,9 @@ import { setDirty } from '@/utils/table'
 defineOptions({ name: 'DatasourceDialog' })
 
 const props = withDefaults(defineProps<{
-  datasources: any[]
-  visible: boolean
-  datasource: any
+  datasources?: any[]
+  visible?: boolean
+  datasource?: any
 }>(), {
   datasources: () => [],
   visible: false,
@@ -133,21 +132,21 @@ function checkDuplicateName(name: string) {
   return true
 }
 
-async function testConnection(showSuccessTips: boolean) {
+async function doTestConnection(showSuccessTips: boolean): Promise<boolean> {
   const valid = await validateForm()
   if (!valid) {
     return false
   }
 
-  const formDataObj = new FormData()
-  formDataObj.append('username', formData.username)
-  formDataObj.append('password', formData.password)
-  formDataObj.append('driver', formData.driver)
-  formDataObj.append('url', formData.url)
+  const fd = new FormData()
+  fd.append('username', formData.username)
+  fd.append('password', formData.password)
+  fd.append('driver', formData.driver)
+  fd.append('url', formData.url)
 
   try {
-    const data = await testConnection(formDataObj)
-    if (data.result && showSuccessTips) {
+    const _data = await testConnection(fd)
+    if (_data.result && showSuccessTips) {
       showAlert(t('dialog.datasource.testSuccess'))
     }
 
@@ -172,7 +171,7 @@ async function save() {
     return
   }
 
-  const success = await testConnection(false)
+  const success = await doTestConnection(false)
   if (success) {
     emit('save', {
       name: formData.dsName,
@@ -222,7 +221,7 @@ async function save() {
 
     <template #footer>
       <div style="text-align: right">
-        <u-button type="info" style="margin-right: 10px;" @click="testConnection(true)">{{ $t('dialog.datasource.test') }}</u-button>
+        <u-button type="info" style="margin-right: 10px;" @click="doTestConnection(true)">{{ $t('dialog.datasource.test') }}</u-button>
         <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
       </div>
     </template>

@@ -69,7 +69,6 @@ defineExpose({ show })
       <u-form :label-width="100">
         <u-form-item :label="isRow ? t('dialog.rowColNumber.rowCount') : t('dialog.rowColNumber.colCount')">
           <u-input-number
-            ref="input"
             v-model="number"
             :placeholder="t('dialog.rowColNumber.tip')"
             :min="1"

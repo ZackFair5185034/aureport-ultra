@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// @ts-nocheck
+// eslint-disable-next-line ts/ban-ts-comment
+/// @ts-expect-error
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -142,14 +143,19 @@ function buildParentCellNameOptions() {
       leftParentRowNumber.value = ''
     }
     else {
-      let row = props.rowIndex; let col = props.colIndex - 1
+      let row = props.rowIndex
+      let col = props.colIndex - 1
       const hot = TableManager.get()
       const td = hot.getCell(row, col)
       if (isCellHidden(td)) {
         const mergeCells = hot.getSettings().mergeCells
         for (const item of mergeCells) {
-          const rowStart = item.row; const rowspan = item.rowspan; const colStart = item.col; const colspan = item.colspan
-          const rowEnd = rowStart + rowspan - 1; const colEnd = colStart + colspan - 1
+          const rowStart = item.row
+          const rowspan = item.rowspan
+          const colStart = item.col
+          const colspan = item.colspan
+          const rowEnd = rowStart + rowspan - 1
+          const colEnd = colStart + colspan - 1
           if (row >= rowStart && row <= rowEnd && col >= colStart && col <= colEnd) {
             row = rowStart
             col = colStart
@@ -185,14 +191,19 @@ function buildParentCellNameOptions() {
       topParentRowNumber.value = ''
     }
     else {
-      let row = props.rowIndex - 1; let col = props.colIndex
+      let row = props.rowIndex - 1
+      let col = props.colIndex
       const hot = TableManager.get()
       const td = hot.getCell(row, col)
       if (isCellHidden(td)) {
         const mergeCells = hot.getSettings().mergeCells
         for (const item of mergeCells) {
-          const rowStart = item.row; const rowspan = item.rowspan; const colStart = item.col; const colspan = item.colspan
-          const rowEnd = rowStart + rowspan - 1; const colEnd = colStart + colspan - 1
+          const rowStart = item.row
+          const rowspan = item.rowspan
+          const colStart = item.col
+          const colspan = item.colspan
+          const rowEnd = rowStart + rowspan - 1
+          const colEnd = colStart + colspan - 1
           if (row >= rowStart && row <= rowEnd && col >= colStart && col <= colEnd) {
             row = rowStart
             col = colStart
@@ -333,7 +344,7 @@ function parseCellName(cellName: string): { name: string, num: string } {
   }
 
   const name = cellName.slice(0, Math.max(0, pos))
-  const num = cellName.substring(pos, cellName.length)
+  const num = cellName.slice(pos)
   return { name, num: num.toString() }
 }
 

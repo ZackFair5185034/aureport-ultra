@@ -31,9 +31,13 @@ function handleClick() {
   const selected = hot.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   let oldCellDef = getCell(startRow, startCol)
   let oldCellData = hot.getDataAtCell(startRow, startCol)

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { v1 as uuidv1 } from 'uuid'
-// @ts-nocheck
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildJdbcFields } from '@/api/designer/index'
@@ -354,8 +353,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
 
   const oldCellDef = deepCopy(cellDef)
 
-  let newCellDef: any
-  newCellDef = cellDef.value.type === 'dataset'
+  const newCellDef: any = cellDef.value.type === 'dataset'
     ? deepCopy(cellDef)
     : {
         value: { type: 'dataset', conditions: [] },
@@ -392,8 +390,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
     window.undoManager.add({
       redo: () => {
         const currentCellDef = getCell(rowIndex, colIndex)
-        let redoCellDef: any
-        redoCellDef = currentCellDef.value.type === 'dataset'
+        const redoCellDef: any = currentCellDef.value.type === 'dataset'
           ? deepCopy(currentCellDef)
           : {
               value: { type: 'dataset', conditions: [] },
@@ -530,7 +527,6 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
 
     <!-- 字段名输入对话框 -->
     <FieldNameDialog
-      ref="fieldNameDialog"
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
       @save="handleFieldNameSave"

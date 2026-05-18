@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -55,9 +54,13 @@ function onColorChange(color: string) {
     const selected = table.getSelected()
     let [startRow, startCol, endRow, endCol] = selected[0]
 
-    if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+    if (startRow > endRow) {
+      ;[startRow, endRow] = [endRow, startRow]
+    }
 
-    if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+    if (startCol > endCol) {
+      ;[startCol, endCol] = [endCol, startCol]
+    }
 
     const oldBgColorStyle = updateCellsBgColorStyle(startRow, startCol, endRow, endCol, rgbStr)
     table.render()
@@ -139,9 +142,13 @@ function rgbToHex(r: number, g: number, b: number) {
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    ;[startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    ;[startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {

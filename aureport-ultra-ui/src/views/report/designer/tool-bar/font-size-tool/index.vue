@@ -53,9 +53,13 @@ function applyFontSize(fontSize: number) {
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   const oldFontSize = updateFontSize(startRow, startCol, endRow, endCol, fontSize)
   table.render()
@@ -120,9 +124,13 @@ function restoreFontSize(startRow: number, startCol: number, endRow: number, end
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {

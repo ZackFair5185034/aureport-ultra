@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -89,8 +88,14 @@ function handleAlignBottom() {
 function applyAlign(align: string) {
   const oldAligns = buildCellAlign(align)
   undoManager.add({
-    undo: () => { buildCellAlign(null, oldAligns); setDirty() },
-    redo: () => { buildCellAlign(align); setDirty() },
+    undo: () => {
+      buildCellAlign(null, oldAligns)
+      setDirty()
+    },
+    redo: () => {
+      buildCellAlign(align)
+      setDirty()
+    },
   })
   setDirty()
 }
@@ -101,9 +106,13 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {
@@ -134,9 +143,13 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {

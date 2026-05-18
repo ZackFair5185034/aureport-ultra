@@ -85,10 +85,9 @@ function handleKeydown(e: KeyboardEvent) {
     @closed="handleClosed"
   >
     <div class="dialog-content">
-      <u-form ref="form" :label-width="80">
+      <u-form :label-width="80">
         <u-form-item :label="t('dialog.groupItem.name')">
           <u-input
-            ref="nameInput"
             v-model="name"
             style="width:240px;"
             @keyup.enter="handleOk"

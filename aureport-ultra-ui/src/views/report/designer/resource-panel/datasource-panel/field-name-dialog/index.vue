@@ -6,8 +6,8 @@ import { useI18n } from 'vue-i18n'
 defineOptions({ name: 'FieldNameDialog' })
 
 const props = withDefaults(defineProps<{
-  visible: boolean
-  dataset: any
+  visible?: boolean
+  dataset?: any
 }>(), {
   visible: false,
   dataset: null,

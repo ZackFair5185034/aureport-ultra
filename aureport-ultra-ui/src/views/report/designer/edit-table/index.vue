@@ -121,20 +121,19 @@ function bindRowResizeEvent() {
       rowHeights: newRowHeights,
       manualRowResize: newRowHeights,
     })
-    const _this = this
     utils.undoManager.add({
       redo() {
-        rowHeights = _this.getSettings().rowHeights
+        rowHeights = this.getSettings().rowHeights
         oldRowHeights = rowHeights.concat([])
         newRowHeights.splice(currentRow, 1, newSize)
-        _this.updateSettings({
+        this.updateSettings({
           rowHeights: newRowHeights,
           manualRowResize: newRowHeights,
         })
         utils.setDirty()
       },
       undo() {
-        _this.updateSettings({
+        this.updateSettings({
           rowHeights: oldRowHeights,
           manualRowResize: oldRowHeights,
         })
@@ -155,21 +154,20 @@ function bindColumnResizeEvent() {
       colWidths: newColWidths,
       manualColumnResize: newColWidths,
     })
-    const _this = this
     utils.undoManager.add({
       redo() {
-        colWidths = _this.getSettings().colWidths
+        colWidths = this.getSettings().colWidths
         newColWidths = colWidths.concat([])
         oldColWidths = colWidths.concat([])
         newColWidths.splice(currentColumn, 1, newSize)
-        _this.updateSettings({
+        this.updateSettings({
           colWidths: newColWidths,
           manualColumnResize: newColWidths,
         })
         utils.setDirty()
       },
       undo() {
-        _this.updateSettings({
+        this.updateSettings({
           colWidths: oldColWidths,
           manualColumnResize: oldColWidths,
         })

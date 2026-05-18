@@ -4,9 +4,9 @@ import request from '@/utils/request'
 
 /**
  * 提示
- * @param message
- * @param options
- * @returns {Promise<unknown>}
+ * @param message - 提示消息
+ * @param options - 配置选项
+ * @returns Promise 弹窗结果
  */
 export function showAlert(message: string, options?: Record<string, unknown>): Promise<unknown> {
   return MessageBox.alert(message, $t('components.message.info'), options)
@@ -14,9 +14,9 @@ export function showAlert(message: string, options?: Record<string, unknown>): P
 
 /**
  * 确认
- * @param message
- * @param options
- * @returns {Promise<unknown>}
+ * @param message - 确认消息
+ * @param options - 配置选项
+ * @returns Promise 弹窗结果
  */
 export function showConfirm(message: string, options?: Record<string, unknown>): Promise<unknown> {
   return MessageBox.confirm(message, $t('components.message.info'), options)

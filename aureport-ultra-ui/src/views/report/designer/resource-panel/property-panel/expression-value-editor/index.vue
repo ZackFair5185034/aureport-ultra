@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
 import CodeMirror from 'codemirror'
-// @ts-nocheck
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { parseDatasetName, scriptValidation } from '@/api/designer/index'
@@ -94,7 +93,7 @@ function initCodeEditor() {
     lineNumbers: true,
     gutters: ['CodeMirror-linenumbers', 'CodeMirror-lint-markers'],
     lint: {
-      getAnnotations: buildScriptLintFunction(),
+      getAnnotations: scriptLintFn,
       async: true,
     },
     lineWrapping: true,
@@ -174,35 +173,38 @@ function loadCellData() {
   })
 }
 
-function buildScriptLintFunction() {
-  return async (text: string, updateLinting: Function, options: any, editor: any) => {
-    if (text === '') {
+async function scriptLintFn(
+  text: string,
+  updateLinting: (editor: any, annotations: any[]) => void,
+  options: any,
+  editor: any,
+) {
+  if (text === '') {
+    updateLinting(editor, [])
+    return
+  }
+
+  if (!text || text === '') {
+    return
+  }
+
+  try {
+    const result = await scriptValidation(text)
+    if (result) {
+      for (const item of result) {
+        item.from = { line: item.line - 1 }
+        item.to = { line: item.line - 1 }
+      }
+
+      updateLinting(editor, result)
+    }
+    else {
       updateLinting(editor, [])
-      return
     }
-
-    if (!text || text === '') {
-      return
-    }
-
-    try {
-      const result = await scriptValidation(text)
-      if (result) {
-        for (const item of result) {
-          item.from = { line: item.line - 1 }
-          item.to = { line: item.line - 1 }
-        }
-
-        updateLinting(editor, result)
-      }
-      else {
-        updateLinting(editor, [])
-      }
-    }
-    catch (error) {
-      console.error('Script validation error:', error)
-      showAlert(t('property.base.syntaxError'))
-    }
+  }
+  catch (error) {
+    console.error('Script validation error:', error)
+    showAlert(t('property.base.syntaxError'))
   }
 }
 

@@ -15,9 +15,311 @@ import { doInsertCol } from '@/views/report/designer/edit-table/utils/operation/
 import { doInsertRow } from '@/views/report/designer/edit-table/utils/operation/InsertRowOperation'
 import TableManager from '../manager.js'
 
+function undoCleanCells(startRow, endRow, startCol, endCol, removeCellsMap, type) {
+  const hot = TableManager.get()
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cell = getCell(i, j)
+      if (!cell) {
+        continue
+      }
+
+      const key = `${cell.rowNumber},${cell.columnNumber}`
+      switch (type) {
+        case 'content': {
+          const orgData = removeCellsMap.get(key)
+          if (!orgData) {
+            showAlert($t('table.contextMenu.cancelConetntFail'))
+            return
+          }
+
+          cell.value = orgData.value
+          cell.leftParentCellName = orgData.leftParentCellName
+          cell.topParentCellName = orgData.topParentCellName
+          const value = cell.value
+          const valueType = value.type
+          let text = value.value
+          if (valueType === 'dataset') {
+            text = `${value.datasetName}.${value.aggregate}(${value.property})`
+          }
+
+          hot.setDataAtCell(i, j, text)
+
+          break
+        }
+
+        case 'style': {
+          const orgStyle = removeCellsMap.get(key)
+          if (!orgStyle) {
+            showAlert($t('table.contextMenu.cancelStyleFail'))
+            return
+          }
+
+          cell.cellStyle = orgStyle
+
+          break
+        }
+
+        case 'all': {
+          removeCell(cell)
+          const orgCell = removeCellsMap.get(key)
+          if (!orgCell) {
+            showAlert($t('table.contextMenu.cancelClearFail'))
+            return
+          }
+
+          addCell(orgCell)
+          const value = orgCell.value
+          const valueType = value.type
+          let text = value.value
+          if (valueType === 'dataset') {
+            text = `${value.datasetName}.${value.aggregate}(${value.property})`
+          }
+
+          hot.setDataAtCell(i, j, text)
+
+          break
+        }
+      // No default
+      }
+    }
+  }
+
+  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  hot.render()
+}
+
+function undoPasteStyle(startRow, endRow, startCol, endCol, oldStyleMap) {
+  const cellsMap = new Map()
+  const hot = TableManager.get()
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cell = getCell(i, j)
+      if (!cell) {
+        continue
+      }
+
+      const key = `${cell.rowNumber},${cell.columnNumber}`
+      const oldStyle = oldStyleMap.get(key)
+      if (oldStyle) {
+        cell.cellStyle = oldStyle
+      }
+    }
+  }
+
+  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  hot.render()
+  return cellsMap
+}
+
+function pasteStyle(startRow, endRow, startCol, endCol) {
+  const style = window.__copy_cell_style__
+  const cellsMap = new Map()
+  const hot = TableManager.get()
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cell = getCell(i, j)
+      if (!cell) {
+        continue
+      }
+
+      const key = `${cell.rowNumber},${cell.columnNumber}`
+      if (!cell.cellStyle) {
+        cell.cellStyle = {}
+      }
+
+      const oldStyle = structuredClone(cell.cellStyle)
+      cellsMap.set(key, oldStyle)
+      cell.cellStyle.fontSize = style.fontSize
+      cell.cellStyle.forecolor = style.forecolor
+      cell.cellStyle.fontFamily = style.fontFamily
+      cell.cellStyle.valign = style.valign
+      cell.cellStyle.align = style.align
+      cell.cellStyle.bgcolor = style.bgcolor
+      cell.cellStyle.bold = style.bold
+      cell.cellStyle.italic = style.italic
+      cell.cellStyle.underline = style.underline
+    }
+  }
+
+  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  hot.render()
+  return cellsMap
+}
+
+function cleanCells(startRow, endRow, startCol, endCol, type) {
+  const removeCellsMap = new Map()
+  const hot = TableManager.get()
+  for (let i = startRow; i <= endRow; i++) {
+    for (let j = startCol; j <= endCol; j++) {
+      const cell = getCell(i, j)
+      if (!cell) {
+        continue
+      }
+
+      cell.cellStyle.format = null
+      const key = `${cell.rowNumber},${cell.columnNumber}`
+      switch (type) {
+        case 'content': {
+          removeCellsMap.set(key, {
+            value: cell.value,
+            leftParentCellName: cell.leftParentCellName,
+            topParentCellName: cell.topParentCellName,
+          })
+          cell.value = {
+            type: 'simple',
+            value: '',
+          }
+          cell.expand = 'None'
+          cell.conditionPropertyItems = null
+          cell.leftParentCellName = null
+          cell.topParentCellName = null
+          hot.setDataAtCell(i, j, '')
+
+          break
+        }
+
+        case 'style': {
+          removeCellsMap.set(key, cell.cellStyle)
+          cell.cellStyle = {
+            fontSize: 9,
+            forecolor: '0,0,0',
+            fontFamily: '宋体',
+            align: 'center',
+            valign: 'middle',
+          }
+
+          break
+        }
+
+        case 'all': {
+          removeCell(cell)
+          removeCellsMap.set(key, cell)
+          const newCell = {
+            rowNumber: cell.rowNumber,
+            columnNumber: cell.columnNumber,
+            expand: 'None',
+            value: {
+              type: 'simple',
+              value: '',
+            },
+            cellStyle: {
+              fontSize: 9,
+              forecolor: '0,0,0',
+              fontFamily: '宋体',
+              align: 'center',
+              valign: 'middle',
+            },
+          }
+          addCell(newCell)
+          hot.setDataAtCell(i, j, '')
+
+          break
+        }
+      // No default
+      }
+    }
+  }
+
+  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  hot.render()
+  return removeCellsMap
+}
+
+function checkCopyOperationDisabled() {
+  const hot = TableManager.get()
+  if (!hot || typeof hot.getSelected !== 'function') {
+    return true
+  }
+
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    return true
+  }
+
+  return false
+}
+
+function checkPasteOperationDisabled() {
+  const hot = TableManager.get()
+  if (!hot || typeof hot.getSelected !== 'function') {
+    return true
+  }
+
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    return true
+  }
+
+  if (window.__copy_cell_style__) {
+    return false
+  }
+
+  return true
+}
+
+function checkRowDeleteOperationDisabled() {
+  const hot = TableManager.get()
+  if (!hot || typeof hot.getSelected !== 'function') {
+    return true
+  }
+
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    return true
+  }
+
+  const selection = selected[0]
+  if (!selection) {
+    return true
+  }
+
+  const [startRow, , endRow] = selection
+  const dif = Math.abs(startRow - endRow) + 1
+  const countRows = typeof hot.countRows === 'function' ? hot.countRows() : 0
+  return dif >= countRows
+}
+
+function checkColDeleteOperationDisabled() {
+  const hot = TableManager.get()
+  if (!hot || typeof hot.getSelected !== 'function') {
+    return true
+  }
+
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    return true
+  }
+
+  const selection = selected[0]
+  if (!selection) {
+    return true
+  }
+
+  const [, startCol, , endCol] = selection
+  const dif = Math.abs(startCol - endCol) + 1
+  const countCols = typeof hot.countCols === 'function' ? hot.countCols() : 0
+  return dif >= countCols
+}
+
+function checkCleanOperationDisabled() {
+  const hot = TableManager.get()
+  if (!hot || typeof hot.getSelected !== 'function') {
+    return true
+  }
+
+  const selected = hot.getSelected()
+  if (!selected || selected.length === 0) {
+    return true
+  }
+
+  return false
+}
+
 export default function buildMenuConfigure() {
   return {
     callback(key, options) {
+      // eslint-disable-next-line unicorn/no-this-assignment -- Handsontable callback pattern requires preserving `this` context
       const _this = this
       switch (key) {
         case 'insert_row_above': {
@@ -118,7 +420,7 @@ export default function buildMenuConfigure() {
 
         case 'repeat_row_header': {
           const selected = this.getSelected()
-          const [startRow,,endRow] = selected[0]
+          const [startRow, , endRow] = selected[0]
           for (let rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
             addRowHeader(rowNumber, 'headerrepeat')
           }
@@ -131,7 +433,7 @@ export default function buildMenuConfigure() {
 
         case 'title_row': {
           const selected = this.getSelected()
-          const [startRow,,endRow] = selected[0]
+          const [startRow, , endRow] = selected[0]
           for (let rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
             addRowHeader(rowNumber, 'title')
           }
@@ -144,7 +446,7 @@ export default function buildMenuConfigure() {
 
         case 'repeat_row_footer': {
           const selected = this.getSelected()
-          const [startRow,,endRow] = selected[0]
+          const [startRow, , endRow] = selected[0]
           for (let rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
             addRowHeader(rowNumber, 'footerrepeat')
           }
@@ -157,7 +459,7 @@ export default function buildMenuConfigure() {
 
         case 'summary_row': {
           const selected = this.getSelected()
-          const [startRow,,endRow] = selected[0]
+          const [startRow, , endRow] = selected[0]
           for (let rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
             addRowHeader(rowNumber, 'summary')
           }
@@ -170,7 +472,7 @@ export default function buildMenuConfigure() {
 
         case 'repeat_cancel': {
           const selected = this.getSelected()
-          const [startRow,,endRow] = selected[0]
+          const [startRow, , endRow] = selected[0]
           for (let rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
             adjustDelRowHeaders(rowNumber)
           }
@@ -183,7 +485,8 @@ export default function buildMenuConfigure() {
 
         case 'row_height': {
           const selected = this.getSelected()
-          const [startRow,,,endRow] = selected[0]
+          // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
+          const [startRow, , , endRow] = selected[0]
           const rowHeight = this.getRowHeight(startRow)
           const dialog = new Class()
           dialog.show((newHeight) => {
@@ -204,7 +507,7 @@ export default function buildMenuConfigure() {
 
         case 'col_width': {
           const selected = this.getSelected()
-          const [,startCol,,endCol] = selected[0]
+          const [, startCol, , endCol] = selected[0]
           const colWidth = this.getColWidth(startCol)
           const dialog = new Class()
           dialog.show((newColWidth) => {
@@ -225,7 +528,7 @@ export default function buildMenuConfigure() {
 
         case 'copy_style': {
           const selected = this.getSelected()
-          const [startRow, startCol, endRow, endCol] = selected[0]
+          const [startRow, startCol] = selected[0]
           const cell = getCell(startRow, startCol)
           if (!cell) {
             showAlert($t('selectTargetCellFirst'))
@@ -330,300 +633,5 @@ export default function buildMenuConfigure() {
         disabled: checkCleanOperationDisabled,
       },
     },
-  }
-
-  function undoCleanCells(startRow, endRow, startCol, endCol, removeCellsMap, type) {
-    const hot = TableManager.get()
-    for (let i = startRow; i <= endRow; i++) {
-      for (let j = startCol; j <= endCol; j++) {
-        const cell = getCell(i, j)
-        if (!cell) {
-          continue
-        }
-
-        const key = `${cell.rowNumber},${cell.columnNumber}`
-        switch (type) {
-          case 'content': {
-            const orgData = removeCellsMap.get(key)
-            if (!orgData) {
-              showAlert($t('table.contextMenu.cancelConetntFail'))
-              return
-            }
-
-            cell.value = orgData.value
-            cell.leftParentCellName = orgData.leftParentCellName
-            cell.topParentCellName = orgData.topParentCellName
-            const value = cell.value
-            const valueType = value.type
-            let text = value.value
-            if (valueType === 'dataset') {
-              text = `${value.datasetName}.${value.aggregate}(${value.property})`
-            }
-
-            hot.setDataAtCell(i, j, text)
-
-            break
-          }
-
-          case 'style': {
-            const orgStyle = removeCellsMap.get(key)
-            if (!orgStyle) {
-              showAlert($t('table.contextMenu.cancelStyleFail'))
-              return
-            }
-
-            cell.cellStyle = orgStyle
-
-            break
-          }
-
-          case 'all': {
-            removeCell(cell)
-            const orgCell = removeCellsMap.get(key)
-            if (!orgCell) {
-              showAlert($t('table.contextMenu.cancelClearFail'))
-              return
-            }
-
-            addCell(orgCell)
-            const value = orgCell.value
-            const valueType = value.type
-            let text = value.value
-            if (valueType === 'dataset') {
-              text = `${value.datasetName}.${value.aggregate}(${value.property})`
-            }
-
-            hot.setDataAtCell(i, j, text)
-
-            break
-          }
-        // No default
-        }
-      }
-    }
-
-    Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    hot.render()
-  }
-
-  ;
-
-  function undoPasteStyle(startRow, endRow, startCol, endCol, oldStyleMap) {
-    const style = window.__copy_cell_style__
-    const cellsMap = new Map(); const hot = TableManager.get()
-    for (let i = startRow; i <= endRow; i++) {
-      for (let j = startCol; j <= endCol; j++) {
-        const cell = getCell(i, j)
-        if (!cell) {
-          continue
-        }
-
-        const key = `${cell.rowNumber},${cell.columnNumber}`
-        const oldStyle = oldStyleMap.get(key)
-        if (oldStyle) {
-          cell.cellStyle = oldStyle
-        }
-      }
-    }
-
-    Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    hot.render()
-    return cellsMap
-  }
-
-  ;
-
-  function pasteStyle(startRow, endRow, startCol, endCol) {
-    const style = window.__copy_cell_style__
-    const cellsMap = new Map(); const hot = TableManager.get()
-    for (let i = startRow; i <= endRow; i++) {
-      for (let j = startCol; j <= endCol; j++) {
-        const cell = getCell(i, j)
-        if (!cell) {
-          continue
-        }
-
-        const key = `${cell.rowNumber},${cell.columnNumber}`
-        if (!cell.cellStyle) {
-          cell.cellStyle = {}
-        }
-
-        const oldStyle = JSON.parse(JSON.stringify(cell.cellStyle))
-        cellsMap.set(key, oldStyle)
-        cell.cellStyle.fontSize = style.fontSize
-        cell.cellStyle.forecolor = style.forecolor
-        cell.cellStyle.fontFamily = style.fontFamily
-        cell.cellStyle.valign = style.valign
-        cell.cellStyle.align = style.align
-        cell.cellStyle.bgcolor = style.bgcolor
-        cell.cellStyle.bold = style.bold
-        cell.cellStyle.italic = style.italic
-        cell.cellStyle.underline = style.underline
-      }
-    }
-
-    Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    hot.render()
-    return cellsMap
-  }
-
-  ;
-
-  function cleanCells(startRow, endRow, startCol, endCol, type) {
-    const removeCellsMap = new Map(); const hot = TableManager.get()
-    for (let i = startRow; i <= endRow; i++) {
-      for (let j = startCol; j <= endCol; j++) {
-        const cell = getCell(i, j)
-        if (!cell) {
-          continue
-        }
-
-        cell.cellStyle.format = null
-        const key = `${cell.rowNumber},${cell.columnNumber}`
-        switch (type) {
-          case 'content': {
-            removeCellsMap.set(key, {
-              value: cell.value,
-              leftParentCellName: cell.leftParentCellName,
-              topParentCellName: cell.topParentCellName,
-            })
-            cell.value = {
-              type: 'simple',
-              value: '',
-            }
-            cell.expand = 'None'
-            cell.conditionPropertyItems = null
-            cell.leftParentCellName = null
-            cell.topParentCellName = null
-            hot.setDataAtCell(i, j, '')
-
-            break
-          }
-
-          case 'style': {
-            removeCellsMap.set(key, cell.cellStyle)
-            cell.cellStyle = { fontSize: 9, forecolor: '0,0,0', fontFamily: '宋体', align: 'center', valign: 'middle' }
-
-            break
-          }
-
-          case 'all': {
-            removeCell(cell)
-            removeCellsMap.set(key, cell)
-            const newCell = {
-              rowNumber: cell.rowNumber,
-              columnNumber: cell.columnNumber,
-              expand: 'None',
-              value: {
-                type: 'simple',
-                value: '',
-              },
-              cellStyle: { fontSize: 9, forecolor: '0,0,0', fontFamily: '宋体', align: 'center', valign: 'middle' },
-            }
-            addCell(newCell)
-            hot.setDataAtCell(i, j, '')
-
-            break
-          }
-        // No default
-        }
-      }
-    }
-
-    Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
-    hot.render()
-    return removeCellsMap
-  }
-
-  ;
-
-  function checkCopyOperationDisabled() {
-    const hot = TableManager.get()
-    if (!hot || typeof hot.getSelected !== 'function') {
-      return true
-    }
-
-    const selected = hot.getSelected()
-    if (!selected || selected.length === 0) {
-      return true
-    }
-
-    return false
-  }
-
-  function checkPasteOperationDisabled() {
-    const hot = TableManager.get()
-    if (!hot || typeof hot.getSelected !== 'function') {
-      return true
-    }
-
-    const selected = hot.getSelected()
-    if (!selected || selected.length === 0) {
-      return true
-    }
-
-    if (window.__copy_cell_style__) {
-      return false
-    }
-
-    return true
-  }
-
-  function checkRowDeleteOperationDisabled() {
-    const hot = TableManager.get()
-    if (!hot || typeof hot.getSelected !== 'function') {
-      return true
-    }
-
-    const selected = hot.getSelected()
-    if (!selected || selected.length === 0) {
-      return true
-    }
-
-    const selection = selected[0]
-    if (!selection) {
-      return true
-    }
-
-    const [startRow, , endRow] = selection
-    const dif = Math.abs(startRow - endRow) + 1
-    const countRows = typeof hot.countRows === 'function' ? hot.countRows() : 0
-    return dif >= countRows
-  }
-
-  function checkColDeleteOperationDisabled() {
-    const hot = TableManager.get()
-    if (!hot || typeof hot.getSelected !== 'function') {
-      return true
-    }
-
-    const selected = hot.getSelected()
-    if (!selected || selected.length === 0) {
-      return true
-    }
-
-    const selection = selected[0]
-    if (!selection) {
-      return true
-    }
-
-    const [, startCol, , endCol] = selection
-    const dif = Math.abs(startCol - endCol) + 1
-    const countCols = typeof hot.countCols === 'function' ? hot.countCols() : 0
-    return dif >= countCols
-  }
-
-  function checkCleanOperationDisabled() {
-    const hot = TableManager.get()
-    if (!hot || typeof hot.getSelected !== 'function') {
-      return true
-    }
-
-    const selected = hot.getSelected()
-    if (!selected || selected.length === 0) {
-      return true
-    }
-
-    return false
   }
 }

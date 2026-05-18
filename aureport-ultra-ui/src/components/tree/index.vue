@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{
   defaultExpandedKeys?: unknown[]
   defaultCheckedKeys?: unknown[]
   nodeKey?: string
-  renderContent?: (h: Function, context: { node: unknown, data: unknown }) => unknown
+  renderContent?: (h: typeof import('vue').h, context: { node: unknown, data: unknown }) => unknown
   filterNodeMethod?: (value: string, node: Record<string, unknown>) => boolean
   emptyText?: string
 }>(), {
@@ -50,7 +50,7 @@ export interface TreeContext {
   lazy: boolean
   load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
   nodeKey?: string
-  renderContent?: (h: Function, context: { node: unknown, data: unknown }) => unknown
+  renderContent?: (h: typeof import('vue').h, context: { node: unknown, data: unknown }) => unknown
   defaultExpandedKeys: unknown[]
   defaultCheckedKeys: unknown[]
   registerTreeNode: (ref: TreeNodeRef) => void

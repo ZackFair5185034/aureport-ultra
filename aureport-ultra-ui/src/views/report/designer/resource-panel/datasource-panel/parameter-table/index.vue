@@ -7,7 +7,7 @@ import ParameterDialog from '../parameter-dialog/index.vue'
 defineOptions({ name: 'ParameterTable' })
 
 const props = withDefaults(defineProps<{
-  data: any[]
+  data?: any[]
 }>(), {
   data: () => [],
 })

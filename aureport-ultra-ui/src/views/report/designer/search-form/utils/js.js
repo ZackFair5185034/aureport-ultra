@@ -8,7 +8,7 @@ const inheritAttrs = {
 }
 
 export function makeUpJs(conf, type) {
-  confGlobal = conf = JSON.parse(JSON.stringify(conf))
+  confGlobal = conf = structuredClone(conf)
   const dataList = []
   const ruleList = []
   const optionsList = []
@@ -52,39 +52,39 @@ function buildAttributes(el, dataList, ruleList, optionsList, methodList, propsL
 }
 
 function mixinMethod(type) {
-  const list = []; const
-    minxins = {
-      file: confGlobal.formBtns
-        ? {
-            submitForm: `submitForm() {
-        let that = this;
-        this.$refs['${confGlobal.formRef}'].validate(valid => {
-          if(!valid) return
-          that.$emit(\'on-submit\' ,that.formData)
-          // TODO 提交表单
-        })
-      },`,
-            resetForm: `resetForm() {
+  const list = []
+  const minxins = {
+    file: confGlobal.formBtns
+      ? {
+          submitForm: `submitForm() {
+          let that = this;
+          this.$refs['${confGlobal.formRef}'].validate(valid => {
+            if(!valid) return
+            that.$emit(\'on-submit\' ,that.formData)
+            // TODO 提交表单
+          })
+        },`,
+          resetForm: `resetForm() {
+          this.$refs['${confGlobal.formRef}'].resetFields()
+        },`,
+        }
+      : null,
+    dialog: {
+      onOpen: 'onOpen() {},',
+      onClose: `onClose() {
         this.$refs['${confGlobal.formRef}'].resetFields()
       },`,
-          }
-        : null,
-      dialog: {
-        onOpen: 'onOpen() {},',
-        onClose: `onClose() {
-        this.$refs['${confGlobal.formRef}'].resetFields()
-      },`,
-        close: `close() {
+      close: `close() {
         this.$emit('update:visible', false)
       },`,
-        handleConfirm: `handleConfirm() {
+      handleConfirm: `handleConfirm() {
         this.$refs['${confGlobal.formRef}'].validate(valid => {
           if(!valid) return
           this.close()
         })
       },`,
-      },
-    }
+    },
+  }
 
   const methods = minxins[type]
   if (methods) {
@@ -158,6 +158,7 @@ function buildRules(conf, ruleList) {
     if (conf.regList && Array.isArray(conf.regList)) {
       for (const item of conf.regList) {
         if (item.pattern) {
+          // eslint-disable-next-line no-eval
           rules.push(`{ pattern: ${eval(item.pattern)}, message: '${item.message}', trigger: '${trigger[conf.tag]}' }`)
         }
       }

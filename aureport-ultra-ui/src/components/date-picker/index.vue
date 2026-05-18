@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormItemContext } from '../form-item/index.vue'
-import { inject, ref, useAttrs, useSlots } from 'vue'
+import { computed, inject, ref, useAttrs, useSlots } from 'vue'
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import 'vue-datepicker-next/locale/zh-cn'
@@ -120,6 +120,8 @@ const innerValue = ref(props.modelValue)
 const attrs = useAttrs()
 const $slots = useSlots()
 
+const valueTypeComputed = computed(() => valueType as 'date' | 'timestamp' | 'format' | string)
+
 function handleChange(date: unknown, type?: unknown) {
   innerValue.value = date as Date | string | number | (Date | string | number)[] | undefined
   emit('update:modelValue', date)
@@ -192,7 +194,7 @@ defineExpose({ openPopup, closePopup, clearDate })
       :type="type"
       :range="range"
       :format="format"
-      :value-type="valueType as 'date' | 'timestamp' | 'format' | string"
+      :value-type="valueTypeComputed"
       :default-value="defaultValue"
       :lang="lang"
       :placeholder="placeholder"

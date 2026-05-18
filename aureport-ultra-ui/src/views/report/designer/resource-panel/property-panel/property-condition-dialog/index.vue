@@ -204,7 +204,7 @@ function handleOk() {
   emit('update:visible', false)
 
   const conditionsToReturn = localPropertyConditions.value.map((item) => {
-    return JSON.parse(JSON.stringify(item))
+    return structuredClone(item)
   })
 
   emit('saveAfter', conditionsToReturn)

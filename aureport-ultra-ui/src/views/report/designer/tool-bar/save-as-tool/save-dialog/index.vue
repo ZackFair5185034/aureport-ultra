@@ -266,7 +266,6 @@ function formatDateItem(date: string) {
         <label>{{ $t('dialog.save.fileName') }}：</label>
         <div class="u-inline">
           <u-input
-            ref="fileNameInput"
             v-model="fileName"
             style="width: 480px"
           />

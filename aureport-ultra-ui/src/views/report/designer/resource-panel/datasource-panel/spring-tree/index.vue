@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { v1 as uuidv1 } from 'uuid'
-// @ts-nocheck
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildClass } from '@/api/designer/index'
@@ -17,10 +16,10 @@ import FieldNameDialog from '../field-name-dialog/index.vue'
 defineOptions({ name: 'SpringTree' })
 
 const props = withDefaults(defineProps<{
-  name: string
-  datasets: any[]
-  datasources: any[]
-  beanId: string
+  name?: string
+  datasets?: any[]
+  datasources?: any[]
+  beanId?: string
 }>(), {
   name: '',
   datasets: () => [],
@@ -467,7 +466,6 @@ function handleSpringDatasourceSave(datasourceData: any) {
 
     <!-- 字段名输入对话框 -->
     <FieldNameDialog
-      ref="fieldNameDialog"
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
       @save="handleFieldNameSave"

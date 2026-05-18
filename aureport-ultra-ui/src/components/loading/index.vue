@@ -14,7 +14,7 @@ withDefaults(defineProps<{
 
 <template>
   <transition name="fade">
-    <div class="u-loading" :class="{ 'u-loading-fullscreen': fullscreen }" :style="{ background: bgColor }">
+    <div v-if="true" class="u-loading" :class="{ 'u-loading-fullscreen': fullscreen }" :style="{ background: bgColor }">
       <div class="u-loading-content">
         <div class="u-loading-icon">
           <i class="u-loading-animate iconfont icon-loading" />

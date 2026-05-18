@@ -8,10 +8,10 @@ import MethodSelectDialog from '@/views/report/designer/resource-panel/datasourc
 defineOptions({ name: 'BeanMethodDialog' })
 
 const props = withDefaults(defineProps<{
-  datasources: any[]
-  beanId: string
-  visible: boolean
-  dataset: any
+  datasources?: any[]
+  beanId?: string
+  visible?: boolean
+  dataset?: any
 }>(), {
   datasources: () => [],
   beanId: '',
@@ -128,7 +128,7 @@ function save() {
       @close="closeDialog"
     >
       <div class="dialog-content">
-        <u-form ref="form" :label-width="120">
+        <u-form :label-width="120">
           <u-form-item :label="$t('dialog.bean.datasetName')">
             <u-input v-model="name" style="width: 400px" />
           </u-form-item>

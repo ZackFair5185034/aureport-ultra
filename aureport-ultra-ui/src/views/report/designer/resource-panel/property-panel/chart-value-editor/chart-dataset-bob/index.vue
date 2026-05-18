@@ -36,8 +36,12 @@ const localRProperty = ref('')
 
 const context = computed(() => store.context || {})
 
-// @ts-ignore
-const datasources = computed(() => context.value?.reportDef?.datasources || [])
+const datasources = computed(() => {
+  if (!context.value?.reportDef?.datasources) {
+    return []
+  }
+  return context.value.reportDef.datasources
+})
 
 const availableDatasets = computed(() => {
   if (!datasources.value)
@@ -67,15 +71,29 @@ const fieldOptions = computed(() =>
   })),
 )
 
-watch(() => props.selectedDataset, (newVal) => { localDataset.value = newVal })
-watch(() => props.selectedCategoryProperty, (newVal) => { localCategoryProperty.value = newVal })
-watch(() => props.selectedXProperty, (newVal) => { localXProperty.value = newVal })
-watch(() => props.selectedYProperty, (newVal) => { localYProperty.value = newVal })
-watch(() => props.selectedRProperty, (newVal) => { localRProperty.value = newVal })
+watch(() => props.selectedDataset, (newVal) => {
+  localDataset.value = newVal
+})
+watch(() => props.selectedCategoryProperty, (newVal) => {
+  localCategoryProperty.value = newVal
+})
+watch(() => props.selectedXProperty, (newVal) => {
+  localXProperty.value = newVal
+})
+watch(() => props.selectedYProperty, (newVal) => {
+  localYProperty.value = newVal
+})
+watch(() => props.selectedRProperty, (newVal) => {
+  localRProperty.value = newVal
+})
 
-watch(() => localDataset.value, () => { updateAvailableFields() })
+watch(() => localDataset.value, () => {
+  updateAvailableFields()
+})
 
-watch(datasources, () => { updateAvailableFields() }, { immediate: true })
+watch(datasources, () => {
+  updateAvailableFields()
+}, { immediate: true })
 
 onMounted(() => {
   updateAvailableFields()

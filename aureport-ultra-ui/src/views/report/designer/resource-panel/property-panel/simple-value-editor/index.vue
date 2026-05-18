@@ -36,13 +36,7 @@ function loadCellData() {
 
   content.value = cellDef && cellDef.value && cellDef.value.value !== undefined ? cellDef.value.value : ''
 
-  if (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) {
-    // @ts-ignore
-    lineHeight.value = cellDef.cellStyle.lineHeight
-  }
-  else {
-    lineHeight.value = ''
-  }
+  lineHeight.value = (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) ? cellDef.cellStyle.lineHeight : ''
 }
 
 function onContentChange() {
@@ -76,7 +70,7 @@ function onLineHeightChange() {
       newCellDef.cellStyle = {}
     }
 
-    // @ts-ignore
+    // @ts-expect-error: lineHeight may not exist on cellStyle
     newCellDef.cellStyle.lineHeight = lineHeight.value
 
     const hot = TableManager.get()
@@ -93,10 +87,24 @@ function onLineHeightChange() {
   }
 }
 
-watch(() => props.rowIndex, () => { loadCellData() }, { immediate: true })
-watch(() => props.colIndex, () => { loadCellData() }, { immediate: true })
+watch(
+  () => props.rowIndex,
+  () => {
+    loadCellData()
+  },
+  { immediate: true },
+)
+watch(
+  () => props.colIndex,
+  () => {
+    loadCellData()
+  },
+  { immediate: true },
+)
 
-onMounted(() => { loadCellData() })
+onMounted(() => {
+  loadCellData()
+})
 </script>
 
 <template>

@@ -53,7 +53,8 @@ function handleClick() {
 }
 
 function doMergeCells(startRow: number, startCol: number, endRow: number, endCol: number, table: any) {
-  let doMerge = true; let doSplit = false
+  let doMerge = true
+  let doSplit = false
   const mergeCells = table.getSettings().mergeCells || []
 
   for (let i = startRow; i <= endRow; i++) {
@@ -72,7 +73,8 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
 
         while (index < mergeCells.length) {
           const mergeItem = mergeCells[index]
-          const row = mergeItem.row; const col = mergeItem.col
+          const row = mergeItem.row
+          const col = mergeItem.col
           if (row === i && col === j) {
             mergeCells.splice(index, 1)
             break
@@ -97,7 +99,8 @@ function doMergeCells(startRow: number, startCol: number, endRow: number, endCol
       endCol = tmp
     }
 
-    let rowSpan = endRow - startRow; let colSpan = endCol - startCol
+    let rowSpan = endRow - startRow
+    let colSpan = endCol - startCol
     if (rowSpan === 0) {
       rowSpan = 1
     }

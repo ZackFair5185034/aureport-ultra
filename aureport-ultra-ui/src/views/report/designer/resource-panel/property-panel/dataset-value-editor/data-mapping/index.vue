@@ -48,8 +48,7 @@ const localMappingValueProperty = ref(props.mappingValueProperty)
 
 const context = computed(() => store.context || {})
 
-// @ts-ignore
-const datasources = computed(() => context.value.reportDef?.datasources || [])
+const datasources = computed(() => context.value.reportDef?.datasources ?? [])
 
 const datasetOptions = computed(() =>
   props.datasets.map((dataset: any) => ({
@@ -95,7 +94,11 @@ watch(() => props.mappingValueProperty, (newVal) => {
   emit('mapping-value-property-change', newVal)
 })
 
-watch(() => localMappingDataset.value, () => { loadMappingFields() }, { immediate: true })
+watch(
+  () => localMappingDataset.value,
+  () => { loadMappingFields() },
+  { immediate: true },
+)
 
 function loadMappingFields() {
   mappingFields.value = []

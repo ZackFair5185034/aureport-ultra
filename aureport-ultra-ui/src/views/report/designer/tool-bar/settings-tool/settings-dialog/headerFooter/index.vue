@@ -40,22 +40,36 @@ const footerMargin = computed(() => pointToMM(localFooter.value.margin))
 
 watch(() => props.header, (newVal) => {
   localHeader.value = { ...newVal }
-  nextTick(() => { setHeaderEditorStyles() })
 }, { deep: true })
+
+watch(() => props.header, () => {
+  nextTick(() => {
+    setHeaderEditorStyles()
+  })
+})
 
 watch(() => props.footer, (newVal) => {
   localFooter.value = { ...newVal }
-  nextTick(() => { setFooterEditorStyles() })
 }, { deep: true })
+
+watch(() => props.footer, () => {
+  nextTick(() => {
+    setFooterEditorStyles()
+  })
+})
 
 onMounted(() => {
   setHeaderEditorStyles()
   setFooterEditorStyles()
 })
 
-function handleOpenHeaderFontDialog() { emit('open-header-font-dialog') }
+function handleOpenHeaderFontDialog() {
+  emit('open-header-font-dialog')
+}
 
-function handleOpenFooterFontDialog() { emit('open-footer-font-dialog') }
+function handleOpenFooterFontDialog() {
+  emit('open-footer-font-dialog')
+}
 
 function handleHeaderMarginChange(value: number) {
   if (!isNaN(value)) {

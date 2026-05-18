@@ -39,10 +39,10 @@ function onBorderChange() {
     checked: borderChecked.value,
     borders: borderChecked.value
       ? {
-          leftBorder: JSON.parse(JSON.stringify(defaultBorder)),
-          rightBorder: JSON.parse(JSON.stringify(defaultBorder)),
-          topBorder: JSON.parse(JSON.stringify(defaultBorder)),
-          bottomBorder: JSON.parse(JSON.stringify(defaultBorder)),
+          leftBorder: structuredClone(defaultBorder),
+          rightBorder: structuredClone(defaultBorder),
+          topBorder: structuredClone(defaultBorder),
+          bottomBorder: structuredClone(defaultBorder),
         }
       : {
           leftBorder: null,
@@ -54,7 +54,7 @@ function onBorderChange() {
 }
 
 function configBorder() {
-  localCellStyle.value = JSON.parse(JSON.stringify(props.cellStyle))
+  localCellStyle.value = structuredClone(props.cellStyle)
 
   if (!localCellStyle.value.leftBorder) {
     localCellStyle.value.leftBorder = { color: '0,0,0', width: '1', style: 'solid' }

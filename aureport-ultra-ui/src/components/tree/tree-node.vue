@@ -7,7 +7,7 @@ import { setNodeChecked } from './utils'
 defineOptions({ name: 'UTreeNode' })
 
 const props = withDefaults(defineProps<{
-  node: TreeNodeData
+  node?: TreeNodeData
   showCheckbox?: boolean
   lazy?: boolean
   load?: (node: Record<string, unknown>, callback: (data: unknown[]) => void) => void
@@ -26,22 +26,30 @@ const treeContext = inject<TreeContext>('treeContext')
 const rendered = ref(true)
 const loading = ref(false)
 
-const nodeChildren = computed(() => props.node.children || [])
+// Local state to avoid mutating props directly
+const localNode = ref(deepCopy(props.node))
+
+watch(() => props.node, (newVal) => {
+  localNode.value = deepCopy(newVal)
+}, { deep: true })
+
+const nodeChildren = computed(() => localNode.value.children || [])
 
 const showAngle = computed(() => {
-  return (props.lazy && !props.node.isLeaf) || nodeChildren.value.length > 0
+  return (props.lazy && !localNode.value.isLeaf) || nodeChildren.value.length > 0
 })
 
 const treeNodeInstance: TreeNodeRef = {
-  get node() { return props.node },
+  get node() { return localNode.value },
   handleExpand,
   handleCheck,
 }
 
 treeContext?.registerTreeNode(treeNodeInstance)
 
-watch(() => props.node.children, (newVal: TreeNodeData[] | undefined) => {
+watch(() => props.node?.children, (newVal: TreeNodeData[] | undefined) => {
   if (newVal) {
+    localNode.value.children = deepCopy(newVal)
     calcChecked(newVal)
     calcVisible(newVal)
   }
@@ -51,55 +59,56 @@ function handleExpand(expand?: boolean) {
   if (!showAngle.value || loading.value)
     return
 
-  if (props.lazy && !props.node.loaded) {
+  if (props.lazy && !localNode.value.loaded) {
     loading.value = true
-    props.load?.({ level: props.level ?? 1, ...(props.node as Record<string, unknown>) }, (data) => {
+    const nodeData = { level: props.level ?? 1, ...localNode.value }
+    props.load?.(nodeData, (data) => {
       loading.value = false
-      props.node.loaded = true
+      localNode.value.loaded = true
       if (!data || (data as unknown[]).length === 0) {
-        props.node.isLeaf = true
+        localNode.value.isLeaf = true
       }
       else {
-        props.node.children = deepCopy(data) as TreeNodeData[]
-        if (props.node.checked) {
+        localNode.value.children = deepCopy(data) as TreeNodeData[]
+        if (localNode.value.checked) {
           handleCheck(true)
         }
 
         nextTick(() => {
-          props.node.expand = !props.node.expand
+          localNode.value.expand = !localNode.value.expand
         })
       }
     })
   }
   else {
     if (nodeChildren.value.length > 0) {
-      props.node.expand = expand === undefined ? !props.node.expand : expand
+      localNode.value.expand = expand === undefined ? !localNode.value.expand : expand
     }
   }
 }
 
 function handleCheck(val: unknown) {
   const checked = Boolean(val)
-  props.node.checked = checked
-  setNodeChecked(props.node as Record<string, unknown>, checked)
+  localNode.value.checked = checked
+  setNodeChecked(localNode.value as Record<string, unknown>, checked)
 }
 
 function calcChecked(newVal: TreeNodeData[]) {
   const checkedAll = !newVal.some(item => !item.checked)
   const indeterminate = newVal.some(item => item.checked)
   if (checkedAll) {
-    props.node.checked = true
-    props.node.indeterminate = false
+    localNode.value.checked = true
+    localNode.value.indeterminate = false
   }
   else {
-    props.node.checked = false
-    props.node.indeterminate = indeterminate
+    localNode.value.checked = false
+    localNode.value.indeterminate = indeterminate
   }
 }
 
 function calcVisible(newVal: TreeNodeData[]) {
   const visible = newVal.some(item => item.visible)
-  props.node.visible = visible
+  localNode.value.visible = visible
 }
 </script>
 

@@ -48,6 +48,7 @@ export function buildChartDatas(chartData: Array<{ id: string, json: string }>):
     if (json) {
       json = JSON.parse(json, (_k: string, v: any) => {
         if (v && typeof v === 'string' && v.includes('function')) {
+          // eslint-disable-next-line no-eval
           return eval(`(function(){return ${v} })()`)
         }
 
@@ -60,7 +61,7 @@ export function buildChartDatas(chartData: Array<{ id: string, json: string }>):
 }
 
 export async function buildChart(canvasId: string, chartJson: Record<string, any>): Promise<Chart | undefined> {
-  const ctx = document.getElementById(canvasId) as HTMLCanvasElement | null
+  const ctx = document.querySelector(`#${canvasId}`) as HTMLCanvasElement | null
   if (!ctx)
     return
 
@@ -76,7 +77,7 @@ export async function buildChart(canvasId: string, chartJson: Record<string, any
       const chart = context.chart
       const base64Image = chart.toBase64Image()
       const urlParameters = window.location.search
-      const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null
+      const canvas = document.querySelector(`#${canvasId}`) as HTMLCanvasElement | null
       if (!canvas)
         return
 

@@ -35,8 +35,7 @@ interface FullColor {
 
 const pickerVisible = ref(false)
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const colors = ref<any>({
+const colors = ref<FullColor | Record<string, unknown>>({
   hex: '#000000',
   hsl: { h: 0, s: 0, l: 0, a: 1 },
   hsv: { h: 0, s: 0, v: 0, a: 1 },

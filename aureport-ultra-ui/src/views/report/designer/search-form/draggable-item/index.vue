@@ -3,7 +3,7 @@ import { computed, defineComponent, h, useAttrs } from 'vue'
 import UCol from '@/components/col/index.vue'
 import UFormItem from '@/components/form-item/index.vue'
 import URow from '@/components/row/index.vue'
-// @ts-ignore
+// @ts-expect-error RenderComponent type issue
 import RenderComponent from '../utils/render'
 
 const props = defineProps<{
@@ -103,6 +103,17 @@ const layouts: Record<string, (element: any, index: number, parent: any[]) => an
   rowFormItem,
 }
 
+function createLayoutComponent(layout: (element: any, index: number, parent: any[]) => any, element: any, index: number, drawingList: any[]) {
+  function render() {
+    return layout(element, index, drawingList)
+  }
+  return defineComponent({
+    setup() {
+      return render
+    },
+  })
+}
+
 const layoutComponent = computed(() => {
   const layout = layouts[props.element.layout]
   if (!layout) {
@@ -110,11 +121,7 @@ const layoutComponent = computed(() => {
     return null
   }
 
-  return defineComponent({
-    setup() {
-      return () => layout(props.element, props.index, props.drawingList)
-    },
-  })
+  return createLayoutComponent(layout, props.element, props.index, props.drawingList)
 })
 </script>
 

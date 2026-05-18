@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-// @ts-nocheck
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -108,9 +107,13 @@ function newChart(category: string) {
 }
 
 function refresh(startRow: number, startCol: number, endRow: number, endCol: number) {
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   for (let i = startRow; i <= endRow; i++) {
     for (let j = startCol; j <= endCol; j++) {

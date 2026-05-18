@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ClipboardJS from 'clipboard'
 import beautifier from 'js-beautify'
-// @ts-nocheck
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
@@ -117,7 +116,7 @@ watch(activeId, (val) => {
 })
 
 onMounted(() => {
-  // @ts-ignore
+  // @ts-expect-error ClipboardJS is loaded from CDN
   window.ClipboardJS = ClipboardJS
   document.addEventListener('keydown', (e: any) => {
     if (e.key === 's' && (e.ctrlKey || e.metaKey)) {

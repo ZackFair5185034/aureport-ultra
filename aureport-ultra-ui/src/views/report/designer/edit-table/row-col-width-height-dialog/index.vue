@@ -66,10 +66,9 @@ defineExpose({ show })
     @close="handleClose"
   >
     <div class="dialog-content">
-      <u-form ref="form" :label-width="100">
+      <u-form :label-width="100">
         <u-form-item :label="isCol ? t('dialog.rowColWidthHeight.colWidth') : t('dialog.rowColWidthHeight.rowHeight')">
           <u-input-number
-            ref="input"
             v-model="inputValue"
             :placeholder="t('dialog.rowColWidthHeight.tip')"
             @keyup.enter="handleOk"

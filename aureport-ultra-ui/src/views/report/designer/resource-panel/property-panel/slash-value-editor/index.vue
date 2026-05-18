@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils'
@@ -63,10 +62,20 @@ function handleRefresh() {
   }
 }
 
-watch(() => props.rowIndex, () => { loadSlashes() }, { immediate: true })
-watch(() => props.colIndex, () => { loadSlashes() }, { immediate: true })
+watch(
+  () => props.rowIndex,
+  () => { loadSlashes() },
+  { immediate: true },
+)
+watch(
+  () => props.colIndex,
+  () => { loadSlashes() },
+  { immediate: true },
+)
 
-onMounted(() => { loadSlashes() })
+onMounted(() => {
+  loadSlashes()
+})
 </script>
 
 <template>
@@ -121,7 +130,4 @@ onMounted(() => { loadSlashes() })
 </template>
 
 <style scoped>
-.slash-item {
-  margin-top: 22px;
-}
 </style>

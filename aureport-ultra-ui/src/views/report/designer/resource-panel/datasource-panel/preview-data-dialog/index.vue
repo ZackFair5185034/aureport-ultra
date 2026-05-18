@@ -7,8 +7,8 @@ import { LoadingDirective } from '@/components/loading/instance.js'
 defineOptions({ name: 'PreviewDataDialog' })
 
 const props = withDefaults(defineProps<{
-  visible: boolean
-  parameters: any
+  visible?: boolean
+  parameters?: any
 }>(), {
   visible: false,
   parameters: null,

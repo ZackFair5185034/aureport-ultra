@@ -14,7 +14,7 @@ function parseCellName(cellName) {
   let colIndex = 0
   const colStr = match[1]
   for (let i = 0; i < colStr.length; i++) {
-    colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64)
+    colIndex = colIndex * 26 + (colStr.codePointAt(i) - 64)
   }
 
   return { colIndex: colIndex - 1, rowNumber: parseInt(match[2]) }
@@ -44,19 +44,21 @@ export function doDeleteCol() {
     return
   }
 
-  let [startRow, startCol, endRow, endCol] = selected[0]
+  let [, startCol, , endCol] = selected[0]
   if (endCol < startCol) {
     const tempStartCol = startCol
     startCol = endCol
     endCol = tempStartCol
   }
 
-  let colWidths = this.getSettings().colWidths; let mergeCells = this.getSettings().mergeCells
+  let colWidths = this.getSettings().colWidths
+  let mergeCells = this.getSettings().mergeCells
   let oldMergeCells = []
   let newMergeCells = mergeCells.concat([])
   for (const mergeItem of mergeCells) {
     oldMergeCells.push(Object.assign({}, mergeItem))
-    const col = mergeItem.col; const colspan = mergeItem.colspan
+    const col = mergeItem.col
+    const colspan = mergeItem.colspan
     const colEnd = col + colspan - 1
     const index = newMergeCells.indexOf(mergeItem)
     if (col >= startCol && colEnd <= endCol) {
@@ -97,7 +99,8 @@ export function doDeleteCol() {
   let oldColWidths = colWidths.concat([])
   let newColWidths = colWidths.concat([])
   newColWidths.splice(startCol, dif)
-  let countRows = this.countRows(); const removeCells = []
+  let countRows = this.countRows()
+  const removeCells = []
   for (let i = endCol; i >= startCol; i--) {
     this.alter('remove_col', i)
     for (let j = 0; j < countRows; j++) {
@@ -109,7 +112,8 @@ export function doDeleteCol() {
     }
   }
 
-  const cellsMap = context.cellsMap; const changeCells = []
+  const cellsMap = context.cellsMap
+  const changeCells = []
   for (const cell of cellsMap.values()) {
     const colIndex = cell.columnNumber - 1
     if (colIndex >= endCol) {
@@ -132,15 +136,16 @@ export function doDeleteCol() {
   resetTableData(this, context)
   setDirty()
 
-  const _this = this
   undoManager.add({
-    redo() {
-      colWidths = _this.getSettings().colWidths, mergeCells = _this.getSettings().mergeCells
+    redo: () => {
+      colWidths = this.getSettings().colWidths
+      mergeCells = this.getSettings().mergeCells
       oldMergeCells = []
       newMergeCells = mergeCells.concat([])
       for (const mergeItem of mergeCells) {
         oldMergeCells.push(Object.assign({}, mergeItem))
-        const col = mergeItem.col; const colspan = mergeItem.colspan
+        const col = mergeItem.col
+        const colspan = mergeItem.colspan
         const colEnd = col + colspan - 1
         const index = newMergeCells.indexOf(mergeItem)
 
@@ -177,11 +182,11 @@ export function doDeleteCol() {
         }
       }
 
-      _this.updateSettings({ mergeCells: [] })
+      this.updateSettings({ mergeCells: [] })
       oldColWidths = colWidths.concat([])
       newColWidths = colWidths.concat([])
       newColWidths.splice(startCol, dif)
-      countRows = _this.countRows()
+      countRows = this.countRows()
       removeCells.splice(0)
       for (let i = endCol; i >= startCol; i--) {
         for (let j = 0; j < countRows; j++) {
@@ -192,7 +197,7 @@ export function doDeleteCol() {
           }
         }
 
-        _this.alter('remove_col', i)
+        this.alter('remove_col', i)
       }
 
       changeCells.splice(0)
@@ -214,13 +219,13 @@ export function doDeleteCol() {
         addCell(newCell)
       }
 
-      _this.updateSettings({ colWidths: newColWidths, mergeCells: newMergeCells })
-      resetTableData(_this, context)
+      this.updateSettings({ colWidths: newColWidths, mergeCells: newMergeCells })
+      resetTableData(this, context)
       setDirty()
     },
-    undo() {
+    undo: () => {
       for (let i = endCol; i >= startCol; i--) {
-        _this.alter('insert_col', i)
+        this.alter('insert_col', i)
       }
 
       changeCells.splice(0)
@@ -246,11 +251,9 @@ export function doDeleteCol() {
         addCell(cell)
       }
 
-      _this.updateSettings({ colWidths: oldColWidths, mergeCells: oldMergeCells })
-      resetTableData(_this, context)
+      this.updateSettings({ colWidths: oldColWidths, mergeCells: oldMergeCells })
+      resetTableData(this, context)
       setDirty()
     },
   })
 }
-
-;

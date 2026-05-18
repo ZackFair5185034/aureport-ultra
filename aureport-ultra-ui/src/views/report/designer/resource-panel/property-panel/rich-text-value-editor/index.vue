@@ -134,8 +134,14 @@ onBeforeUnmount(() => {
   document.removeEventListener('selectionchange', handleSelectionChange)
 })
 
-watch(() => props.rowIndex, () => { loadCellData() })
-watch(() => props.colIndex, () => { loadCellData() })
+watch(
+  () => props.rowIndex,
+  () => { loadCellData() },
+)
+watch(
+  () => props.colIndex,
+  () => { loadCellData() },
+)
 </script>
 
 <template>

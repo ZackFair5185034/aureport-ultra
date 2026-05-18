@@ -7,8 +7,8 @@ import { showAlert } from '@/utils/comnon'
 defineOptions({ name: 'SearchTable' })
 
 const props = withDefaults(defineProps<{
-  db: any
-  triggerLoad: boolean
+  db?: any
+  triggerLoad?: boolean
 }>(), {
   db: null,
   triggerLoad: false,

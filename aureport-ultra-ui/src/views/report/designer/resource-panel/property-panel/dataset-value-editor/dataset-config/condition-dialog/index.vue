@@ -155,7 +155,7 @@ async function validateExpression() {
     @close="handleClose"
   >
     <div class="dialog-content">
-      <u-form ref="form" :label-width="120">
+      <u-form :label-width="120">
         <u-form-item v-show="showJoinGroup" :label="t('dialog.condition.relationship')">
           <u-select
             v-model="joinValue"

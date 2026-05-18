@@ -196,8 +196,8 @@ declare module '@/views/report/designer/edit-table/utils/HeaderUtils' {
 
 declare module '@/lib/navigator' {
   interface Navigator {
-    navigate(options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }): void
-    openPreview(options: Record<string, unknown>, openInNewTab?: boolean): void
+    navigate: (options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }) => void
+    openPreview: (options: Record<string, unknown>, openInNewTab?: boolean) => void
   }
   export function createNavigator(component: { $router: unknown, $route: unknown }): Navigator
   export function getLibMode(): boolean
@@ -206,8 +206,8 @@ declare module '@/lib/navigator' {
 
 declare module '@/lib/navigator.js' {
   interface Navigator {
-    navigate(options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }): void
-    openPreview(options: Record<string, unknown>, openInNewTab?: boolean): void
+    navigate: (options: { target: string, params?: Record<string, unknown>, openInNewTab?: boolean }) => void
+    openPreview: (options: Record<string, unknown>, openInNewTab?: boolean) => void
   }
   export function createNavigator(component: { $router: unknown, $route: unknown }): Navigator
   export function getLibMode(): boolean
@@ -264,9 +264,9 @@ declare module '@/views/report/designer/search-form/utils/css.js' {
 
 declare module 'js-beautify' {
   const beautifier: {
-    html(code: string, options?: Record<string, unknown>): string
-    css(code: string, options?: Record<string, unknown>): string
-    js(code: string, options?: Record<string, unknown>): string
+    html: (code: string, options?: Record<string, unknown>) => string
+    css: (code: string, options?: Record<string, unknown>) => string
+    js: (code: string, options?: Record<string, unknown>) => string
   }
   export default beautifier
 }
@@ -336,20 +336,20 @@ declare module '@/views/report/preview/utils/render.jsx' {
 
 declare module 'raphael' {
   interface RaphaelPaper {
-    rect(x: number, y: number, w: number, h: number, r?: number): RaphaelElement
-    text(x: number, y: number, text: string): RaphaelElement
-    path(pathString: string): RaphaelElement
-    image(src: string, x: number, y: number, w: number, h: number): RaphaelElement
-    setViewBox(x: number, y: number, w: number, h: number, fit?: boolean): void
-    setSize(w: number, h: number): void
-    remove(): void
-    clear(): void
+    rect: (x: number, y: number, w: number, h: number, r?: number) => RaphaelElement
+    text: (x: number, y: number, text: string) => RaphaelElement
+    path: (pathString: string) => RaphaelElement
+    image: (src: string, x: number, y: number, w: number, h: number) => RaphaelElement
+    setViewBox: (x: number, y: number, w: number, h: number, fit?: boolean) => void
+    setSize: (w: number, h: number) => void
+    remove: () => void
+    clear: () => void
   }
   interface RaphaelElement {
-    attr(attrs: Record<string, unknown>): RaphaelElement
-    attr(name: string): string | number
-    toFront(): void
-    remove(): void
+    attr: (attrs: Record<string, unknown>) => RaphaelElement
+    attr: (name: string) => string | number
+    toFront: () => void
+    remove: () => void
     node: SVGElement
   }
   function Raphael(element: HTMLElement, width: number, height: number): RaphaelPaper

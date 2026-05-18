@@ -8,13 +8,13 @@ import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'
 import { updateReportDef } from '@/utils/contextActions'
 import { buildPageSizeList, mmToPoint, setDirty } from '@/utils/table'
-// @ts-ignore
+// @ts-expect-error Dynamic component import
 import ColumnSettings from './column/index.vue'
-// @ts-ignore
+// @ts-expect-error Dynamic component import
 import HeaderFooterSettings from './headerFooter/index.vue'
-// @ts-ignore
+// @ts-expect-error Dynamic component import
 import PageSettings from './page/index.vue'
-// @ts-ignore
+// @ts-expect-error Dynamic component import
 import PagingSettings from './paging/index.vue'
 
 defineOptions({ name: 'SettingsDialog' })
@@ -212,17 +212,29 @@ function updateBackgroundImage() {
   setDirty()
 }
 
-function updateHeaderMargin() { setDirty() }
+function updateHeaderMargin() {
+  setDirty()
+}
 
-function updateFooterMargin() { setDirty() }
+function updateFooterMargin() {
+  setDirty()
+}
 
-function updateColumnMargin() { setDirty() }
+function updateColumnMargin() {
+  setDirty()
+}
 
-function updatePaper(value: any) { paper.value = value }
+function updatePaper(value: any) {
+  paper.value = value
+}
 
-function updateHeader(value: any) { header.value = value }
+function updateHeader(value: any) {
+  header.value = value
+}
 
-function updateFooter(value: any) { footer.value = value }
+function updateFooter(value: any) {
+  footer.value = value
+}
 
 function handleFixRowsChange(value: number) {
   if (initializing.value)
@@ -244,13 +256,21 @@ function handleHtmlIntervalRefreshValueChange(value: number) {
   setDirty()
 }
 
-function openHeaderFontDialog() { headerFontDialogVisible.value = true }
+function openHeaderFontDialog() {
+  headerFontDialogVisible.value = true
+}
 
-function openFooterFontDialog() { footerFontDialogVisible.value = true }
+function openFooterFontDialog() {
+  footerFontDialogVisible.value = true
+}
 
-function handleHeaderFontDialogClose() { headerFontDialogVisible.value = false }
+function handleHeaderFontDialogClose() {
+  headerFontDialogVisible.value = false
+}
 
-function handleFooterFontDialogClose() { footerFontDialogVisible.value = false }
+function handleFooterFontDialogClose() {
+  footerFontDialogVisible.value = false
+}
 
 function handleHeaderFontDialogOk(style: any) {
   if (style) {
@@ -280,7 +300,9 @@ function handleFooterFontDialogOk(style: any) {
   footerFontDialogVisible.value = false
 }
 
-function validateHeaderFooter() { setDirty() }
+function validateHeaderFooter() {
+  setDirty()
+}
 
 function handlePaperTypeChange(value: string) {
   if (value !== 'CUSTOM') {
@@ -303,13 +325,21 @@ function handleOrientationChange() {
   setDirty()
 }
 
-function handleHtmlAlignChange() { setDirty() }
+function handleHtmlAlignChange() {
+  setDirty()
+}
 
-function handleColumnCountChange() { setDirty() }
+function handleColumnCountChange() {
+  setDirty()
+}
 
-function handlePagingModeChange() { setDirty() }
+function handlePagingModeChange() {
+  setDirty()
+}
 
-function handleColumnEnabledChange() { setDirty() }
+function handleColumnEnabledChange() {
+  setDirty()
+}
 </script>
 
 <template>

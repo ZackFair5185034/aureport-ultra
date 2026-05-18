@@ -39,7 +39,7 @@ watch(() => props.item, (newVal) => {
 
 function updateConfig(config: any) {
   if (config) {
-    const tempItem = JSON.parse(JSON.stringify(config))
+    const tempItem = structuredClone(config)
     localItem.value = {
       cellStyle: tempItem.cellStyle || {},
       rowHeight: tempItem.rowHeight === undefined ? null : tempItem.rowHeight,

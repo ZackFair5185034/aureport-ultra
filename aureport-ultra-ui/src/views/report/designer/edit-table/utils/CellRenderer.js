@@ -89,7 +89,8 @@ export function afterRenderer(td, row, col, prop, value, cellProperties) {
         imagePath = barcodeIcon
       }
 
-      const width = cellValue.width; const height = cellValue.height
+      const width = cellValue.width
+      const height = cellValue.height
       const image = document.createElement('img')
       image.src = imagePath
       image.width = width
@@ -125,11 +126,11 @@ export function afterRenderer(td, row, col, prop, value, cellProperties) {
   if (valueType === 'simple') {
     let text = td.textContent
     if (text && text !== '') {
-      text = text.replaceAll(new RegExp('<', 'g'), '&lt;')
-      text = text.replaceAll(new RegExp('>', 'g'), '&gt;')
-      text = text.replaceAll(new RegExp('\r\n', 'g'), '<br>')
-      text = text.replaceAll(new RegExp('\n', 'g'), '<br>')
-      text = text.replaceAll(new RegExp(' ', 'g'), '&nbsp;')
+      text = text.replaceAll('<', '&lt;')
+      text = text.replaceAll('>', '&gt;')
+      text = text.replaceAll('\r\n', '<br>')
+      text = text.replaceAll('\n', '<br>')
+      text = text.replaceAll(' ', '&nbsp;')
       td.innerHTML = text
     }
   }
@@ -204,7 +205,7 @@ export function afterRenderer(td, row, col, prop, value, cellProperties) {
     td.style.fontFamily = cellStyle.fontFamily
   }
 
-  td.style.lineHeight = cellStyle.lineHeight ? cellStyle.lineHeight : ''
+  td.style.lineHeight = cellStyle.lineHeight || ''
 
   const leftBorder = cellStyle.leftBorder
   if (leftBorder) {

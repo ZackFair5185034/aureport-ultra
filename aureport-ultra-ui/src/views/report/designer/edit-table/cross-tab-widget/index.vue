@@ -193,7 +193,7 @@ function doDraw() {
   const p = Raphael(el, savedWidth, savedHeight)
   paper.value = p
 
-  const fontStyle = `${cellStyle.fontSize}pt ${cellStyle.fontFamily ? cellStyle.fontFamily : '宋体'}`
+  const fontStyle = `${cellStyle.fontSize}pt ${cellStyle.fontFamily || '宋体'}`
   const bold = cellStyle.bold ? 'bold' : 'normal'
   const italic = cellStyle.italic ? 'italic' : 'normal'
   const underline = cellStyle.underline ? 'underline' : 'none'

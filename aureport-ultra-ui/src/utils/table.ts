@@ -122,12 +122,17 @@ export function formatDate(date: Date | number | string, fmt: string): string {
     's+': date.getSeconds(),
   }
   if (/(y+)/.test(fmt)) {
-    fmt = fmt.replace(RegExp.$1, (`${date.getFullYear()}`).slice(4 - RegExp.$1.length))
+    const match = fmt.match(/(y+)/)
+    if (match) {
+      fmt = fmt.replace(match[1], (`${date.getFullYear()}`).slice(4 - match[1].length))
+    }
   }
 
   for (const k in o) {
-    if (new RegExp(`(${k})`).test(fmt)) {
-      fmt = fmt.replace(RegExp.$1, RegExp.$1.length === 1 ? String(o[k]) : (`00${o[k]}`).slice((`${o[k]}`).length))
+    const re = new RegExp(`(${k})`)
+    const match = fmt.match(re)
+    if (match) {
+      fmt = fmt.replace(match[1], match[1].length === 1 ? String(o[k]) : (`00${o[k]}`).slice((`${o[k]}`).length))
     }
   }
 

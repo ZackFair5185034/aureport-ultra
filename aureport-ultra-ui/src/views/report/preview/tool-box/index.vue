@@ -21,9 +21,9 @@ import { buildLocationSearchParameters } from '@/views/report/preview/utils/rend
 defineOptions({ name: 'ToolBox' })
 
 const props = withDefaults(defineProps<{
-  reportData: any
-  currentPage: number
-  pageEnable: boolean
+  reportData?: any
+  currentPage?: number
+  pageEnable?: boolean
   searchFormParameters?: Record<string, any>
 }>(), {
   reportData: null,

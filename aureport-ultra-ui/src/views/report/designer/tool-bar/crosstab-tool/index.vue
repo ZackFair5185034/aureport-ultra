@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-// @ts-nocheck
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'

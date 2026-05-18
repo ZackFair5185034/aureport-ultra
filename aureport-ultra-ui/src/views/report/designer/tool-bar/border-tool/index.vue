@@ -78,17 +78,28 @@ function handleFullBorder() {
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   const newBorder = { width: 1, color: '0,0,0', style: 'solid' }
   const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
   table.render()
 
   undoManager.add({
-    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder); table.render(); setDirty() },
-    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() },
+    redo: () => {
+      updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
+      table.render()
+      setDirty()
+    },
+    undo: () => {
+      updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle)
+      setDirty()
+    },
   })
 
   setDirty()
@@ -102,29 +113,48 @@ function handleNoBorder() {
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   const newBorder = ''
   const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
   table.render()
 
   undoManager.add({
-    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder); table.render(); setDirty() },
-    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() },
+    redo: () => {
+      updateBorderStyles(startRow, startCol, endRow, endCol, newBorder)
+      table.render()
+      setDirty()
+    },
+    undo: () => {
+      updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle)
+      setDirty()
+    },
   })
 
   setDirty()
 }
 
-function handleLeftBorder() { applyBorder('left') }
+function handleLeftBorder() {
+  applyBorder('left')
+}
 
-function handleRightBorder() { applyBorder('right') }
+function handleRightBorder() {
+  applyBorder('right')
+}
 
-function handleTopBorder() { applyBorder('top') }
+function handleTopBorder() {
+  applyBorder('top')
+}
 
-function handleBottomBorder() { applyBorder('bottom') }
+function handleBottomBorder() {
+  applyBorder('bottom')
+}
 
 function applyBorder(target: string) {
   if (!checkSelection())
@@ -134,17 +164,28 @@ function applyBorder(target: string) {
   const selected = table.getSelected()
   let [startRow, startCol, endRow, endCol] = selected[0]
 
-  if (startRow > endRow) { [startRow, endRow] = [endRow, startRow] }
+  if (startRow > endRow) {
+    [startRow, endRow] = [endRow, startRow]
+  }
 
-  if (startCol > endCol) { [startCol, endCol] = [endCol, startCol] }
+  if (startCol > endCol) {
+    [startCol, endCol] = [endCol, startCol]
+  }
 
   const newBorder = { width: 1, color: '0,0,0', style: 'solid' }
   const oldBorderStyle = updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target)
   table.render()
 
   undoManager.add({
-    redo: () => { updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target); table.render(); setDirty() },
-    undo: () => { updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle); setDirty() },
+    redo: () => {
+      updateBorderStyles(startRow, startCol, endRow, endCol, newBorder, target)
+      table.render()
+      setDirty()
+    },
+    undo: () => {
+      updateOldBorderStyles(startRow, startCol, endRow, endCol, oldBorderStyle)
+      setDirty()
+    },
   })
 
   setDirty()
@@ -217,7 +258,10 @@ function rgbToHex(r: number, g: number, b: number) {
 
 function updateCustomBorderStyle(startRow: number, startCol: number, endRow: number, endCol: number, leftBorderStyle: any, rightBorderStyle: any, topBorderStyle: any, bottomBorderStyle: any) {
   const hot = TableManager.get()
-  let left = leftBorderStyle; let right = rightBorderStyle; let top = topBorderStyle; let bottom = bottomBorderStyle
+  let left = leftBorderStyle
+  let right = rightBorderStyle
+  let top = topBorderStyle
+  let bottom = bottomBorderStyle
 
   if (leftBorderStyle.style === 'none')
     left = ''
@@ -259,7 +303,7 @@ function updateCustomBorderStyle(startRow: number, startCol: number, endRow: num
 }
 
 function cloneBorder(border: any) {
-  return border && border !== '' ? JSON.parse(JSON.stringify(border)) : border
+  return border && border !== '' ? structuredClone(border) : border
 }
 
 function updateOldBorderStyles(startRow: number, startCol: number, endRow: number, endCol: number, oldBorderStyle: Record<string, any>) {

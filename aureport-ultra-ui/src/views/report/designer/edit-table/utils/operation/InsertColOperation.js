@@ -14,7 +14,7 @@ function parseCellName(cellName) {
   let colIndex = 0
   const colStr = match[1]
   for (let i = 0; i < colStr.length; i++) {
-    colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64)
+    colIndex = colIndex * 26 + (colStr.codePointAt(i) - 64)
   }
 
   return { colIndex: colIndex - 1, rowNumber: parseInt(match[2]) }
@@ -50,7 +50,7 @@ export function doInsertCol(left, number = 1) {
     return
   }
 
-  const [startRow, startCol, endRow, endCol] = selected[0]
+  const [, startCol, , endCol] = selected[0]
   let position = startCol
   if (startCol > endCol) {
     position = left ? endCol : startCol + 1
@@ -103,8 +103,10 @@ export function doInsertCol(left, number = 1) {
   resetTableData(this, context)
   setDirty()
 
-  const _this = this; const removeCells = []
+  const removeCells = []
   let removeColWidth = 98
+  // eslint-disable-next-line unicorn/no-this-assignment -- _this needed for undo/redo closures
+  const _this = this
   undoManager.add({
     redo() {
       colWidths = _this.getSettings().colWidths

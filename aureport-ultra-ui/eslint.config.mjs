@@ -86,6 +86,8 @@ export default antfu(
       '@typescript-eslint/no-explicit-any': 'off',
       // 允许使用非空断言（!）（如 dom!.click()）
       '@typescript-eslint/no-non-null-assertion': 'off',
+      // .d.ts 类型声明文件中 method-signature-style 规则不适用
+      'ts/method-signature-style': 'off',
     },
   },
   {

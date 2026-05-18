@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { computed, defineEmits, defineOptions, defineProps, ref } from 'vue'
+import { computed, defineEmits, defineOptions, defineProps, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import { deepCopy } from '@/components/utils'
@@ -18,7 +17,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'tag-change', target: any): void
+  (e: 'update:activeData', value: any): void
+  (e: 'update:formConf', value: any): void
 }>()
+
+// Local state to avoid mutating props directly
+const localActiveData = ref(deepCopy(props.activeData))
+const localFormConf = ref(deepCopy(props.formConf))
+
+watch(() => props.activeData, (newVal) => {
+  localActiveData.value = deepCopy(newVal)
+}, { deep: true })
+
+watch(() => props.formConf, (newVal) => {
+  localFormConf.value = deepCopy(newVal)
+}, { deep: true })
 
 const { t } = useI18n()
 
@@ -33,7 +46,7 @@ const justifyOptions = [
 ]
 
 const documentLink = computed(() =>
-  props.activeData.document || 'https://element.eleme.cn/#/zh-CN/component/installation',
+  localActiveData.value.document || 'https://element.eleme.cn/#/zh-CN/component/installation',
 )
 
 const dateTypeOptions = computed(() => [
@@ -44,7 +57,7 @@ const dateTypeOptions = computed(() => [
 ])
 
 const dateOptions = computed(() => {
-  if (props.activeData.type !== undefined && props.activeData.tag === 'u-date-picker') {
+  if (localActiveData.value.type !== undefined && localActiveData.value.tag === 'u-date-picker') {
     return dateTypeOptions.value
   }
 
@@ -56,7 +69,7 @@ const tagList = computed(() => [
   { label: t('searchForm.selectComponents'), options: selectComponents },
 ])
 
-const layoutTree = computed(() => deepCopy([props.activeData]))
+const layoutTree = computed(() => deepCopy([localActiveData.value]))
 
 const dateTimeFormat: Record<string, string> = {
   date: 'YYYY-MM-DD',
@@ -66,21 +79,23 @@ const dateTimeFormat: Record<string, string> = {
 }
 
 function addReg() {
-  if (!props.activeData.regList) {
-    props.activeData.regList = []
+  if (!localActiveData.value.regList) {
+    localActiveData.value.regList = []
   }
 
-  props.activeData.regList.push({
+  localActiveData.value.regList.push({
     pattern: '',
     message: '',
   })
+  emit('update:activeData', localActiveData.value)
 }
 
 function addSelectItem() {
-  props.activeData.options.push({
+  localActiveData.value.options.push({
     label: '',
     value: '',
   })
+  emit('update:activeData', localActiveData.value)
 }
 
 function addNode(data: any) {
@@ -108,26 +123,28 @@ function setDefaultValue(val: any): string {
 }
 
 function onDefaultValueInput(str: string) {
-  if (Array.isArray(props.activeData.defaultValue)) {
-    props.activeData.defaultValue = str.split(',').map((val: string) =>
+  if (Array.isArray(localActiveData.value.defaultValue)) {
+    localActiveData.value.defaultValue = str.split(',').map((val: string) =>
       isNumberStr(val) ? +val : val,
     )
   }
   else if (['true', 'false'].includes(str)) {
-    props.activeData.defaultValue = JSON.parse(str)
+    localActiveData.value.defaultValue = JSON.parse(str)
   }
   else {
-    props.activeData.defaultValue = isNumberStr(str) ? +str : str
+    localActiveData.value.defaultValue = isNumberStr(str) ? +str : str
   }
+  emit('update:activeData', localActiveData.value)
 }
 
 function onSwitchValueInput(val: string, name: string) {
   if (['true', 'false'].includes(val)) {
-    props.activeData[name] = JSON.parse(val)
+    localActiveData.value[name] = JSON.parse(val)
   }
   else {
-    props.activeData[name] = isNumberStr(val) ? +val : val
+    localActiveData.value[name] = isNumberStr(val) ? +val : val
   }
+  emit('update:activeData', localActiveData.value)
 }
 
 function onSwitchActiveValueInput(val: string) {
@@ -143,16 +160,19 @@ function setTimeFormatValue(val: string) {
 }
 
 function setTimeValue(val: string, _type?: string) {
-  props.activeData.defaultValue = null
-  props.activeData.format = val
+  localActiveData.value.defaultValue = null
+  localActiveData.value.format = val
+  emit('update:activeData', localActiveData.value)
 }
 
 function spanChange(val: number) {
-  props.formConf.span = val
+  localFormConf.value.span = val
+  emit('update:formConf', localFormConf.value)
 }
 
 function multipleChange(val: boolean) {
-  props.activeData.defaultValue = val ? [] : ''
+  localActiveData.value.defaultValue = val ? [] : ''
+  emit('update:activeData', localActiveData.value)
 }
 
 function dateTypeChange(val: string) {
@@ -167,11 +187,13 @@ function tagChange(tagIcon: string) {
 }
 
 function onCheckboxMinInput(val: any) {
-  props.activeData.min = val || undefined
+  localActiveData.value.min = val || undefined
+  emit('update:activeData', localActiveData.value)
 }
 
 function onCheckboxMaxInput(val: any) {
-  props.activeData.max = val || undefined
+  localActiveData.value.max = val || undefined
+  emit('update:activeData', localActiveData.value)
 }
 </script>
 
@@ -211,28 +233,54 @@ function onCheckboxMaxInput(val: any) {
           </u-form-item>
           <u-form-item v-if="activeData.componentName!==undefined" :label="t('searchForm.componentName')">
             {{ activeData.componentName }}
+<!-- 组件属性 -->
+        <u-form v-show="currentTab==='field' && showField" size="small" :label-width="90">
+          <u-form-item v-if="localActiveData.changeTag" :label="t('searchForm.componentType')">
+            <u-select
+              v-model="localActiveData.tagIcon"
+              :placeholder="t('searchForm.selectComponentType')"
+              :style="{width: '100%'}"
+              @change="tagChange"
+            >
+              <template v-for="group in tagList">
+                <div v-for="item in group.options" :key="item.label">
+                  <u-option
+                    :label="item.label"
+                    :value="item.tagIcon"
+                  >
+                    {{ item.label }}
+                  </u-option>
+                </div>
+              </template>
+            </u-select>
           </u-form-item>
-          <u-form-item v-if="activeData.label!==undefined" :label="t('searchForm.title')">
-            <u-input v-model="activeData.label" :placeholder="t('searchForm.enterTitle')" />
+          <u-form-item v-if="localActiveData.vModel!==undefined" :label="t('searchForm.fieldName')">
+            <u-input v-model="localActiveData.vModel" :placeholder="t('searchForm.enterFieldName')" />
           </u-form-item>
-          <u-form-item v-if="activeData.placeholder!==undefined" :label="t('searchForm.placeholder')">
-          <u-input v-model="activeData.placeholder" :placeholder="t('searchForm.enterPlaceholder')" />
+          <u-form-item v-if="localActiveData.componentName!==undefined" :label="t('searchForm.componentName')">
+            {{ localActiveData.componentName }}
+          </u-form-item>
+          <u-form-item v-if="localActiveData.label!==undefined" :label="t('searchForm.title')">
+            <u-input v-model="localActiveData.label" :placeholder="t('searchForm.enterTitle')" />
+          </u-form-item>
+          <u-form-item v-if="localActiveData.placeholder!==undefined" :label="t('searchForm.placeholder')">
+          <u-input v-model="localActiveData.placeholder" :placeholder="t('searchForm.enterPlaceholder')" />
         </u-form-item>
 
-        <u-form-item v-if="activeData.span!==undefined" :label="t('searchForm.formGrid')">
-          <u-input-number v-model="activeData.span" :max="24" :min="1" @change="spanChange" />
+        <u-form-item v-if="localActiveData.span!==undefined" :label="t('searchForm.formGrid')">
+          <u-input-number v-model="localActiveData.span" :max="24" :min="1" @change="spanChange" />
         </u-form-item>
-        <u-form-item v-if="activeData.layout==='rowFormItem'" :label="t('searchForm.gridSpacing')">
-          <u-input-number v-model="activeData.gutter" :min="0" :placeholder="t('searchForm.gridSpacing')" />
+        <u-form-item v-if="localActiveData.layout==='rowFormItem'" :label="t('searchForm.gridSpacing')">
+          <u-input-number v-model="localActiveData.gutter" :min="0" :placeholder="t('searchForm.gridSpacing')" />
         </u-form-item>
-        <u-form-item v-if="activeData.layout==='rowFormItem'" :label="t('searchForm.layoutMode')">
-          <u-radio-group v-model="activeData.type" button>
+        <u-form-item v-if="localActiveData.layout==='rowFormItem'" :label="t('searchForm.layoutMode')">
+          <u-radio-group v-model="localActiveData.type" button>
             <u-radio label="default" size="small" />
             <u-radio label="flex" size="small" />
           </u-radio-group>
         </u-form-item>
-        <u-form-item v-if="activeData.justify!==undefined&&activeData.type==='flex'" :label="t('searchForm.horizontalAlignment')">
-          <u-select v-model="activeData.justify" :placeholder="t('searchForm.selectHorizontalAlignment')" :style="{width: '100%'}">
+        <u-form-item v-if="localActiveData.justify!==undefined&&localActiveData.type==='flex'" :label="t('searchForm.horizontalAlignment')">
+          <u-select v-model="localActiveData.justify" :placeholder="t('searchForm.selectHorizontalAlignment')" :style="{width: '100%'}">
             <u-option
               v-for="(item, index) in justifyOptions"
               :key="index"
@@ -241,103 +289,77 @@ function onCheckboxMaxInput(val: any) {
             />
           </u-select>
         </u-form-item>
-        <u-form-item v-if="activeData.align!==undefined&&activeData.type==='flex'" :label="t('searchForm.verticalAlignment')">
-          <u-radio-group v-model="activeData.align" button>
+        <u-form-item v-if="localActiveData.align!==undefined&&localActiveData.type==='flex'" :label="t('searchForm.verticalAlignment')">
+          <u-radio-group v-model="localActiveData.align" button>
             <u-radio label="top" size="small" />
             <u-radio label="middle" size="small" />
             <u-radio label="bottom" size="small" />
           </u-radio-group>
         </u-form-item>
-        <u-form-item v-if="activeData.labelWidth!==undefined" :label="t('searchForm.labelWidth')">
-          <u-input-number v-model="activeData.labelWidth" :placeholder="t('searchForm.enterLabelWidth')" />
+        <u-form-item v-if="localActiveData.labelWidth!==undefined" :label="t('searchForm.labelWidth')">
+          <u-input-number v-model="localActiveData.labelWidth" :placeholder="t('searchForm.enterLabelWidth')" />
         </u-form-item>
-        <u-form-item v-if="activeData.style&&activeData.style.width!==undefined" :label="t('searchForm.componentWidth')">
-          <u-input v-model="activeData.style.width" :placeholder="t('searchForm.enterComponentWidth')" clearable />
+        <u-form-item v-if="localActiveData.style&&localActiveData.style.width!==undefined" :label="t('searchForm.componentWidth')">
+          <u-input v-model="localActiveData.style.width" :placeholder="t('searchForm.enterComponentWidth')" clearable />
         </u-form-item>
-        <u-form-item v-if="activeData.vModel!==undefined" :label="t('searchForm.defaultValue')">
+        <u-form-item v-if="localActiveData.vModel!==undefined" :label="t('searchForm.defaultValue')">
           <u-input
-            :value="setDefaultValue(activeData.defaultValue)"
+            :value="setDefaultValue(localActiveData.defaultValue)"
             :placeholder="t('searchForm.enterDefaultValue')"
             @input="onDefaultValueInput"
           />
         </u-form-item>
-        <u-form-item v-if="activeData.tag==='u-checkbox-group'" :label="t('searchForm.minSelect')">
+        <u-form-item v-if="localActiveData.tag==='u-checkbox-group'" :label="t('searchForm.minSelect')">
           <u-input-number
-            :value="activeData.min"
+            :value="localActiveData.min"
             :min="0"
             :placeholder="t('searchForm.minSelect')"
             @input="onCheckboxMinInput"
           />
         </u-form-item>
-        <u-form-item v-if="activeData.tag==='u-checkbox-group'" :label="t('searchForm.maxSelect')">
+        <u-form-item v-if="localActiveData.tag==='u-checkbox-group'" :label="t('searchForm.maxSelect')">
           <u-input-number
-            :value="activeData.max"
+            :value="localActiveData.max"
             :min="0"
             :placeholder="t('searchForm.maxSelect')"
             @input="onCheckboxMaxInput"
           />
         </u-form-item>
-        <!-- <u-form-item v-if="activeData.prepend!==undefined" label="前缀">
-          <u-input v-model="activeData.prepend" placeholder="请输入前缀" />
-        </u-form-item>
-        <u-form-item v-if="activeData.append!==undefined" label="后缀">
-          <u-input v-model="activeData.append" placeholder="请输入后缀" />
-        </u-form-item> -->
-          <u-form-item v-if="activeData.min !== undefined" :label="t('searchForm.minValue')">
-            <u-input-number v-model="activeData.min" :placeholder="t('searchForm.minValue')" />
+          <u-form-item v-if="localActiveData.min !== undefined" :label="t('searchForm.minValue')">
+            <u-input-number v-model="localActiveData.min" :placeholder="t('searchForm.minValue')" />
           </u-form-item>
-          <u-form-item v-if="activeData.max !== undefined" :label="t('searchForm.maxValue')">
-            <u-input-number v-model="activeData.max" :placeholder="t('searchForm.maxValue')" />
+          <u-form-item v-if="localActiveData.max !== undefined" :label="t('searchForm.maxValue')">
+            <u-input-number v-model="localActiveData.max" :placeholder="t('searchForm.maxValue')" />
           </u-form-item>
-          <u-form-item v-if="activeData.step !== undefined" :label="t('searchForm.step')">
-            <u-input-number v-model="activeData.step" :placeholder="t('searchForm.stepCount')" />
+          <u-form-item v-if="localActiveData.step !== undefined" :label="t('searchForm.step')">
+            <u-input-number v-model="localActiveData.step" :placeholder="t('searchForm.stepCount')" />
           </u-form-item>
-          <!-- <u-form-item v-if="activeData.tag === 'u-input-number'" label="精度">
-            <u-input-number v-model="activeData.precision" :min="0" placeholder="精度" />
-          </u-form-item> -->
-          <!-- <u-form-item v-if="activeData.tag === 'u-input-number'" label="按钮位置">
-            <u-radio-group v-model="activeData['controlsPosition']" button>
-              <u-radio label="" size="small">
-                默认
-              </u-radio>
-              <u-radio label="right" size="small">
-                右侧
-              </u-radio>
-            </u-radio-group>
-          </u-form-item> -->
-          <!-- <u-form-item v-if="activeData.maxlength !== undefined" label="最多输入">
-            <u-input v-model="activeData.maxlength" placeholder="请输入字符长度">
-              <template slot="append">
-                个字符
-              </template>
-            </u-input>
-          </u-form-item> -->
-          <u-form-item v-if="activeData['activeText'] !== undefined" :label="t('searchForm.activeText')">
-            <u-input v-model="activeData['activeText']" :placeholder="t('searchForm.enterActiveText')" />
+          <u-form-item v-if="localActiveData['activeText'] !== undefined" :label="t('searchForm.activeText')">
+            <u-input v-model="localActiveData['activeText']" :placeholder="t('searchForm.enterActiveText')" />
           </u-form-item>
-          <u-form-item v-if="activeData['inactiveText'] !== undefined" :label="t('searchForm.inactiveText')">
-            <u-input v-model="activeData['inactiveText']" :placeholder="t('searchForm.enterInactiveText')" />
+          <u-form-item v-if="localActiveData['inactiveText'] !== undefined" :label="t('searchForm.inactiveText')">
+            <u-input v-model="localActiveData['inactiveText']" :placeholder="t('searchForm.enterInactiveText')" />
           </u-form-item>
-          <u-form-item v-if="activeData['activeValue'] !== undefined" :label="t('searchForm.activeValue')">
+          <u-form-item v-if="localActiveData['activeValue'] !== undefined" :label="t('searchForm.activeValue')">
             <u-input
-              :value="setDefaultValue(activeData['activeValue'])"
+              :value="setDefaultValue(localActiveData['activeValue'])"
               :placeholder="t('searchForm.enterActiveValue')"
               @input="onSwitchActiveValueInput"
             />
           </u-form-item>
-          <u-form-item v-if="activeData['inactiveValue'] !== undefined" :label="t('searchForm.inactiveValue')">
+          <u-form-item v-if="localActiveData['inactiveValue'] !== undefined" :label="t('searchForm.inactiveValue')">
             <u-input
-              :value="setDefaultValue(activeData['inactiveValue'])"
+              :value="setDefaultValue(localActiveData['inactiveValue'])"
               :placeholder="t('searchForm.enterInactiveValue')"
               @input="onSwitchInactiveValueInput"
             />
           </u-form-item>
           <u-form-item
-            v-if="activeData.type !== undefined && 'u-date-picker' === activeData.tag"
+            v-if="localActiveData.type !== undefined && 'u-date-picker' === localActiveData.tag"
             :label="t('searchForm.timeType')"
           >
             <u-select
-              v-model="activeData.type"
+              v-model="localActiveData.type"
               :placeholder="t('searchForm.selectTimeType')"
               :style="{ width: '100%' }"
               @change="dateTypeChange"
@@ -352,22 +374,22 @@ function onCheckboxMaxInput(val: any) {
           </u-form-item>
 
 
-          <u-form-item v-if="activeData.format !== undefined" :label="t('searchForm.timeFormat')">
+          <u-form-item v-if="localActiveData.format !== undefined" :label="t('searchForm.timeFormat')">
             <u-input
-              :value="activeData.format"
+              :value="localActiveData.format"
               :placeholder="t('searchForm.enterTimeFormat')"
               @input="setTimeFormatValue"
             />
           </u-form-item>
-          <template v-if="['u-checkbox-group', 'u-radio-group', 'u-select'].indexOf(activeData.tag) > -1">
+          <template v-if="['u-checkbox-group', 'u-radio-group', 'u-select'].indexOf(localActiveData.tag) > -1">
             <u-divider>{{ t('searchForm.options') }}</u-divider>
             <draggable
-              :list="activeData.options"
+              :list="localActiveData.options"
               :animation="340"
               group="selectItem"
               handle=".option-drag"
             >
-              <div v-for="(item, index) in activeData.options" :key="index" class="select-item">
+              <div v-for="(item, index) in localActiveData.options" :key="index" class="select-item">
                 <div class="select-line-icon option-drag">
                   <i class="iconfont icon-success" />
                 </div>
@@ -378,7 +400,7 @@ function onCheckboxMaxInput(val: any) {
                   :value="item.value"
                   @input="onOptionValueInput(item, $event)"
                 />
-                <div class="close-btn select-line-icon" @click="activeData.options.splice(index, 1)">
+                <div class="close-btn select-line-icon" @click="localActiveData.options.splice(index, 1)">
                   <i class="iconfont icon-delete" />
                 </div>
               </div>
@@ -396,8 +418,8 @@ function onCheckboxMaxInput(val: any) {
             <u-divider />
           </template>
 
-          <u-form-item v-if="activeData.optionType !== undefined" :label="t('searchForm.optionStyle')">
-            <u-radio-group v-model="activeData.optionType" button>
+          <u-form-item v-if="localActiveData.optionType !== undefined" :label="t('searchForm.optionStyle')">
+            <u-radio-group v-model="localActiveData.optionType" button>
               <u-radio label="default" size="small">
                 {{ t('searchForm.default') }}
               </u-radio>
@@ -407,17 +429,17 @@ function onCheckboxMaxInput(val: any) {
             </u-radio-group>
           </u-form-item>
           <u-form-item
-            v-if="activeData.border !== undefined && activeData.optionType === 'default'"
+            v-if="localActiveData.border !== undefined && localActiveData.optionType === 'default'"
             :label="t('searchForm.bordered')"
           >
-            <u-switch v-model="activeData.border" />
+            <u-switch v-model="localActiveData.border" />
           </u-form-item>
           <u-form-item
-            v-if="activeData.size !== undefined &&
-              (activeData.optionType === 'button' || activeData.border)"
+            v-if="localActiveData.size !== undefined &&
+              (localActiveData.optionType === 'button' || localActiveData.border)"
             :label="t('searchForm.optionSize')"
           >
-            <u-radio-group v-model="activeData.size" button>
+            <u-radio-group v-model="localActiveData.size" button>
               <u-radio label="medium" size="small">
                 {{ t('searchForm.medium') }}
               </u-radio>
@@ -429,36 +451,27 @@ function onCheckboxMaxInput(val: any) {
               </u-radio>
             </u-radio-group>
           </u-form-item>
-          <!-- <u-form-item v-if="activeData['showWordLimit'] !== undefined" label="输入统计">
-            <u-switch v-model="activeData['showWordLimit']" />
-          </u-form-item> -->
-          <!-- <u-form-item v-if="activeData.tag === 'u-input-number'" label="严格步数">
-            <u-switch v-model="activeData['stepStrictly']" />
-          </u-form-item> -->
-          <u-form-item v-if="activeData.clearable !== undefined" :label="t('searchForm.clearable')">
-            <u-switch v-model="activeData.clearable" />
+          <u-form-item v-if="localActiveData.clearable !== undefined" :label="t('searchForm.clearable')">
+            <u-switch v-model="localActiveData.clearable" />
           </u-form-item>
-          <u-form-item v-if="activeData.showTip !== undefined" :label="t('searchForm.showTip')">
-            <u-switch v-model="activeData.showTip" />
+          <u-form-item v-if="localActiveData.showTip !== undefined" :label="t('searchForm.showTip')">
+            <u-switch v-model="localActiveData.showTip" />
           </u-form-item>
 
-          <u-form-item v-if="activeData.readonly !== undefined" :label="t('searchForm.readonly')">
-            <u-switch v-model="activeData.readonly" />
+          <u-form-item v-if="localActiveData.readonly !== undefined" :label="t('searchForm.readonly')">
+            <u-switch v-model="localActiveData.readonly" />
           </u-form-item>
-          <u-form-item v-if="activeData.disabled !== undefined" :label="t('searchForm.disabled')">
-            <u-switch v-model="activeData.disabled" />
+          <u-form-item v-if="localActiveData.disabled !== undefined" :label="t('searchForm.disabled')">
+            <u-switch v-model="localActiveData.disabled" />
           </u-form-item>
-          <!-- <u-form-item v-if="activeData.tag === 'u-select'" label="是否可搜索">
-            <u-switch v-model="activeData.filterable" />
-          </u-form-item> -->
-          <u-form-item v-if="activeData.tag === 'u-select'" :label="t('searchForm.multiple')">
-            <u-switch v-model="activeData.multiple" @change="multipleChange" />
+          <u-form-item v-if="localActiveData.tag === 'u-select'" :label="t('searchForm.multiple')">
+            <u-switch v-model="localActiveData.multiple" @change="multipleChange" />
           </u-form-item>
-          <u-form-item v-if="activeData.required !== undefined" :label="t('searchForm.required')">
-            <u-switch v-model="activeData.required" />
+          <u-form-item v-if="localActiveData.required !== undefined" :label="t('searchForm.required')">
+            <u-switch v-model="localActiveData.required" />
           </u-form-item>
 
-          <template v-if="activeData.layoutTree">
+          <template v-if="localActiveData.layoutTree">
             <u-divider>{{ t('searchForm.layoutStructureTree') }}</u-divider>
             <u-tree
               :data="layoutTree"
@@ -499,16 +512,16 @@ function onCheckboxMaxInput(val: any) {
         <!-- 表单属性 -->
         <u-form v-show="currentTab === 'form'" size="small" :label-width="90">
           <u-form-item :label="t('searchForm.formName')">
-            <u-input v-model="formConf.formRef" :placeholder="t('searchForm.enterFormName')" />
+            <u-input v-model="localFormConf.formRef" :placeholder="t('searchForm.enterFormName')" />
           </u-form-item>
           <u-form-item :label="t('searchForm.formModel')">
-            <u-input v-model="formConf.formModel" :placeholder="t('searchForm.enterFormModel')" />
+            <u-input v-model="localFormConf.formModel" :placeholder="t('searchForm.enterFormModel')" />
           </u-form-item>
           <u-form-item :label="t('searchForm.formRules')">
-            <u-input v-model="formConf.formRules" :placeholder="t('searchForm.enterFormRules')" />
+            <u-input v-model="localFormConf.formRules" :placeholder="t('searchForm.enterFormRules')" />
           </u-form-item>
           <u-form-item :label="t('searchForm.formSize')" button>
-            <u-radio-group v-model="formConf.size" button>
+            <u-radio-group v-model="localFormConf.size" button>
               <u-radio label="medium" size="small">
                 {{ t('searchForm.medium') }}
               </u-radio>
@@ -521,7 +534,7 @@ function onCheckboxMaxInput(val: any) {
             </u-radio-group>
           </u-form-item>
           <u-form-item :label="t('searchForm.labelPosition')">
-            <u-radio-group v-model="formConf.labelPosition" button>
+            <u-radio-group v-model="localFormConf.labelPosition" button>
               <u-radio label="left" size="small">
                 {{ t('searchForm.leftAlign') }}
               </u-radio>
@@ -534,19 +547,19 @@ function onCheckboxMaxInput(val: any) {
             </u-radio-group>
           </u-form-item>
           <u-form-item :label="t('searchForm.labelWidth')">
-            <u-input-number v-model="formConf.labelWidth" :placeholder="t('searchForm.labelWidth')" />
+            <u-input-number v-model="localFormConf.labelWidth" :placeholder="t('searchForm.labelWidth')" />
           </u-form-item>
           <u-form-item :label="t('searchForm.gutter')">
-            <u-input-number v-model="formConf.gutter" :min="0" :placeholder="t('searchForm.gutter')" />
+            <u-input-number v-model="localFormConf.gutter" :min="0" :placeholder="t('searchForm.gutter')" />
           </u-form-item>
           <u-form-item :label="t('searchForm.disableForm')">
-            <u-switch v-model="formConf.disabled" />
+            <u-switch v-model="localFormConf.disabled" />
           </u-form-item>
           <u-form-item :label="t('searchForm.formButtons')">
-            <u-switch v-model="formConf.formBtns" />
+            <u-switch v-model="localFormConf.formBtns" />
           </u-form-item>
           <u-form-item :label="t('searchForm.showUnfocusedBorder')">
-            <u-switch v-model="formConf.unFocusedComponentBorder" />
+            <u-switch v-model="localFormConf.unFocusedComponentBorder" />
           </u-form-item>
         </u-form>
       </div>

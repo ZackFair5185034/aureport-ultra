@@ -22,7 +22,7 @@ function parseCellName(cellName) {
   let colIndex = 0
   const colStr = match[1]
   for (let i = 0; i < colStr.length; i++) {
-    colIndex = colIndex * 26 + (colStr.charCodeAt(i) - 64)
+    colIndex = colIndex * 26 + (colStr.codePointAt(i) - 64)
   }
 
   return { colIndex: colIndex - 1, rowNumber: parseInt(match[2]) }
@@ -51,7 +51,7 @@ export function doInsertRow(above, number = 1) {
     return
   }
 
-  const [startRow, startCol, endRow, endCol] = selected[0]
+  const [, startRow, , endRow] = selected[0]
   let position = startRow
   if (startRow > endRow) {
     position = above ? endRow : startRow + 1
@@ -79,6 +79,7 @@ export function doInsertRow(above, number = 1) {
   resetTableData(this, context)
   setDirty()
 
+  // eslint-disable-next-line unicorn/no-this-assignment -- _this needed for undo/redo closures
   const _this = this
   const cellsMap = context.cellsMap
   const removeCells = []
@@ -178,7 +179,6 @@ export function doInsertRow(above, number = 1) {
 
 function buildNewRowCells(hot, position, number) {
   const countCols = hot.countCols()
-  const countRows = hot.countRows()
   const context = getContext()
   const cellsMap = context.cellsMap
   const changeCells = []

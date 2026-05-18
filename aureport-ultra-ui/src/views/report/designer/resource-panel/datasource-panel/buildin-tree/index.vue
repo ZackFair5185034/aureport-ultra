@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { v1 as uuidv1 } from 'uuid'
-// @ts-nocheck
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildFields as apiBuildFields } from '@/api/designer/index'
@@ -16,8 +15,8 @@ import FieldNameDialog from '../field-name-dialog/index.vue'
 defineOptions({ name: 'BuildinTree' })
 
 const props = withDefaults(defineProps<{
-  name: string
-  datasets: any[]
+  name?: string
+  datasets?: any[]
 }>(), {
   name: '',
   datasets: () => [],
@@ -420,7 +419,6 @@ function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, par
 
     <!-- 字段名输入对话框 -->
     <FieldNameDialog
-      ref="fieldNameDialog"
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
       @save="handleFieldNameSave"

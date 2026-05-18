@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import type { FormContext, FormField } from '../form/index.vue'
 import AsyncValidator from 'async-validator'
-import { ref, computed, inject, provide, onMounted, onBeforeUnmount, type Ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from 'vue'
 
 import './style/index.css'
 
@@ -33,16 +34,16 @@ const validateMessage = ref('')
 const isRequired = ref(false)
 
 const fieldValue = computed(() => {
-  if (!form?.model || !props.prop) 
-return
-  const path = props.prop.replace(/:/g, '.')
+  if (!form?.model || !props.prop)
+    return
+  const path = props.prop.replaceAll(':', '.')
   return getPropByPath(form.model, path).v
 })
 
 const labelStyles = computed(() => {
   const style: Record<string, string> = {}
-  if (form?.labelPosition === 'top') 
-return style
+  if (form?.labelPosition === 'top')
+    return style
   const labelWidth = props.labelWidth ?? form?.labelWidth ?? undefined
   if (labelWidth !== undefined) {
     style.width = `${labelWidth}px`
@@ -77,7 +78,7 @@ function getPropByPath(obj: Record<string, unknown>, path: string): { o: Record<
     if (key in tempObj) {
       tempObj = tempObj[key] as Record<string, unknown>
     }
- else {
+    else {
       throw new Error('[u-ui warn]: please transfer a valid prop path to form item!')
     }
   }
@@ -102,7 +103,7 @@ function getRules(): Record<string, unknown>[] {
 
 function getFilteredRule(trigger: string) {
   const rules = getRules()
-  return rules.filter((rule: Record<string, unknown>) => !rule.trigger || rule.trigger as string.includes(trigger))
+  return rules.filter((rule: Record<string, unknown>) => !rule.trigger || (rule.trigger as string).includes(trigger))
 }
 
 async function validate(trigger: string, callback?: (errors?: unknown) => void): Promise<boolean> {
@@ -110,35 +111,35 @@ async function validate(trigger: string, callback?: (errors?: unknown) => void):
   if (!rules || rules.length === 0) {
     if (props.required) {
       rules = [{ required: true }]
-    } else {
-      if (callback) callback()
+    }
+    else {
+      if (callback)
+        callback()
       return true
     }
   }
 
   validateState.value = 'validating'
 
-  const descriptor: Record<string, unknown[]> = {}
-  descriptor[props.prop as string] = rules
+  const descriptor: Record<string, unknown[]> = { [props.prop as string]: rules }
 
   const validator = new AsyncValidator(descriptor)
-  const model: Record<string, unknown> = {}
-  model[props.prop as string] = fieldValue.value
+  const model: Record<string, unknown> = { [props.prop as string]: fieldValue.value }
 
   try {
     await validator.validate(model, { firstFields: true })
     validateState.value = 'success'
     validateMessage.value = ''
-    if (callback) 
-callback()
+    if (callback)
+      callback()
     return true
   }
- catch (error: unknown) {
+  catch (error: unknown) {
     const err = error as { errors?: Array<{ message: string }> }
     validateState.value = 'error'
     validateMessage.value = err.errors ? err.errors[0].message : ''
-    if (callback) 
-callback(validateMessage.value || true)
+    if (callback)
+      callback(validateMessage.value || true)
     return false
   }
 }
@@ -147,9 +148,9 @@ function resetField() {
   validateState.value = ''
   validateMessage.value = ''
   if (form?.model && props.prop) {
-    const path = props.prop.replace(/:/g, '.')
+    const path = props.prop.replaceAll(':', '.')
     const prop = getPropByPath(form.model, path)
-    prop.o[prop.k] = Array.isArray(prop.v) ? [...(initialValue as unknown[])] : initialValue;
+    prop.o[prop.k] = Array.isArray(prop.v) ? [...(initialValue as unknown[])] : initialValue
   }
 }
 
@@ -193,14 +194,15 @@ onBeforeUnmount(() => {
 
 function setRules() {
   const rules = getRules()
-  if (rules.length && isRequired.value) 
-return
+  if (rules.length && isRequired.value)
+    return
   if (rules.length) {
     rules.every((rule: Record<string, unknown>) => {
       isRequired.value = rule.required as boolean
+      return true
     })
   }
- else if (props.required) {
+  else if (props.required) {
     isRequired.value = props.required
   }
 }
@@ -210,19 +212,19 @@ return
   <div :class="classes">
     <label
       v-if="label || $slots.label"
-      :class="[`${prefixCls }-label`]"
+      :class="[`${prefixCls}-label`]"
       :for="labelFor"
       :style="labelStyles"
     >
       <slot name="label">{{ label }}</slot>
     </label>
-    <label v-else :class="[`${prefixCls }-label-empty`]" :style="labelStyles" />
-    <div :class="[`${prefixCls }-content`]" :style="contentStyles">
+    <label v-else :class="[`${prefixCls}-label-empty`]" :style="labelStyles" />
+    <div :class="[`${prefixCls}-content`]" :style="contentStyles">
       <slot />
       <transition name="zoom-in-top">
         <div
           v-if="validateState === 'error' && showMessage && form?.showMessage"
-          :class="[`${prefixCls }-error-tip`]"
+          :class="[`${prefixCls}-error-tip`]"
         >
           {{ validateMessage }}
         </div>
