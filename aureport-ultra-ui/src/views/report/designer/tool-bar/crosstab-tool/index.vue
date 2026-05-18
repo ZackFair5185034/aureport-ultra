@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
+const H: any = Handsontable
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -36,7 +37,7 @@ const oldCellDataValue = ref<any>(null)
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -61,6 +62,7 @@ function handleClick() {
   const cellDef = getCell(rowIndex, colIndex)
 
   selectedCell.value = { rowIndex, colIndex, cellDef, selected }
+  if (!cellDef) return
   oldCellData.value = hot.getDataAtCell(rowIndex, colIndex)
   oldCellDataValue.value = cellDef.value
 
@@ -86,11 +88,12 @@ function handleSaveAfter(value: string) {
 
   hot.render()
   setDirty()
-  Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
+  H.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
 
   undoManager.add({
     redo: () => {
       const redoCellDef = deepCopy(getCell(rowIndex, colIndex))
+      if (!redoCellDef) return
       redoCellDef.value = { type: 'slash' }
       setCell(rowIndex, colIndex, redoCellDef)
       const widgetKey = `${rowIndex}_${colIndex}`
@@ -101,10 +104,11 @@ function handleSaveAfter(value: string) {
       CrossTabWidgetManager.set(widgetKey, new CrossTabWidget(hot, rowIndex, colIndex, value))
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
+      H.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
     },
     undo: () => {
       const undoCellDef = deepCopy(getCell(rowIndex, colIndex))
+      if (!undoCellDef) return
       undoCellDef.value = oldCellDataValue.value
       const widgetKey = `${rowIndex}_${colIndex}`
       if (CrossTabWidgetManager.has(widgetKey)) {
@@ -115,7 +119,7 @@ function handleSaveAfter(value: string) {
       hot.setDataAtCell(rowIndex, colIndex, oldCellData.value)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
+      H.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, selected[2], selected[3])
     },
   })
 }

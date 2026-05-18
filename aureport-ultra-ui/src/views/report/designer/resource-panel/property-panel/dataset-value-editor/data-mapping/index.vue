@@ -46,9 +46,9 @@ const localMappingDataset = ref(props.mappingDataset)
 const localMappingKeyProperty = ref(props.mappingKeyProperty)
 const localMappingValueProperty = ref(props.mappingValueProperty)
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
-const datasources = computed(() => context.value.reportDef?.datasources ?? [])
+const datasources = computed(() => context.value?.reportDef?.datasources ?? [])
 
 const datasetOptions = computed(() =>
   props.datasets.map((dataset: any) => ({

@@ -8,7 +8,7 @@ const store = useReportStore()
 
 const printLine = ref<HTMLDivElement | null>(null)
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
 const lineStyle = reactive({
   height: '0px',

@@ -37,7 +37,7 @@ const datasetValues = ref({
   selectedYProperty: '',
 })
 
-const xAxesConfig = ref({
+const xAxesConfig = ref<{ rotation: number; scaleLabel: { display: string | boolean; labelString: string } }>({
   rotation: 0,
   scaleLabel: {
     display: false,
@@ -45,7 +45,7 @@ const xAxesConfig = ref({
   },
 })
 
-const yAxesConfig = ref({
+const yAxesConfig = ref<{ rotation: number; scaleLabel: { display: string | boolean; labelString: string } }>({
   rotation: 0,
   scaleLabel: {
     display: false,
@@ -55,7 +55,12 @@ const yAxesConfig = ref({
 
 const xAxisFormat = ref('')
 
-const chartConfig = ref({
+const chartConfig = ref<{
+  title: { display: string | boolean; position: string; text: string }
+  legend: { display: string | boolean; position: string }
+  animation: { duration: number; easing: string }
+  dataLabels: { display: string | boolean }
+}>({
   title: {
     display: false,
     position: 'top',
@@ -149,11 +154,12 @@ function loadChartConfig() {
 
 function handleDatasetUpdate(config: any) {
   const cell = deepCopy(getCell(props.rowIndex, props.colIndex))
+  if (!cell || !cell.value)
+    return
   if (!cell.value.chart) {
-    cell.value.chart = {}
+    cell.value.chart = { dataset: {} }
   }
-
-  if (!cell.value.chart.dataset) {
+  else if (!cell.value.chart.dataset) {
     cell.value.chart.dataset = {}
   }
 

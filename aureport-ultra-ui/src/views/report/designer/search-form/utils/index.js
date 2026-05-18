@@ -72,7 +72,7 @@ export function formatDate(cellValue) {
 /**
  * @param {number} time
  * @param {string} option
- * @returns {string}
+ * @returns {string} 格式化后的时间字符串
  */
 export function formatTime(time, option) {
   time = (`${time}`).length === 10 ? parseInt(time) * 1000 : +time
@@ -112,7 +112,7 @@ export function formatTime(time, option) {
 
 /**
  * @param {string} url
- * @returns {object}
+ * @returns {object} 解析后的参数对象
  */
 export function getQueryObject(url) {
   url = url ?? window.location.href
@@ -151,7 +151,7 @@ export function byteLength(str) {
 
 /**
  * @param {Array} actual
- * @returns {Array}
+ * @returns {Array} 过滤后的新数组
  */
 export function cleanArray(actual) {
   const newArray = []
@@ -166,7 +166,7 @@ export function cleanArray(actual) {
 
 /**
  * @param {object} json
- * @returns {Array}
+ * @returns {Array} URL 参数字符串
  */
 export function param(json) {
   if (!json)
@@ -182,7 +182,7 @@ export function param(json) {
 
 /**
  * @param {string} url
- * @returns {object}
+ * @returns {object} 解析后的参数对象
  */
 export function param2Obj(url) {
   const search = decodeURIComponent(url.split('?')[1]).replaceAll('+', ' ')
@@ -206,7 +206,7 @@ export function param2Obj(url) {
 
 /**
  * @param {string} val
- * @returns {string}
+ * @returns {string} 提取后的纯文本内容
  */
 export function html2Text(val) {
   const div = document.createElement('div')
@@ -218,7 +218,7 @@ export function html2Text(val) {
  * Merges two objects, giving the last one precedence
  * @param {object} target
  * @param {(object | Array)} source
- * @returns {object}
+ * @returns {object} 合并后的对象
  */
 export function objectMerge(target, source) {
   if (typeof target !== 'object') {
@@ -262,7 +262,7 @@ export function toggleClass(element, className) {
 
 /**
  * @param {string} type
- * @returns {Date}
+ * @returns {Date} 计算后的日期对象
  */
 export function getTime(type) {
   return type === 'start' ? Date.now() - 3600 * 1000 * 24 * 90 : new Date(new Date().toDateString())
@@ -313,7 +313,7 @@ export function debounce(func, wait, immediate) {
  * Has a lot of edge cases bug
  * If you want to use a perfect deep copy, use lodash's _.cloneDeep
  * @param {object} source
- * @returns {object}
+ * @returns {object} 深度克隆后的对象
  */
 export function deepClone(source) {
   if (!source && typeof source !== 'object') {
@@ -330,14 +330,14 @@ export function deepClone(source) {
 
 /**
  * @param {Array} arr
- * @returns {Array}
+ * @returns {Array} 去重后的新数组
  */
 export function uniqueArr(arr) {
   return Array.from(new Set(arr))
 }
 
 /**
- * @returns {string}
+ * @returns {string} 生成的唯一字符串
  */
 export function createUniqueString() {
   const timestamp = `${Date.now()}`
@@ -349,7 +349,7 @@ export function createUniqueString() {
  * Check if an element has a class
  * @param {HTMLElement} ele
  * @param {string} cls
- * @returns {boolean}
+ * @returns {boolean} 是否包含指定 class
  */
 export function hasClass(ele, cls) {
   return !!new RegExp(String.raw`(\s|^)` + cls + String.raw`(\s|$)`).test(ele.className)

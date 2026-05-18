@@ -49,7 +49,7 @@ const currentIcon = computed(() => {
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -134,7 +134,7 @@ function buildCellAlign(align: string | null, prevAligns?: Record<string, string
         td.style.verticalAlign = align
       }
 
-      cellStyle.valign = align
+      cellStyle.valign = align ?? undefined
       setCell(i, j, newCellDef)
     }
   }

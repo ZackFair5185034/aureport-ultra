@@ -12,7 +12,7 @@ export interface ReportContext {
 export interface CellDef {
   rowNumber: number
   columnNumber: number
-  expand: ExpandType
+  expand: ExpandType | string
   cellStyle: CellStyle
   value: CellValue
   leftParentCellName?: string
@@ -24,6 +24,7 @@ export interface CellDef {
   linkParameters?: LinkParameter[]
   tooltip?: string
   conditionPropertyItems?: ConditionPropertyItem[]
+  crossTabWidget?: unknown
 }
 
 /** 单元格值 */
@@ -33,14 +34,15 @@ export interface CellValue {
   // dataset
   datasetName?: string
   property?: string
-  aggregate?: AggregateType
-  order?: SortType
+  aggregate?: AggregateType | string
+  order?: SortType | string
   groupHead?: boolean
   groupFoot?: boolean
   mappingType?: string
   mappingDataset?: string
   mappingKeyProperty?: string
   mappingValueProperty?: string
+  nestProperty?: string
   conditions?: Condition[]
   groupItems?: GroupItem[]
   mappingItems?: MappingItem[]
@@ -58,6 +60,8 @@ export interface CellValue {
   chart?: ChartConfig
   // zxing
   data?: string
+  // dataset value (array type for select)
+  values?: string[]
 }
 
 /** 单元格样式 */
@@ -87,6 +91,7 @@ export interface CellStyle {
   rightBorder?: BorderDef
   topBorder?: BorderDef
   bottomBorder?: BorderDef
+  renderer?: string
 }
 
 /** 边框定义 */
@@ -242,8 +247,8 @@ export interface ChartConfig {
 
 /** 图表数据集 */
 export interface ChartDataset {
-  datasetName: string
-  type: string
+  datasetName?: string
+  type?: string
   categoryProperty?: string
   seriesProperty?: string
   seriesType?: string
@@ -253,12 +258,13 @@ export interface ChartDataset {
   xProperty?: string
   yProperty?: string
   collectType?: string
+  format?: string
 }
 
 /** 图表轴 */
 export interface ChartAxis {
   rotation?: number
-  scaleLabel?: { display: string, labelString?: string }
+  scaleLabel?: { display?: string | boolean, labelString?: string }
   ticks?: { beginAtZero?: boolean, stepSize?: number, suggestedMax?: number, max?: number }
 }
 
@@ -266,26 +272,27 @@ export interface ChartAxis {
 export interface ChartOption {
   type: string
   position?: string
-  display?: string
+  display?: string | boolean
   duration?: number
   easing?: string
   text?: string
   labels?: string[]
   padding?: { top?: number, right?: number, bottom?: number, left?: number }
+  layout?: { top?: number, bottom?: number, left?: number, right?: number }
 }
 
 /** 图表插件 */
 export interface ChartPlugin {
   name: string
-  display: string
+  display: string | boolean
 }
 
 // ====== 枚举/联合类型 ======
 
 export type ExpandType = 'None' | 'Down' | 'Right'
-export type BandType = 'header' | 'footer' | 'detail' | 'title' | 'summary'
-export type AggregateType = 'select' | 'group' | 'customgroup' | 'sum' | 'count' | 'max' | 'min' | 'avg'
 export type SortType = 'none' | 'asc' | 'desc'
+export type AggregateType = 'select' | 'group' | 'customgroup' | 'sum' | 'count' | 'max' | 'min' | 'avg'
+export type BandType = 'header' | 'footer' | 'detail' | 'title' | 'summary'
 
 // ====== API 类型 ======
 

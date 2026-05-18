@@ -41,7 +41,7 @@ const menuItems = computed(() => {
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -102,7 +102,7 @@ function updateFontFamily(startRow: number, startCol: number, endRow: number, en
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldFontFamily[`${i},${j}`] = newCellDef.cellStyle.fontFamily
+      oldFontFamily[`${i},${j}`] = newCellDef.cellStyle.fontFamily ?? ''
       cellStyle.fontFamily = fontFamily
       setCell(i, j, newCellDef)
 

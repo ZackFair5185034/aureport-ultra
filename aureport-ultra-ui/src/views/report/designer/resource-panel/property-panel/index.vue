@@ -123,7 +123,7 @@ function refresh() {
 
   const type = cellDef.value.type || 'simple'
   if (type === 'chart') {
-    const chartType = cellDef.value.chart.dataset.type
+    const chartType = cellDef.value.chart?.dataset.type ?? ''
 
     let actualChartType = chartType
     if (chartType === 'horizontalBar') {

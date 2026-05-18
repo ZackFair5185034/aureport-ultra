@@ -191,12 +191,12 @@ async function scriptLintFn(
   try {
     const result = await scriptValidation(text)
     if (result) {
-      for (const item of result) {
+      for (const item of result as any[]) {
         item.from = { line: item.line - 1 }
         item.to = { line: item.line - 1 }
       }
 
-      updateLinting(editor, result)
+      updateLinting(editor, result as any[])
     }
     else {
       updateLinting(editor, [])
@@ -289,7 +289,7 @@ async function handleConditionPropertyConfig() {
   if (expr && expr !== '') {
     try {
       const result = await parseDatasetName(expr)
-      datasetName = result.datasetName
+      datasetName = (result as { datasetName: string }).datasetName
     }
     catch (error) {
       console.error('Parse dataset name error:', error)

@@ -30,8 +30,8 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const store = useReportStore()
-const context = computed(() => store.context || {})
-const datasources = computed(() => context.value.reportDef?.datasources || [])
+const context = computed(() => store.context || null)
+const datasources = computed(() => context.value?.reportDef?.datasources || [])
 
 const conditionList = ref<HTMLSelectElement | null>(null)
 const selectedConditionIndex = ref(-1)

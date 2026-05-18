@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd E:/coding-space/aiCode/aureport-ultra/aureport-ultra-ui && rtk lint --ext .vue src/components/color-picker/index.vue 2>&1\",\"timeout\":60000}",
-  "error": "Exit code 1\nESLint: 2 errors, 0 warnings in 1 files\n═══════════════════════════════════════\nTop rules:\n  vue/no-unused-refs (1x)\n  @typescript-eslint/no-explicit-any (1x)\n\nTop files:\n  src/components/color-picker/index.vue (2 issues)\n    vue/no-unused-refs (1)\n    @typescript-eslint/no-explicit-any (1)\n[full output: ~/AppData\\Local\\rtk\\tee\\1779023989_lint.log]",
-  "timestamp": "2026-05-17T13:19:50.238Z",
-  "retry_count": 1
-}

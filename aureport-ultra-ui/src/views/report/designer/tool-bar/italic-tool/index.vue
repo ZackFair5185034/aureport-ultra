@@ -21,7 +21,7 @@ const isActive = ref(false)
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -82,7 +82,7 @@ function updateCellsItalicStyle(startRow: number, startCol: number, endRow: numb
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldItalicStyle[`${i},${j}`] = newCellDef.cellStyle.italic
+      oldItalicStyle[`${i},${j}`] = newCellDef.cellStyle.italic ?? false
       cellStyle.italic = !cellStyle.italic
       setCell(i, j, newCellDef)
 

@@ -105,7 +105,6 @@ export function doInsertCol(left, number = 1) {
 
   const removeCells = []
   let removeColWidth = 98
-  // eslint-disable-next-line unicorn/no-this-assignment -- _this needed for undo/redo closures
   const _this = this
   undoManager.add({
     redo() {

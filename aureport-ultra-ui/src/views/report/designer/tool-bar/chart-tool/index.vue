@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
+const H: any = Handsontable
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -34,7 +35,7 @@ const menuItems = computed(() => [
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -57,6 +58,7 @@ function handleChartClick(category: string) {
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
   const cellDef = getCell(startRow, startCol)
+  if (!cellDef) return
   const oldValue = cellDef.value
   const oldCellData = hot.getDataAtCell(startRow, startCol)
 
@@ -69,11 +71,12 @@ function handleChartClick(category: string) {
   setCell(startRow, startCol, newCellDef)
   hot.render()
   setDirty()
-  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
 
   undoManager.add({
     redo: () => {
       const currentCellDef = getCell(startRow, startCol)
+      if (!currentCellDef) return
       const redoNewCellDef = deepCopy(currentCellDef)
       hot.setDataAtCell(startRow, startCol, '')
       redoNewCellDef.value = {
@@ -83,17 +86,18 @@ function handleChartClick(category: string) {
       setCell(startRow, startCol, redoNewCellDef)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
     undo: () => {
       const undoCellDef = getCell(startRow, startCol)
+      if (!undoCellDef) return
       const undoNewCellDef = deepCopy(undoCellDef)
       undoNewCellDef.value = oldValue
       setCell(startRow, startCol, undoNewCellDef)
       hot.setDataAtCell(startRow, startCol, oldCellData)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
   })
 }

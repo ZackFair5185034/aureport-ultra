@@ -3,17 +3,19 @@ import { computed, defineEmits, defineOptions, defineProps, ref, watch } from 'v
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import { deepCopy } from '@/components/utils'
-import { isNumberStr } from '../utils'
-import { inputComponents, selectComponents } from '../utils/config'
+import { isNumberStr } from '@/views/report/designer/search-form/utils'
+import { inputComponents, selectComponents } from '@/views/report/designer/search-form/utils/config'
 
 defineOptions({
   name: 'RightPanel',
 })
-const props = defineProps<{
-  showField: boolean
+const props = withDefaults(defineProps<{
+  showField?: boolean
   activeData: any
   formConf: any
-}>()
+}>(), {
+  showField: true,
+})
 
 const emit = defineEmits<{
   (e: 'tag-change', target: any): void
@@ -217,7 +219,7 @@ function onCheckboxMaxInput(val: any) {
               @change="tagChange"
             >
               <template v-for="group in tagList">
-                <div v-for="item in group.options" :key="item.label">
+                <div v-for="(item, idx) in group.options" :key="idx">
                   <u-option
                     :label="item.label"
                     :value="item.tagIcon"
@@ -233,6 +235,8 @@ function onCheckboxMaxInput(val: any) {
           </u-form-item>
           <u-form-item v-if="activeData.componentName!==undefined" :label="t('searchForm.componentName')">
             {{ activeData.componentName }}
+          </u-form-item>
+        </u-form>
 <!-- 组件属性 -->
         <u-form v-show="currentTab==='field' && showField" size="small" :label-width="90">
           <u-form-item v-if="localActiveData.changeTag" :label="t('searchForm.componentType')">
@@ -243,7 +247,7 @@ function onCheckboxMaxInput(val: any) {
               @change="tagChange"
             >
               <template v-for="group in tagList">
-                <div v-for="item in group.options" :key="item.label">
+                <div v-for="(item, idx) in group.options" :key="idx">
                   <u-option
                     :label="item.label"
                     :value="item.tagIcon"

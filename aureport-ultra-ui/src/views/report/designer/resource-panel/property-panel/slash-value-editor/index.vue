@@ -35,6 +35,7 @@ function handleSlashChange(index: number) {
     return
 
   const newCellDef = deepCopy(cellDef)
+  if (!newCellDef.value.slashes) newCellDef.value.slashes = []
   newCellDef.value.slashes[index] = deepCopy(slashes.value[index])
 
   setCell(props.rowIndex, props.colIndex, newCellDef)
@@ -55,8 +56,8 @@ function handleRefresh() {
   const context = getContext()
   if (context) {
     const crossTabWidget = new CrossTabWidget(context, props.rowIndex, props.colIndex, '')
-    crossTabWidget.refreshCell()
-    crossTabWidget.doDraw()
+    crossTabWidget.refreshCell?.()
+    crossTabWidget.doDraw?.()
 
     loadSlashes()
   }

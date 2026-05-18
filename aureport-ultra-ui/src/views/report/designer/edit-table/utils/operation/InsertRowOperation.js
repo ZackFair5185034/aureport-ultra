@@ -79,7 +79,6 @@ export function doInsertRow(above, number = 1) {
   resetTableData(this, context)
   setDirty()
 
-  // eslint-disable-next-line unicorn/no-this-assignment -- _this needed for undo/redo closures
   const _this = this
   const cellsMap = context.cellsMap
   const removeCells = []

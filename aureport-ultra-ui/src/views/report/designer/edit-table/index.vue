@@ -97,7 +97,7 @@ function initHandsontable() {
     autoRowSize: false,
     manualColumnResize: true,
     manualRowResize: true,
-    // @ts-ignore -- maxColsNumber 是自定义属性
+    // @ts-expect-error -- maxColsNumber 是自定义属性
     maxColsNumber: 700,
     outsideClickDeselects: false,
     width: '100%' as unknown as number,

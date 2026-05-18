@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const H: any = Handsontable
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -12,6 +10,8 @@ import { setDirty, undoManager } from '@/utils/table'
 import TableManager from '@/views/report/designer/edit-table/manager'
 
 defineOptions({ name: 'ZxingTool' })
+
+const H: any = Handsontable
 
 const { t } = useI18n()
 

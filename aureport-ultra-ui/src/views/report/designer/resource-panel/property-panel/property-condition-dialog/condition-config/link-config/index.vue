@@ -3,7 +3,7 @@ import { onBeforeMount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 import URLParameterDialog from '../../../url-parameter-dialog/index.vue'
-import configOptions from '../constants/config-options.js'
+import configOptions from '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-config/constants/config-options.js'
 
 defineOptions({ name: 'LinkConfig' })
 

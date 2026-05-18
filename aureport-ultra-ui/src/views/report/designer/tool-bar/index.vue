@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
 })
 const store = useReportStore()
 const context = computed(() => {
-  return store.context || {}
+  return store.context || null
 })
 
 const fileName = computed(() => {

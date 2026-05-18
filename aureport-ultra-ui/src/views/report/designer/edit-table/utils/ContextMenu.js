@@ -319,7 +319,6 @@ function checkCleanOperationDisabled() {
 export default function buildMenuConfigure() {
   return {
     callback(key, options) {
-      // eslint-disable-next-line unicorn/no-this-assignment -- Handsontable callback pattern requires preserving `this` context
       const _this = this
       switch (key) {
         case 'insert_row_above': {
@@ -485,7 +484,6 @@ export default function buildMenuConfigure() {
 
         case 'row_height': {
           const selected = this.getSelected()
-          // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
           const [startRow, , , endRow] = selected[0]
           const rowHeight = this.getRowHeight(startRow)
           const dialog = new Class()

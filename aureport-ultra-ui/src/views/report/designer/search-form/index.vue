@@ -12,12 +12,12 @@ import { showAlert, showConfirm } from '@/utils/comnon'
 import CodeTypeDialog from './code-type-dialog/index.vue'
 import DraggableItem from './draggable-item/index.vue'
 import RightPanel from './right-panel/index.vue'
-import { beautifierConf, titleCase } from './utils'
-import { inputComponents as _ic, layoutComponents as _lc, selectComponents as _sc, formConf as importedFormConf } from './utils/config'
-import { makeUpCss } from './utils/css'
-import { cleanDrawingDefaultValue, drawingDefaultValue, initDrawingDefaultValue } from './utils/drawingDefault'
-import { cssStyle, makeUpHtml, vueScript, vueTemplate } from './utils/html'
-import { makeUpJs } from './utils/js'
+import { beautifierConf, titleCase } from '@/views/report/designer/search-form/utils'
+import { inputComponents as _ic, layoutComponents as _lc, selectComponents as _sc, formConf as importedFormConf } from '@/views/report/designer/search-form/utils/config'
+import { makeUpCss } from '@/views/report/designer/search-form/utils/css'
+import { cleanDrawingDefaultValue, drawingDefaultValue, initDrawingDefaultValue } from '@/views/report/designer/search-form/utils/drawingDefault'
+import { cssStyle, makeUpHtml, vueScript, vueTemplate } from '@/views/report/designer/search-form/utils/html'
+import { makeUpJs } from '@/views/report/designer/search-form/utils/js'
 
 // Wrap in ref for vuedraggable v4 v-model compatibility
 const inputComponents = ref(_ic)
@@ -97,17 +97,19 @@ function drawingItemDelete(element: any) {
   }
 }
 
-function generate(type: string, fileName: string) {
+async function generate(type: string, fileName: string) {
   const html = makeUpHtml(drawingList.value, formConf.value)
   const script = makeUpJs(drawingList.value, formConf.value, generateType.value)
   const css = makeUpCss(formConf.value)
   const result = vueTemplate(html + script + css)
   if (cliEvent.value === 'copy') {
-    const successful = navigator.clipboard.writeText(result)
-    if (successful) {
-      showAlert(t('searchForm.codeCopied'), 'success')
-    }
+    await navigator.clipboard.writeText(result)
+    showAlert(t('searchForm.codeCopied'), 'success')
   }
+}
+
+function handleConfirm(data: { type: string, fileName?: string }) {
+  generate(data.type, data.fileName || 'form-generator.vue')
 }
 
 watch(activeId, (val) => {
@@ -116,8 +118,7 @@ watch(activeId, (val) => {
 })
 
 onMounted(() => {
-  // @ts-expect-error ClipboardJS is loaded from CDN
-  window.ClipboardJS = ClipboardJS
+  window.ClipboardJS = ClipboardJS as any
   document.addEventListener('keydown', (e: any) => {
     if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
@@ -259,13 +260,13 @@ defineExpose({
     <RightPanel
       :active-data="activeData"
       :form-conf="formConf"
-      :show-file-name="showFileName"
-      @confirm="generate"
+      @confirm="handleConfirm"
     />
     <CodeTypeDialog
-      v-model="dialogVisible"
+      :visible="dialogVisible"
       :show-file-name="showFileName"
-      @confirm="generate"
+      @confirm="handleConfirm"
+      @update:visible="val => dialogVisible = val"
     />
     <input id="copyNode" type="hidden" />
   </div>

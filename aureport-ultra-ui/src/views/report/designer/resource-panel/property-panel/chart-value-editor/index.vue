@@ -49,7 +49,13 @@ const datasetConfig = ref({
   format: '',
 })
 
-const chartConfig = ref({
+const chartConfig = ref<{
+  title: { display: string | boolean; position: string; text: string }
+  legend: { display: string | boolean; position: string }
+  dataLabels: { display: string | boolean }
+  animation: { duration: number; easing: string }
+  layout: { top: number; bottom: number; left: number; right: number }
+}>({
   title: {
     display: false,
     position: 'top',
@@ -74,7 +80,7 @@ const chartConfig = ref({
   },
 })
 
-const xAxesConfig = ref({
+const xAxesConfig = ref<{ rotation?: number; scaleLabel?: { display?: string | boolean; labelString?: string } }>({
   rotation: 0,
   scaleLabel: {
     display: false,
@@ -82,7 +88,7 @@ const xAxesConfig = ref({
   },
 })
 
-const yAxesConfig = ref({
+const yAxesConfig = ref<{ rotation?: number; scaleLabel?: { display?: string | boolean; labelString?: string } }>({
   rotation: 0,
   scaleLabel: {
     display: false,

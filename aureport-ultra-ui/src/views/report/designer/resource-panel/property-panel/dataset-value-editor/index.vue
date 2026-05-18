@@ -110,7 +110,7 @@ function loadCellData() {
 
 function loadDatasets() {
   datasets.value = []
-  const datasources = context.value.reportDef.datasources || []
+  const datasources = context.value?.reportDef.datasources || []
   for (const ds of datasources) {
     const dsDatasets = ds.datasets || []
     for (const dataset of dsDatasets) {
@@ -171,7 +171,7 @@ function handleDatasetChange() {
   currentFields.value = []
 
   if (selectedDataset.value) {
-    const datasources = context.value.reportDef.datasources || []
+    const datasources = context.value?.reportDef.datasources || []
     for (const ds of datasources) {
       const dsDatasets = ds.datasets || []
       for (const dataset of dsDatasets) {
@@ -233,7 +233,7 @@ function handleLineHeightChange() {
   const cellDef = getCell(props.rowIndex, props.colIndex)
   if (cellDef && cellDef.cellStyle) {
     const newCellDef = deepCopy(cellDef)
-    newCellDef.cellStyle.lineHeight = lineHeight.value
+    newCellDef.cellStyle.lineHeight = Number(lineHeight.value) || undefined
 
     const hot = TableManager.get()
     if (hot) {
@@ -249,7 +249,7 @@ function handleLineHeightChange() {
         const originalCellDef = getCell(i, j)
         if (originalCellDef) {
           const updatedCellDef = deepCopy(originalCellDef)
-          updatedCellDef.cellStyle.lineHeight = lineHeight.value
+          updatedCellDef.cellStyle.lineHeight = Number(lineHeight.value) || undefined
           setCell(i, j, updatedCellDef)
         }
       }
@@ -319,15 +319,15 @@ function handleMultipleChange() {
   setDirty()
 }
 
-function handleConditionPropertyItemsChange(conditionPropertyItems: any[]) {
-  conditionPropertyItems.value = conditionPropertyItems
+function handleConditionPropertyItemsChange(items: any[]) {
+  conditionPropertyItems.value = items
 
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const originalCellDef = getCell(i, j)
       if (originalCellDef) {
         const updatedCellDef = deepCopy(originalCellDef)
-        updatedCellDef.conditionPropertyItems = conditionPropertyItems
+        updatedCellDef.conditionPropertyItems = items
         setCell(i, j, updatedCellDef)
       }
     }
@@ -336,15 +336,15 @@ function handleConditionPropertyItemsChange(conditionPropertyItems: any[]) {
   setDirty()
 }
 
-function handleUpdateFilterConditions(conditions: any[]) {
-  conditions.value = conditions
+function handleUpdateFilterConditions(conds: any[]) {
+  conditions.value = conds
 
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const originalCellDef = getCell(i, j)
       if (originalCellDef) {
         const updatedCellDef = deepCopy(originalCellDef)
-        updatedCellDef.value.conditions = conditions
+        updatedCellDef.value.conditions = conds
         setCell(i, j, updatedCellDef)
       }
     }
@@ -376,14 +376,14 @@ function _updateTableData() {
       let data = ''
       switch (valueType) {
         case 'simple': {
-          data = value.value
+          data = value.value ?? ''
 
           break
         }
 
         case 'dataset': {
           let text = `${value.datasetName}.${value.aggregate}(`
-          if (value.aggregate === 'iterate') {
+          if (value.aggregate === 'iterate' as any) {
             text += value.nestProperty || ''
             text += ')'
             if (value.property) {
@@ -400,7 +400,7 @@ function _updateTableData() {
         }
 
         case 'expression': {
-          data = value.value
+          data = value.value ?? ''
 
           break
         }
@@ -560,8 +560,8 @@ function handleNestPropertyChange() {
   setDirty()
 }
 
-function _setMappingType(mappingType: string) {
-  mappingType.value = mappingType
+function _setMappingType(type: string) {
+  mappingType.value = type
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
@@ -569,7 +569,7 @@ function _setMappingType(mappingType: string) {
         continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
-        newCellDef.value.mappingType = mappingType
+        newCellDef.value.mappingType = type
         setCell(i, j, newCellDef)
       }
     }
@@ -578,8 +578,8 @@ function _setMappingType(mappingType: string) {
   setDirty()
 }
 
-function _setMappingItems(mappingItems: any[]) {
-  mappingItems.value = mappingItems
+function _setMappingItems(items: any[]) {
+  mappingItems.value = items
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
@@ -587,7 +587,7 @@ function _setMappingItems(mappingItems: any[]) {
         continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
-        newCellDef.value.mappingItems = mappingItems
+        newCellDef.value.mappingItems = items
         setCell(i, j, newCellDef)
       }
     }
@@ -596,8 +596,8 @@ function _setMappingItems(mappingItems: any[]) {
   setDirty()
 }
 
-function _setMappingDataset(mappingDataset: string) {
-  mappingDataset.value = mappingDataset
+function _setMappingDataset(datasetName: string) {
+  mappingDataset.value = datasetName
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
@@ -605,7 +605,7 @@ function _setMappingDataset(mappingDataset: string) {
         continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
-        newCellDef.value.mappingDataset = mappingDataset
+        newCellDef.value.mappingDataset = datasetName
         setCell(i, j, newCellDef)
       }
     }
@@ -614,8 +614,8 @@ function _setMappingDataset(mappingDataset: string) {
   setDirty()
 }
 
-function _setMappingKeyProperty(mappingKeyProperty: string) {
-  mappingKeyProperty.value = mappingKeyProperty
+function _setMappingKeyProperty(keyProperty: string) {
+  mappingKeyProperty.value = keyProperty
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
@@ -623,7 +623,7 @@ function _setMappingKeyProperty(mappingKeyProperty: string) {
         continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
-        newCellDef.value.mappingKeyProperty = mappingKeyProperty
+        newCellDef.value.mappingKeyProperty = keyProperty
         setCell(i, j, newCellDef)
       }
     }
@@ -632,8 +632,8 @@ function _setMappingKeyProperty(mappingKeyProperty: string) {
   setDirty()
 }
 
-function _setMappingValueProperty(mappingValueProperty: string) {
-  mappingValueProperty.value = mappingValueProperty
+function _setMappingValueProperty(valueProperty: string) {
+  mappingValueProperty.value = valueProperty
   for (let i = props.rowIndex; i <= props.row2Index; i++) {
     for (let j = props.colIndex; j <= props.col2Index; j++) {
       const cellDef = getCell(i, j)
@@ -641,7 +641,7 @@ function _setMappingValueProperty(mappingValueProperty: string) {
         continue
       if (cellDef.value.type === 'dataset') {
         const newCellDef = deepCopy(cellDef)
-        newCellDef.value.mappingValueProperty = mappingValueProperty
+        newCellDef.value.mappingValueProperty = valueProperty
         setCell(i, j, newCellDef)
       }
     }

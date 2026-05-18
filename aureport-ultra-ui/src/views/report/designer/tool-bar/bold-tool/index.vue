@@ -21,7 +21,7 @@ const isActive = ref(false)
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -82,7 +82,7 @@ function updateCellsBoldStyle(startRow: number, startCol: number, endRow: number
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldBoldStyle[`${i},${j}`] = newCellDef.cellStyle.bold
+      oldBoldStyle[`${i},${j}`] = newCellDef.cellStyle.bold ?? false
       cellStyle.bold = !cellStyle.bold
       setCell(i, j, newCellDef)
 

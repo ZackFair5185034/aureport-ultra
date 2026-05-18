@@ -108,8 +108,8 @@ function loadCellData() {
   if (!currentCellDef || !currentCellDef.value)
     return
 
-  width.value = currentCellDef.value.width || ''
-  height.value = currentCellDef.value.height || ''
+  width.value = String(currentCellDef.value.width || '')
+  height.value = String(currentCellDef.value.height || '')
   source.value = currentCellDef.value.source || 'text'
 
   path.value = ''
@@ -164,12 +164,12 @@ async function scriptLintFn(
   try {
     const result = await scriptValidation(text)
     if (result) {
-      for (const item of result) {
+      for (const item of result as any[]) {
         item.from = { line: item.line - 1 }
         item.to = { line: item.line - 1 }
       }
 
-      updateLinting(editor, result)
+      updateLinting(editor, result as any[])
     }
     else {
       updateLinting(editor, [])
@@ -185,7 +185,7 @@ function handleWidthChange() {
   const cellDef = getCell(props.rowIndex, props.colIndex)
   if (cellDef && cellDef.value) {
     const newCellDef = deepCopy(cellDef)
-    newCellDef.value.width = width.value
+    newCellDef.value.width = Number(width.value) || undefined
     setCell(props.rowIndex, props.colIndex, newCellDef)
   }
 
@@ -196,7 +196,7 @@ function handleHeightChange() {
   const cellDef = getCell(props.rowIndex, props.colIndex)
   if (cellDef && cellDef.value) {
     const newCellDef = deepCopy(cellDef)
-    newCellDef.value.height = height.value
+    newCellDef.value.height = Number(height.value) || undefined
     setCell(props.rowIndex, props.colIndex, newCellDef)
   }
 

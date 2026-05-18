@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.aureport.ultra</groupId>
         <artifactId>aureport-ultra-server</artifactId>
-        <version>${revision}</version>
+        <version>1.0.0</version>
     </parent>
 
     <dependencies>
@@ -52,12 +52,12 @@
         <dependency>
             <groupId>com.aureport.ultra</groupId>
             <artifactId>aureport-ultra-core</artifactId>
-            <version>${revision}</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.aureport.ultra</groupId>
             <artifactId>aureport-ultra-font</artifactId>
-            <version>${revision}</version>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

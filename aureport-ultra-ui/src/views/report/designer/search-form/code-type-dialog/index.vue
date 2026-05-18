@@ -8,7 +8,7 @@ defineOptions({
 })
 
 const props = defineProps<{
-  showFileName: boolean
+  showFileName: boolean | string
   visible: boolean
 }>()
 

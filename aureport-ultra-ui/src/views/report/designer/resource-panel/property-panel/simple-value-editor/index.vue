@@ -36,7 +36,7 @@ function loadCellData() {
 
   content.value = cellDef && cellDef.value && cellDef.value.value !== undefined ? cellDef.value.value : ''
 
-  lineHeight.value = (cellDef && cellDef.cellStyle && cellDef.cellStyle.lineHeight !== undefined) ? cellDef.cellStyle.lineHeight : ''
+  lineHeight.value = cellDef?.cellStyle?.lineHeight != null ? String(cellDef.cellStyle.lineHeight) : ''
 }
 
 function onContentChange() {

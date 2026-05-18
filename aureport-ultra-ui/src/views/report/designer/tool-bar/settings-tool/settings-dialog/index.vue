@@ -8,13 +8,9 @@ import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'
 import { updateReportDef } from '@/utils/contextActions'
 import { buildPageSizeList, mmToPoint, setDirty } from '@/utils/table'
-// @ts-expect-error Dynamic component import
 import ColumnSettings from './column/index.vue'
-// @ts-expect-error Dynamic component import
 import HeaderFooterSettings from './headerFooter/index.vue'
-// @ts-expect-error Dynamic component import
 import PageSettings from './page/index.vue'
-// @ts-expect-error Dynamic component import
 import PagingSettings from './paging/index.vue'
 
 defineOptions({ name: 'SettingsDialog' })

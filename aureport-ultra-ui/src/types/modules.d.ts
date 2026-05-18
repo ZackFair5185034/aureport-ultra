@@ -5,15 +5,10 @@
 // ====== Utility modules ======
 
 declare module '@/utils/comnon' {
-  export function showAlert(message: string, options?: Record<string, unknown>): Promise<unknown>
-  export function showConfirm(message: string, options?: Record<string, unknown>): Promise<unknown>
+  export function showAlert(message: string, options?: Record<string, unknown> | string): Promise<unknown>
+  export function showConfirm(message: string, options?: Record<string, unknown> | string): Promise<unknown>
   export function isMobile(): boolean
-}
-
-declare module '@/utils/comnon' {
-  export function showAlert(message: string, options?: Record<string, unknown>): Promise<unknown>
-  export function showConfirm(message: string, options?: Record<string, unknown>): Promise<unknown>
-  export function isMobile(): boolean
+  export function downloadBlob(url: string, params: Record<string, unknown>, defaultFilename: string): Promise<void>
 }
 
 declare module '@/utils/table' {
@@ -154,22 +149,47 @@ declare module '@/components/Context.js' {
 
 declare module '@/views/report/designer/edit-table/manager' {
   const TableManager: {
-    get: () => any
-    set: (table: any) => void
-    has: () => boolean
+    get: (key?: string) => any
+    set: (key: string, table: any) => void
+    has: (key?: string) => boolean
     clear: () => void
+    remove: (key: string) => void
   }
   export default TableManager
 }
 
 declare module '@/views/report/designer/edit-table/manager' {
   const TableManager: {
-    get: () => any
-    set: (table: any) => void
-    has: () => boolean
+    get: (key?: string) => any
+    set: (key: string, table: any) => void
+    has: (key?: string) => boolean
     clear: () => void
+    remove: (key: string) => void
   }
   export default TableManager
+}
+
+declare module '@/views/report/designer/edit-table/cross-tab-widget/manager' {
+  const CrossTabManager: {
+    get: (key?: string) => any
+    set: (key: string, table: any) => void
+    has: (key?: string) => boolean
+    clear: () => void
+    remove: (key: string) => void
+  }
+  export default CrossTabManager
+}
+
+declare module '@/views/report/designer/edit-table/chart-widget/manager' {
+  const chartWidgetManager: {
+    get: (key?: string) => any
+    set: (key: string, widget: any) => void
+    has: (key?: string) => boolean
+    remove: (key: string) => void
+    clear: () => void
+    filter: (fn: (widget: any) => boolean) => any[]
+  }
+  export default chartWidgetManager
 }
 
 declare module '@/views/report/designer/edit-table/utils/ContextMenu' {
@@ -221,6 +241,22 @@ declare module '@/views/report/designer/search-form/utils' {
   export function resetSearch(context: unknown): void
   export function deepClone<T>(obj: T): T
   export const beautifierConf: { html: Record<string, unknown> }
+  export function titleCase(str: string): string
+  export function isNumberStr(str: string): boolean
+}
+
+declare module '@/views/report/designer/search-form/utils/config' {
+  export const formConf: Record<string, unknown>
+  export const inputComponents: Record<string, unknown>[]
+  export const selectComponents: Record<string, unknown>[]
+  export const layoutComponents: Record<string, unknown>[]
+  export const trigger: Record<string, string>
+}
+
+declare module '@/views/report/designer/search-form/utils/drawingDefault' {
+  export const drawingDefaultValue: Record<string, unknown>[]
+  export function cleanDrawingDefaultValue(): void
+  export function initDrawingDefaultValue(): void
 }
 
 declare module '@/views/report/designer/search-form/utils/index' {
@@ -235,7 +271,7 @@ declare module '@/views/report/designer/search-form/utils/html' {
   export function vueTemplate(str: string): string
   export function vueScript(str: string): string
   export function cssStyle(cssStr: string): string
-  export function makeUpHtml(conf: unknown, type: string): string
+  export function makeUpHtml(conf: unknown, type: unknown): string
 }
 
 declare module '@/views/report/designer/search-form/utils/html.js' {
@@ -247,7 +283,7 @@ declare module '@/views/report/designer/search-form/utils/html.js' {
 }
 
 declare module '@/views/report/designer/search-form/utils/js' {
-  export function makeUpJs(conf: unknown, type: string): string
+  export function makeUpJs(conf: unknown, type: unknown, generateType?: string): string
 }
 
 declare module '@/views/report/designer/search-form/utils/js.js' {
@@ -274,17 +310,12 @@ declare module 'js-beautify' {
 // ====== Cross-tab-widget utilities ======
 
 declare module '@/views/report/designer/edit-table/cross-tab-widget/class' {
-  export function buildCrossTabCell(cellDef: unknown, context: unknown, rowIndex: number, colIndex: number, row2Index: number, col2Index: number): Record<string, unknown>
-}
-
-declare module '@/views/report/designer/edit-table/cross-tab-widget/manager' {
-  const CrossTabManager: {
-    get: () => any
-    set: (table: any) => void
-    has: () => boolean
-    clear: () => void
+  class CrossTabWidget {
+    constructor(context: unknown, rowIndex: number, colIndex: number, ...args: unknown[])
+    refreshCell?(): void
+    doDraw?(): void
   }
-  export default CrossTabManager
+  export default CrossTabWidget
 }
 
 declare module '@/views/report/designer/search-form/utils/index' {
@@ -330,6 +361,32 @@ declare module '@/views/report/preview/utils/render.jsx' {
   export function buildLocationSearchParameters(searchFormParameters: Record<string, unknown>): string
   export function renderTemplateToComponent(componentStr: string, mountNode: HTMLElement | string): Record<string, any>
   export function simplifyObject(obj: unknown): unknown
+}
+
+// ====== Missing npm package declarations ======
+
+declare module '@ffrosch/vue-simple-suggest' {
+  import type { DefineComponent } from 'vue'
+  const comp: DefineComponent<any, any, any>
+  export default comp
+}
+
+declare module '@/views/report/designer/resource-panel/property-panel/property-condition-dialog/condition-config/constants/config-options.js' {
+  interface ConfigOptions {
+    getFontOptions(t: any): { value: string, label: string }[]
+    getFontSizeOptions(): { value: number, label: string }[]
+    getYesNoOptions(t: any): { value: string, label: string }[]
+    getAlignOptions(t: any): { value: string, label: string }[]
+    getValignOptions(t: any): { value: string, label: string }[]
+    getScopeOptions(t: any): { value: string, label: string }[]
+    getPagingPositionOptions(t: any): { value: string, label: string }[]
+    getLinkTargetOptions(t: any): { value: string, label: string }[]
+    getPresetColors(): string[]
+    getSuggestionList(): string[]
+  }
+  const configOptions: ConfigOptions
+  export { configOptions }
+  export default configOptions
 }
 
 // ====== External libraries ======

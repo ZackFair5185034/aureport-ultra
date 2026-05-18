@@ -28,7 +28,7 @@ const springDialogVisible = ref(false)
 const currentSpringDatasource = ref<any>(null)
 const buildinDialogVisible = ref(false)
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
 const jdbcDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'jdbc'))
 const springDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'spring'))

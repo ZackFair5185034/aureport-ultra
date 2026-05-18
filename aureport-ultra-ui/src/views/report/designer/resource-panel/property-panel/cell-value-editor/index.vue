@@ -230,7 +230,7 @@ function buildParentCellNameOptions() {
 
   if (cellDef && cellDef.value) {
     const type = cellDef.value.type || 'simple'
-    cellType.value = type === 'zxing' ? cellDef.value.category : type
+    cellType.value = type === 'zxing' ? (cellDef.value.category || '') : type
   }
   else {
     cellType.value = 'simple'

@@ -40,8 +40,6 @@ export default antfu(
       // 允许自定义事件名使用任意风格（Vue3 推荐 camelCase，如 update:modelValue）
       'vue/custom-event-name-casing': 'off',
     },
-    formatters: { css: true, html: true, markdown: true },
-    unicorn: { allRecommended: true },
   },
   {
     // 适用于所有 Vue/TS/JS 文件的规则配置
@@ -83,11 +81,14 @@ export default antfu(
       // 允许使用展开运算符而非 Function.prototype.apply
       'unicorn/prefer-spread': 'off',
       // 允许使用 any 类型（过渡时期方便）
-      '@typescript-eslint/no-explicit-any': 'off',
+      'ts/no-explicit-any': 'off',
       // 允许使用非空断言（!）（如 dom!.click()）
-      '@typescript-eslint/no-non-null-assertion': 'off',
+      'ts/no-non-null-assertion': 'off',
       // .d.ts 类型声明文件中 method-signature-style 规则不适用
       'ts/method-signature-style': 'off',
+      // 允许未使用的导入（方便保留导入供后续使用）
+      'unused-imports/no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'off',
     },
   },
   {

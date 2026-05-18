@@ -68,7 +68,7 @@ export function deleteCell(rowNumber, columnNumber) {
  * 获取单元格
  * @param {number} rowIndex - 行索引（从 0 开始）
  * @param {number} colIndex - 列索引（从 0 开始）
- * @returns {object | null}
+ * @returns {object | null} 单元格定义对象
  */
 export function getCell(rowIndex, colIndex) {
   const store = useReportStore()
@@ -77,7 +77,7 @@ export function getCell(rowIndex, colIndex) {
 
 /**
  * 获取 cellsMap
- * @returns {Map|null}
+ * @returns {Map|null} 单元格映射表
  */
 export function getCellsMap() {
   const store = useReportStore()
@@ -116,7 +116,7 @@ export function adjustDelRowHeaders(row) {
  * 获取单元格名称
  * @param {number|null} rowIndex - 行索引（从 0 开始，可为 null）
  * @param {number} colIndex - 列索引（从 0 开始）
- * @returns {string}
+ * @returns {string} 单元格名称（如 A1, B2）
  */
 export function getCellName(rowIndex, colIndex) {
   const store = useReportStore()

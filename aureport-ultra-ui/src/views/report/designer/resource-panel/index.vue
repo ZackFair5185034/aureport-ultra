@@ -34,7 +34,7 @@ const row2Index = ref(0)
 const col2Index = ref(0)
 const refreshTrigger = ref(0)
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {

@@ -34,7 +34,7 @@ const localXProperty = ref('')
 const localYProperty = ref('')
 const localRProperty = ref('')
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
 const datasources = computed(() => {
   if (!context.value?.reportDef?.datasources) {

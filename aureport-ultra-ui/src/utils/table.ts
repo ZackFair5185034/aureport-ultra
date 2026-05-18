@@ -1,5 +1,5 @@
 import type { CellDef, ReportContext, RowHeader } from '@/types'
-// @ts-ignore -- undo-manager 没有类型声明
+// @ts-expect-error -- undo-manager 没有类型声明
 import UndoManager from 'undo-manager'
 import MessageBox from '@/components/messagebox/instance'
 

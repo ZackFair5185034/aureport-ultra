@@ -36,7 +36,7 @@ const localDatasetConfig = reactive({
   format: '',
 })
 
-const context = computed(() => store.context || {})
+const context = computed(() => store.context || null)
 
 const datasetOptions = computed(() =>
   availableDatasets.value.map((dataset: any) => ({
@@ -80,7 +80,7 @@ onMounted(() => {
 function loadAvailableDatasets() {
   availableDatasets.value = []
   const ctx = context.value
-  if (!ctx.reportDef)
+  if (!ctx?.reportDef)
     return
   for (const ds of ctx.reportDef.datasources) {
     const datasets = ds.datasets || []
@@ -96,7 +96,7 @@ function loadAvailableFields() {
   if (!datasetName)
     return
   const ctx = context.value
-  if (!ctx.reportDef)
+  if (!ctx?.reportDef)
     return
   for (const ds of ctx.reportDef.datasources) {
     const datasets = ds.datasets || []

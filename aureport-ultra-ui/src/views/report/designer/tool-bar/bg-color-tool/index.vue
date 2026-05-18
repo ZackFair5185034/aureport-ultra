@@ -26,7 +26,7 @@ const displayColor = computed(() => {
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -104,7 +104,7 @@ function updateCellsBgColorStyle(startRow: number, startCol: number, endRow: num
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldBgColorStyle[`${i},${j}`] = cellStyle.bgcolor
+      oldBgColorStyle[`${i},${j}`] = cellStyle.bgcolor ?? ''
       cellStyle.bgcolor = color
       setCell(i, j, newCellDef)
     }

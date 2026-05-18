@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
+const H: any = Handsontable
 import { useI18n } from 'vue-i18n'
 import imageIcon from '@/assets/icons/image.svg'
 import { deepCopy } from '@/components/utils/index'
@@ -61,7 +62,7 @@ function handleClick() {
   }
 
   setDirty()
-  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
 
   undoManager.add({
     redo: () => {
@@ -77,7 +78,7 @@ function handleClick() {
       hot.setDataAtCell(startRow, startCol, '')
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
     undo: () => {
       if (oldCellDef) {
@@ -91,7 +92,7 @@ function handleClick() {
       hot.setDataAtCell(startRow, startCol, oldCellData)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
   })
 }

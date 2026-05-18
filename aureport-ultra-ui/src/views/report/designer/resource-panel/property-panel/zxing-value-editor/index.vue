@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import CodeMirror from 'codemirror'
-// @ts-expect-error Vue module
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { scriptValidation } from '@/api/designer/index'
@@ -122,6 +121,7 @@ function initCodeEditor() {
 
 function loadCellData() {
   const cellDef = getCell(props.rowIndex, props.colIndex)
+  if (!cellDef) return
 
   width.value = cellDef.value.width || 100
   height.value = cellDef.value.height || 100
@@ -162,12 +162,12 @@ async function lintCallback(text: string, updateLinting: (editor: any, annotatio
   try {
     const result = await scriptValidation(text)
     if (result) {
-      for (const item of result) {
+      for (const item of result as any[]) {
         item.from = { line: item.line - 1 }
         item.to = { line: item.line - 1 }
       }
 
-      updateLinting(editor, result)
+      updateLinting(editor, result as any[])
     }
     else {
       updateLinting(editor, [])
@@ -244,7 +244,7 @@ function handleSourceChange() {
       nextTick(() => {
         if (codeMirror.value) {
           const currentCellDef = getCell(props.rowIndex, props.colIndex)
-          codeMirror.value.setValue(currentCellDef.value.value || '')
+          codeMirror.value.setValue(currentCellDef?.value?.value || '')
           codeMirror.value.refresh()
         }
         else {

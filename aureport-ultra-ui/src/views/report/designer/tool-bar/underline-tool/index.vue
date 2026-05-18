@@ -21,7 +21,7 @@ const isActive = ref(false)
 
 watch(() => props.selectedCells, (newVal) => {
   if (newVal && newVal.rowIndex !== null && newVal.colIndex !== null) {
-    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index, newVal.col2Index)
+    refresh(newVal.rowIndex, newVal.colIndex, newVal.row2Index ?? 0, newVal.col2Index ?? 0)
   }
 }, { deep: true })
 
@@ -82,7 +82,7 @@ function updateCellsUnderlineStyle(startRow: number, startCol: number, endRow: n
 
       const newCellDef = deepCopy(cellDef)
       const cellStyle = newCellDef.cellStyle
-      oldUnderlineStyle[`${i},${j}`] = newCellDef.cellStyle.underline
+      oldUnderlineStyle[`${i},${j}`] = newCellDef.cellStyle.underline ?? false
       cellStyle.underline = !cellStyle.underline
       setCell(i, j, newCellDef)
 
