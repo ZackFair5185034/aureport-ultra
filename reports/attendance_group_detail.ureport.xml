@@ -74,8 +74,7 @@
             <sql><![CDATA[
                 SELECT stats.dept,
                        stats.dept_count, stats.normal_count, stats.abnormal_count,
-                       det.id, det.emp_name, det.work_date, det.status,
-                       det.clock_in_time, det.clock_out_time
+                       det.emp_name
                 FROM (
                     SELECT dept,
                            COUNT(*) AS dept_count,
@@ -84,19 +83,16 @@
                     FROM attendance_detail
                     GROUP BY dept
                 ) stats
-                JOIN attendance_detail det ON stats.dept = det.dept
-                ORDER BY stats.dept, det.emp_name, det.work_date
+                JOIN (
+                    SELECT dept, emp_name FROM attendance_detail GROUP BY dept, emp_name
+                ) det ON stats.dept = det.dept
+                ORDER BY stats.dept, det.emp_name
             ]]></sql>
             <field name="dept"/>
             <field name="dept_count"/>
             <field name="normal_count"/>
             <field name="abnormal_count"/>
-            <field name="id"/>
             <field name="emp_name"/>
-            <field name="work_date"/>
-            <field name="status"/>
-            <field name="clock_in_time"/>
-            <field name="clock_out_time"/>
         </dataset>
     </datasource>
 </ureport>
