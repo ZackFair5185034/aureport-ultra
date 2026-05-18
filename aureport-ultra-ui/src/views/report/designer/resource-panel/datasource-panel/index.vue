@@ -87,8 +87,7 @@ function addJdbcDatasource(datasource: any) {
     datasets: datasource.datasets || [],
   }
 
-  const newIndex = datasources.value.length
-  datasources.value[newIndex] = newDatasource
+  datasources.value.push(newDatasource)
 
   const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
@@ -102,8 +101,7 @@ function addSpringDatasource(datasource: any) {
     datasets: datasource.datasets || [],
   }
 
-  const newIndex = datasources.value.length
-  datasources.value[newIndex] = newDatasource
+  datasources.value.push(newDatasource)
 
   const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
@@ -116,8 +114,7 @@ function addBuildinDatasource(datasource: any) {
     datasets: datasource.datasets || [],
   }
 
-  const newIndex = datasources.value.length
-  datasources.value[newIndex] = newDatasource
+  datasources.value.push(newDatasource)
 
   const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
@@ -136,7 +133,8 @@ function removeDatasource(name: string) {
 function updateDatasource(data: any) {
   const index = datasources.value.findIndex((ds: any) => ds.name === data.oldName)
   if (index !== -1) {
-    datasources.value[index] = { ...datasources.value[index], ...data }
+    const { oldName, ...cleanData } = data
+    datasources.value[index] = { ...datasources.value[index], ...cleanData }
   }
 
   const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }

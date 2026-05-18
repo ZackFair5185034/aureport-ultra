@@ -288,13 +288,17 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   const [rowIndex, colIndex, endRow, endCol] = selected[0]
   const cellDef = getCell(rowIndex, colIndex)!
 
-  if (cellDef.value.type !== 'dataset') {
-    const newCellDef = deepCopy(cellDef)
-    newCellDef.value = { type: 'dataset', conditions: [] }
-    addCell(newCellDef)
-  }
+  const oldCellDef: any = deepCopy(cellDef)
 
-  const newCellDef = deepCopy(cellDef)
+  const newCellDef: any = cellDef.value.type === 'dataset'
+    ? deepCopy(cellDef)
+    : {
+        value: { type: 'dataset', conditions: [] },
+        rowNumber: cellDef.rowNumber,
+        columnNumber: cellDef.columnNumber,
+        cellStyle: cellDef.cellStyle,
+      }
+
   newCellDef.expand = 'Down'
   const value = newCellDef.value
   value.aggregate = 'group'
@@ -305,18 +309,61 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   let text = `${value.datasetName}.${value.aggregate}(`
   const prop = value.property
   text += `${prop})`
-  hot.setDataAtCell(rowIndex, colIndex, text)
 
   setCell(rowIndex, colIndex, newCellDef)
+  hot.setDataAtCell(rowIndex, colIndex, text)
 
   hot.render()
 
   if (hot.hooks) {
     hot.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
   }
+
+  ;(window as any).undoManager?.add({
+    redo: () => {
+      const currentCellDef = getCell(rowIndex, colIndex)!
+      const redoCellDef: any = currentCellDef.value.type === 'dataset'
+        ? deepCopy(currentCellDef)
+        : {
+            value: { type: 'dataset', conditions: [] },
+            rowNumber: currentCellDef.rowNumber,
+            columnNumber: currentCellDef.columnNumber,
+            cellStyle: currentCellDef.cellStyle,
+          }
+      redoCellDef.expand = 'Down'
+      const redoValue = redoCellDef.value
+      redoValue.aggregate = 'group'
+      redoValue.datasetName = dataset.name
+      redoValue.property = field.name
+      redoValue.order = 'none'
+
+      let redoText = `${redoValue.datasetName}.${redoValue.aggregate}(`
+      redoText += `${redoValue.property})`
+      setCell(rowIndex, colIndex, redoCellDef)
+      hot.setDataAtCell(rowIndex, colIndex, redoText)
+      hot.render()
+      if (hot.hooks) {
+        hot.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+      }
+    },
+    undo: () => {
+      setCell(rowIndex, colIndex, oldCellDef)
+      const val = oldCellDef.value
+      let text = val.value || ''
+      if (val.type === 'dataset') {
+        text = `${val.datasetName}.${val.aggregate}(`
+        text += `${val.property})`
+      }
+      hot.setDataAtCell(rowIndex, colIndex, text)
+      hot.render()
+      if (hot.hooks) {
+        hot.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+      }
+    },
+  })
 }
 
-function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, parameters: any[]) {
+async function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, parameters: any[]) {
   const newDatasets = deepCopy(localDatasets.value)
 
   let dataset = newDatasets.find((d: any) => d.name === oldName)
@@ -331,12 +378,33 @@ function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, par
     newDatasets.push(dataset)
   }
 
+  // 先加载字段再 emit，确保新数据集/重命名数据集的字段能被正确持久化
+  if (!dataset.fields) {
+    try {
+      const params = {
+        sql: dataset.sql,
+        parameters: JSON.stringify(dataset.parameters),
+        name: props.name,
+        type: 'buildin',
+      }
+      const fields = await apiBuildFields(params)
+      dataset.fields = fields
+    }
+    catch (error: any) {
+      if (error.msg) {
+        showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+      }
+      else {
+        showAlert(t('tree.loadFieldFail'))
+      }
+    }
+  }
+
   emit('update-datasource', {
     name: props.name,
     oldName: props.name,
     datasets: newDatasets,
   })
-  buildFields(dataset, -1)
 }
 </script>
 

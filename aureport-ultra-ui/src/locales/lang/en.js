@@ -475,6 +475,7 @@ const en = {
       table: 'Table',
       view: 'View',
       loadFail: 'Load failed!',
+      formatFail: 'SQL format failed',
     },
     urlParam: {
       title: 'URL Parameters Config',

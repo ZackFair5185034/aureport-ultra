@@ -219,6 +219,7 @@ function handleFieldNameSave(fieldName: string, dataset: any) {
 
     const field = { name: fieldName }
     dataset.fields.push(field)
+    emitDatasourceUpdate()
   }
 }
 
@@ -252,20 +253,51 @@ function editDatasetAction(dataset: any, index: number) {
 
 function deleteDatasetAction(dataset: any, index: number) {
   showConfirm(`${t('tree.delDatasetConfirm')}[${dataset.name}]?`).then(() => {
-    datasets.value.splice(index, 1)
+    const newDatasets = deepCopy(datasets.value)
+    newDatasets.splice(index, 1)
     delete datasetExpanded.value[index]
+
+    const datasourceData = {
+      name: name.value,
+      oldName: name.value,
+      username: username.value,
+      password: password.value,
+      driver: driver.value,
+      url: url.value,
+      type,
+      datasets: newDatasets.map((d: any) => ({ ...d })),
+    }
+
+    emit('update-datasource', datasourceData)
   })
 }
 
-function refreshDatasetAction(dataset: any, index: number) {
+async function refreshDatasetAction(dataset: any, index: number) {
   dataset.fields = null
-  buildFields(dataset, index)
+  await buildFields(dataset, index)
+  emitDatasourceUpdate()
+}
+
+function emitDatasourceUpdate() {
+  const datasourceData = {
+    name: name.value,
+    oldName: name.value,
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type,
+    datasets: datasets.value.map((d: any) => ({ ...d })),
+  }
+
+  emit('update-datasource', datasourceData)
 }
 
 function deleteFieldAction(dataset: any, field: any, fieldIndex: number) {
   showConfirm(`${t('tree.delFieldConfirm')}[${field.name}]?`).then(() => {
     if (dataset.fields) {
       dataset.fields.splice(fieldIndex, 1)
+      emitDatasourceUpdate()
     }
   })
 }
@@ -274,38 +306,7 @@ function handleFieldDoubleClick(dataset: any, field: any) {
   _buildClickEvent(dataset, field, context.value)
 }
 
-async function buildFields(dataset: any, index: number) {
-  const defaultFields = dataset.fields
-
-  if (defaultFields) {
-    return
-  }
-
-  const params = {
-    sql: dataset.sql,
-    parameters: JSON.stringify(dataset.parameters || []),
-    username: username.value,
-    password: password.value,
-    driver: driver.value,
-    url: url.value,
-    type: 'jdbc',
-  }
-
-  try {
-    const fields = await buildJdbcFields(params)
-    dataset.fields = fields
-  }
-  catch (error: any) {
-    if (error.msg) {
-      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
-    }
-    else {
-      showAlert(t('tree.loadFieldFail'))
-    }
-  }
-}
-
-function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, parameters: any[]) {
+async function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, parameters: any[]) {
   const datasourceData = {
     name: name.value,
     oldName: name.value,
@@ -329,8 +330,54 @@ function handleSqlDatasetSave(nameVal: string, oldName: string, sql: string, par
     datasourceData.datasets.push(dataset)
   }
 
+  // 先加载字段再 emit
+  await buildFields(dataset, -1, datasourceData.datasets)
   emit('update-datasource', datasourceData)
-  buildFields(dataset, -1)
+}
+
+async function buildFields(dataset: any, index: number, targetDatasets?: any[]) {
+  const defaultFields = dataset.fields
+
+  if (defaultFields) {
+    return
+  }
+
+  const params = {
+    sql: dataset.sql,
+    parameters: JSON.stringify(dataset.parameters || []),
+    username: username.value,
+    password: password.value,
+    driver: driver.value,
+    url: url.value,
+    type: 'jdbc',
+  }
+
+  try {
+    const fields = await buildJdbcFields(params)
+    dataset.fields = fields
+    // 如果传入了目标数据集数组，直接 emit 持久化
+    if (targetDatasets) {
+      const datasourceData = {
+        name: name.value,
+        oldName: name.value,
+        username: username.value,
+        password: password.value,
+        driver: driver.value,
+        url: url.value,
+        type,
+        datasets: targetDatasets.map((d: any) => ({ ...d })),
+      }
+      emit('update-datasource', datasourceData)
+    }
+  }
+  catch (error: any) {
+    if (error.msg) {
+      showAlert(t('dialog.save.serverError') + t('colon') + error.msg, { useHTMLString: true })
+    }
+    else {
+      showAlert(t('tree.loadFieldFail'))
+    }
+  }
 }
 
 function _buildClickEvent(dataset: any, field: any, ctx: any) {

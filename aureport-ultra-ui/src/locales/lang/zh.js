@@ -476,6 +476,7 @@ const zh = {
       table: '表',
       view: '视图',
       loadFail: '加载表失败!',
+      formatFail: 'SQL 格式化失败',
     },
     urlParam: {
       title: 'URL参数配置',

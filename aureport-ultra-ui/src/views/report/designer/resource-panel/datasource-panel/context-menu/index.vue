@@ -20,6 +20,8 @@ function handleDocumentClick(e: MouseEvent) {
   }
 }
 
+defineExpose({ show, hideMenu })
+
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick, true)
 })

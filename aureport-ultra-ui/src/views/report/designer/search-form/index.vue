@@ -72,7 +72,7 @@ function empty() {
 function onEnd(obj: any, a: any) {
   if (obj.from !== obj.to) {
     activeData.value = tempActiveData.value
-    activeId.value = idGlobal
+    activeId.value = String(idGlobal)
   }
 }
 
@@ -144,7 +144,7 @@ function drawingItemDelete(index: number, parent: any[]) {
   parent.splice(index, 1)
   if (drawingList.value.length > 0) {
     const lastItem = drawingList.value[drawingList.value.length - 1]
-    activeId.value = lastItem.formId
+    activeId.value = String(lastItem.formId)
     activeData.value = lastItem
   }
   else {

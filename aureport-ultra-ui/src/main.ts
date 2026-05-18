@@ -1,6 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
+import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
 import UButtonGroup from './components/button-group/index.vue'
 // Import u-* components for global registration
 // unplugin-vue-components auto-registers as PascalCase (Button, Form, etc.)
@@ -42,6 +43,11 @@ const pinia = createPinia()
 app.use(router)
 app.use(pinia)
 app.use(i18n)
+app.use(VueMonacoEditorPlugin, {
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs',
+  },
+})
 
 // Register u-* components globally (both PascalCase and kebab-case)
 const uComponents: Record<string, any> = {

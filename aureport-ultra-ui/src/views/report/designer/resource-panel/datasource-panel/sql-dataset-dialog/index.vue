@@ -35,6 +35,7 @@ const oldName = ref('')
 const currentData = ref<any>({})
 const previewDialogVisible = ref(false)
 const previewParameters = ref<any>(null)
+const sqlEditorRef = ref<any>(null)
 const triggerLoadSearchTable = ref(false)
 
 const context = computed(() => store.context)
@@ -77,8 +78,14 @@ function handleDatasetNameChange(newName: string) {
   datasetName.value = newName || ''
 }
 
+function handleDialogOpen() {
+  nextTick(() => {
+    sqlEditorRef.value?.refreshEditor()
+  })
+}
+
 function handleAddSql(sqlText: string) {
-  sql.value = sqlText || ''
+  sqlEditorRef.value?.setSqlContent(sqlText || '')
 }
 
 function handleAddParameter(newParam: any) {
@@ -179,6 +186,7 @@ function closePreviewDialog() {
       width="1080px"
       :visible="visible"
       :z-index="20000"
+      @open="handleDialogOpen"
       @close="closeDialog"
     >
       <div class="dialog-content">
@@ -196,6 +204,7 @@ function closePreviewDialog() {
           <!-- 右侧容器：SQL 编辑器和参数编辑器 -->
           <div class="right-panel">
             <SqlEditor
+              ref="sqlEditorRef"
               :name="datasetName"
               :sql="sql"
               @sql-change="handleSqlChange"
