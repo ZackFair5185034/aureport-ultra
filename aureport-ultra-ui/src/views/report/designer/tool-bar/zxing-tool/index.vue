@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const H: any = Handsontable
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
@@ -22,7 +24,7 @@ const menuItems = computed(() => [
   {
     text: t('tools.zxing.barcode'),
     icon: 'iconfont icon-barcode',
-    action: () => insertBarCode(),
+    action: () => insertBarcode(),
   },
 ])
 
@@ -33,7 +35,6 @@ function checkSelection() {
     showAlert(t('selectTargetCellFirst'))
     return false
   }
-
   return true
 }
 
@@ -44,14 +45,14 @@ function insertQRCode() {
   const hot = TableManager.get()
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
-  let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value)
-  let oldCellData = hot.getDataAtCell(startRow, startCol)
+  const cellDef = getCell(startRow, startCol)!
+  const oldValue = deepCopy(cellDef.value)
+  const oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
-  let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot)
-  let height = _buildHeight(startRow, td.rowSpan, hot)
+  const td = hot.getCell(startRow, startCol)
+  const width = _buildWidth(startCol, td.colSpan, hot)
+  const height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
@@ -59,52 +60,52 @@ function insertQRCode() {
 
   hot.render()
   setDirty()
-  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
 
   undoManager.add({
     redo: () => {
-      cellDef = getCell(startRow, startCol)
-      oldValue = deepCopy(cellDef.value)
-      oldCellData = hot.getDataAtCell(startRow, startCol)
+      const cell = getCell(startRow, startCol)!
+      const oldVal = deepCopy(cell.value)
+      const oldData = hot.getDataAtCell(startRow, startCol)
       hot.setDataAtCell(startRow, startCol, '')
-      td = hot.getCell(startRow, startCol)
-      width = _buildWidth(startCol, td.colSpan, hot)
-      height = _buildHeight(startRow, td.rowSpan, hot)
-      const newCellDef = deepCopy(cellDef)
-      newCellDef.value = { width, height, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
-      setCell(startRow, startCol, newCellDef)
+      const ttd = hot.getCell(startRow, startCol)
+      const w = _buildWidth(startCol, ttd.colSpan, hot)
+      const h = _buildHeight(startRow, ttd.rowSpan, hot)
+      const newCell = deepCopy(cell)
+      newCell.value = { width: w, height: h, type: 'zxing', category: 'qrcode', source: 'text', data: '' }
+      setCell(startRow, startCol, newCell)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
     undo: () => {
-      cellDef = getCell(startRow, startCol)
-      const newCellDef = deepCopy(cellDef)
-      newCellDef.value = oldValue
-      setCell(startRow, startCol, newCellDef)
+      const cell = getCell(startRow, startCol)!
+      const newCel = deepCopy(cell)
+      newCel.value = oldValue
+      setCell(startRow, startCol, newCel)
       hot.setDataAtCell(startRow, startCol, oldCellData)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
   })
 }
 
-function insertBarCode() {
+function insertBarcode() {
   if (!checkSelection())
     return
 
   const hot = TableManager.get()
   const selected = hot.getSelected()
   const [startRow, startCol, endRow, endCol] = selected[0]
-  let cellDef = getCell(startRow, startCol)
-  let oldValue = deepCopy(cellDef.value)
-  let oldCellData = hot.getDataAtCell(startRow, startCol)
+  const cellDef = getCell(startRow, startCol)!
+  const oldValue = deepCopy(cellDef.value)
+  const oldCellData = hot.getDataAtCell(startRow, startCol)
 
   hot.setDataAtCell(startRow, startCol, '')
-  let td = hot.getCell(startRow, startCol)
-  let width = _buildWidth(startCol, td.colSpan, hot)
-  let height = _buildHeight(startRow, td.rowSpan, hot)
+  const td = hot.getCell(startRow, startCol)
+  const width = _buildWidth(startCol, td.colSpan, hot)
+  const height = _buildHeight(startRow, td.rowSpan, hot)
 
   const newCellDef = deepCopy(cellDef)
   newCellDef.value = { width, height, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
@@ -112,33 +113,31 @@ function insertBarCode() {
 
   hot.render()
   setDirty()
-  Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+  H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
 
   undoManager.add({
     redo: () => {
-      cellDef = getCell(startRow, startCol)
-      oldValue = deepCopy(cellDef.value)
-      oldCellData = hot.getDataAtCell(startRow, startCol)
+      const cell = getCell(startRow, startCol)!
       hot.setDataAtCell(startRow, startCol, '')
-      td = hot.getCell(startRow, startCol)
-      width = _buildWidth(startCol, td.colSpan, hot)
-      height = _buildHeight(startRow, td.rowSpan, hot)
-      const newCellDef = deepCopy(cellDef)
-      newCellDef.value = { width, height, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
-      setCell(startRow, startCol, newCellDef)
+      const ttd = hot.getCell(startRow, startCol)
+      const w = _buildWidth(startCol, ttd.colSpan, hot)
+      const h = _buildHeight(startRow, ttd.rowSpan, hot)
+      const newCell = deepCopy(cell)
+      newCell.value = { width: w, height: h, type: 'zxing', category: 'barcode', source: 'text', format: 'CODE_128', data: '' }
+      setCell(startRow, startCol, newCell)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
     undo: () => {
-      cellDef = getCell(startRow, startCol)
-      const newCellDef = deepCopy(cellDef)
-      newCellDef.value = oldValue
-      setCell(startRow, startCol, newCellDef)
+      const cell = getCell(startRow, startCol)!
+      const newCel = deepCopy(cell)
+      newCel.value = oldValue
+      setCell(startRow, startCol, newCel)
       hot.setDataAtCell(startRow, startCol, oldCellData)
       hot.render()
       setDirty()
-      Handsontable.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
+      H.hooks.run(hot, 'afterSelectionEnd', startRow, startCol, endRow, endCol)
     },
   })
 }

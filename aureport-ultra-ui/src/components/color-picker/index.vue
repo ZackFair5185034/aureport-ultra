@@ -64,7 +64,7 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-function emitColor(val: { hex: string, hsl: { h: number, s: number, l: number, a: number }, hsv: { h: number, s: number, v: number, a: number }, rgba: { r: number, g: number, b: number, a: number } }) {
+function emitColor(val: { hex: string, hex8?: string, hsl: { h: number, s: number, l: number, a: number }, hsv: { h: number, s: number, v: number, a: number }, rgba: { r: number, g: number, b: number, a: number }, a: number }) {
   let colorValue: string
   switch (props.colorMode) {
     case 'hex':
@@ -113,6 +113,7 @@ function setColorFromValue(value: string) {
 }
 
 watch(colors, (val) => {
+  // @ts-expect-error -- colors ref can hold FullColor or Record<string,unknown>, emitColor accepts FullColor
   emitColor(val)
   if (props.closeOnChange) {
     closePicker()
@@ -149,7 +150,7 @@ onBeforeUnmount(() => {
       </slot>
     </div>
     <div v-if="pickerVisible" class="u-color-picker-popover">
-      <Sketch v-model="colors" />
+      <Sketch v-model="colors as any" />
     </div>
   </div>
 </template>

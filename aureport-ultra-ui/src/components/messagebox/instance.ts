@@ -17,7 +17,7 @@ let msgboxInstance: any = null
 MessageBox.alert = function (message: string, title?: string, options?: Record<string, any>) {
   const params = { type: 'alert' as const, message, title, ...options }
   msgboxInstance = msgboxInstance || MessageBox(params)
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null
@@ -29,7 +29,7 @@ MessageBox.alert = function (message: string, title?: string, options?: Record<s
 MessageBox.confirm = function (message: string, title?: string, options?: Record<string, any>) {
   const params = { type: 'confirm' as const, message, title, ...options }
   msgboxInstance = msgboxInstance || MessageBox(params)
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null
@@ -41,7 +41,7 @@ MessageBox.confirm = function (message: string, title?: string, options?: Record
 MessageBox.prompt = function (message: string, title?: string, options?: Record<string, any>) {
   const params = { type: 'prompt' as const, message, title, ...options }
   msgboxInstance = msgboxInstance || MessageBox(params)
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     msgboxInstance.vm.$el.addEventListener('click', () => {
       msgboxInstance.app.unmount()
       msgboxInstance = null

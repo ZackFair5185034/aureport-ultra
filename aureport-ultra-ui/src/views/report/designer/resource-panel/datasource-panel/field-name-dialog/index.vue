@@ -21,6 +21,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const _form = ref<any>(null)
+const form = _form
 const formData = reactive({
   fieldName: '',
 })

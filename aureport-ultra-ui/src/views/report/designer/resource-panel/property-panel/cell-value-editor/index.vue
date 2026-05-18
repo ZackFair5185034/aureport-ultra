@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// eslint-disable-next-line ts/ban-ts-comment
-/// @ts-expect-error
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
@@ -318,10 +316,10 @@ function setParentCell(parentCellName: string | null, isLeft: boolean) {
     return
   const newCellDef = deepCopy(cellDef)
   if (isLeft) {
-    newCellDef.leftParentCellName = parentCellName
+    newCellDef.leftParentCellName = parentCellName ?? undefined
   }
   else {
-    newCellDef.topParentCellName = parentCellName
+    newCellDef.topParentCellName = parentCellName ?? undefined
   }
 
   setCell(props.rowIndex, props.colIndex, newCellDef)
@@ -357,7 +355,7 @@ function handleRendererChange(value: string) {
     newCellDef.cellStyle = {}
   }
 
-  newCellDef.cellStyle.renderer = value
+  newCellDef.cellStyle!.renderer = value
   setCell(props.rowIndex, props.colIndex, newCellDef)
   setDirty()
 }

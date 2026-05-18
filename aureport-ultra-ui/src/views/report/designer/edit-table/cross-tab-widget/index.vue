@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Raphael from 'raphael'
+// @ts-ignore -- save-svg-as-png 没有类型声明
 import saveSvgAsPng from 'save-svg-as-png'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { deepCopy } from '@/components/utils'

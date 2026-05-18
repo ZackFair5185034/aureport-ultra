@@ -333,9 +333,9 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   }
 
   const [rowIndex, colIndex, endRow, endCol] = selected[0]
-  const cellDef = getCell(rowIndex, colIndex)
+  const cellDef = getCell(rowIndex, colIndex)!
 
-  let newCellDef = deepCopy(cellDef)
+  let newCellDef: any = deepCopy(cellDef)
 
   if (newCellDef.value.type === 'dataset') {
     setCell(rowIndex, colIndex, newCellDef)
@@ -343,9 +343,9 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   else {
     newCellDef = {
       value: { type: 'dataset', conditions: [] },
-      rowNumber: newCellDef.rowNumber,
-      columnNumber: newCellDef.columnNumber,
-      cellStyle: newCellDef.cellStyle,
+      rowNumber: cellDef.rowNumber,
+      columnNumber: cellDef.columnNumber,
+      cellStyle: cellDef.cellStyle,
     }
     addCell(newCellDef)
   }

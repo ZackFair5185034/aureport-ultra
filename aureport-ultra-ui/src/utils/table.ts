@@ -1,4 +1,5 @@
 import type { CellDef, ReportContext, RowHeader } from '@/types'
+// @ts-ignore -- undo-manager 没有类型声明
 import UndoManager from 'undo-manager'
 import MessageBox from '@/components/messagebox/instance'
 
@@ -499,7 +500,7 @@ export function tableToXml(context: ReportContext): string {
           }
 
           const mappingType = value.mappingType || 'simple'
-          let dsAttrs = `dataset-name="${encode(value.datasetName)}" aggregate="${value.aggregate}" property="${value.property}" order="${value.order || ''}" mapping-type="${mappingType}"`
+          let dsAttrs = `dataset-name="${encode(value.datasetName || '')}" aggregate="${encode(value.aggregate || '')}" property="${encode(value.property || '')}" order="${encode(value.order || '')}" mapping-type="${mappingType}"`
           if (value.groupHead)
             dsAttrs += ` group-head="true"`
           if (value.groupFoot)
@@ -512,11 +513,12 @@ export function tableToXml(context: ReportContext): string {
           cellXml += '>'
           cellXml += buildConditions(value.conditions)
           if (value.aggregate === 'customgroup') {
-            const groupItems = value.groupItems
+            const groupItems = value.groupItems!
             for (const groupItem of groupItems) {
               cellXml += `<group-item name="${groupItem.name}">`
               for (const condition of groupItem.conditions) {
-                cellXml += `<condition property="${condition.left}" op="${encode(condition.operation || condition.op)}" id="${condition.id}"`
+                const op = (condition as any).operation || (condition as any).op || ''
+                cellXml += `<condition property="${condition.left}" op="${encode(op)}" id="${condition.id}"`
                 cellXml += condition.join ? ` join="${condition.join}">` : '>'
 
                 cellXml += `<value><![CDATA[${condition.right}]]></value>`
@@ -599,7 +601,7 @@ export function tableToXml(context: ReportContext): string {
 
         case 'slash': {
           cellXml += `<slash-value>`
-          const slashes = value.slashes
+          const slashes = value.slashes || []
           for (const slash of slashes) {
             cellXml += `<slash text="${slash.text}" x="${slash.x}" y="${slash.y}" degree="${slash.degree}"/>`
           }
@@ -614,8 +616,8 @@ export function tableToXml(context: ReportContext): string {
 
         case 'chart': {
           cellXml += `<chart-value>`
-          const chart = value.chart
-          const dataset = chart.dataset
+          const chart = value.chart!
+          const dataset = chart.dataset!
           cellXml += `<dataset dataset-name="${dataset.datasetName}" type="${dataset.type}"`
           if (dataset.categoryProperty) {
             cellXml += ` category-property="${dataset.categoryProperty}"`
@@ -654,7 +656,7 @@ export function tableToXml(context: ReportContext): string {
           }
 
           cellXml += `/>`
-          const xaxes = chart.xaxes
+          const xaxes = chart.xaxes!
           if (xaxes) {
             cellXml += `<xaxes`
             if (xaxes.rotation) {
@@ -675,7 +677,7 @@ export function tableToXml(context: ReportContext): string {
             cellXml += `</xaxes>`
           }
 
-          const yaxes = chart.yaxes
+          const yaxes = chart.yaxes!
           if (yaxes) {
             cellXml += `<yaxes`
             if (yaxes.rotation) {
@@ -696,7 +698,7 @@ export function tableToXml(context: ReportContext): string {
             cellXml += `</yaxes>`
           }
 
-          const options = chart.options
+          const options = chart.options!
           if (options) {
             for (const option of options) {
               cellXml += `<option type="${option.type}"`
@@ -724,7 +726,7 @@ export function tableToXml(context: ReportContext): string {
             }
           }
 
-          const plugins = chart.plugins || []
+          const plugins = chart!.plugins || []
           for (const plugin of plugins) {
             cellXml += `<plugin name="${plugin.name}" display="${plugin.display}"/>`
           }
@@ -895,10 +897,10 @@ export function tableToXml(context: ReportContext): string {
     const type = datasource.type
     switch (type) {
       case 'jdbc': {
-        ds += ` username="${encode(datasource.username)}"`
-        ds += ` password="${encode(datasource.password)}"`
-        ds += ` url="${encode(datasource.url)}"`
-        ds += ` driver="${datasource.driver}"`
+        ds += ` username="${encode(datasource.username!)}"`
+        ds += ` password="${encode(datasource.password!)}"`
+        ds += ` url="${encode(datasource.url!)}"`
+        ds += ` driver="${datasource.driver!}"`
         ds += '>'
         for (const dataset of datasource.datasets) {
           ds += `<dataset name="${encode(dataset.name)}" type="sql">`

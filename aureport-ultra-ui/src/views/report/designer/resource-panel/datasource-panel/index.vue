@@ -35,7 +35,7 @@ const springDatasources = computed(() => datasources.value.filter((ds: any) => d
 const buildinDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'buildin'))
 
 watch(context, (newContext) => {
-  if (newContext && newContext.reportDef) {
+  if (newContext && (newContext as any).reportDef) {
     initializeDatasources()
   }
 }, { immediate: true })
@@ -45,7 +45,7 @@ onMounted(() => {
 })
 
 function initializeDatasources() {
-  const ctx = context.value
+  const ctx = context.value as any
   if (!ctx)
     return
 
@@ -90,7 +90,7 @@ function addJdbcDatasource(datasource: any) {
   const newIndex = datasources.value.length
   datasources.value[newIndex] = newDatasource
 
-  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }
 
@@ -105,7 +105,7 @@ function addSpringDatasource(datasource: any) {
   const newIndex = datasources.value.length
   datasources.value[newIndex] = newDatasource
 
-  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }
 
@@ -119,7 +119,7 @@ function addBuildinDatasource(datasource: any) {
   const newIndex = datasources.value.length
   datasources.value[newIndex] = newDatasource
 
-  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }
 
@@ -128,7 +128,7 @@ function removeDatasource(name: string) {
   if (index !== -1) {
     datasources.value.splice(index, 1)
 
-    const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+    const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
     updateReportDef(reportDef)
   }
 }
@@ -139,13 +139,13 @@ function updateDatasource(data: any) {
     datasources.value[index] = { ...datasources.value[index], ...data }
   }
 
-  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }
 
 function updateSpringDatasets(datasource: any, datasets: any[]) {
   datasource.datasets = datasets
-  const reportDef = { ...context.value.reportDef, datasources: datasources.value }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }
 

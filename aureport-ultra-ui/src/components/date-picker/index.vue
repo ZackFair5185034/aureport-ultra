@@ -120,7 +120,7 @@ const innerValue = ref(props.modelValue)
 const attrs = useAttrs()
 const $slots = useSlots()
 
-const valueTypeComputed = computed(() => valueType as 'date' | 'timestamp' | 'format' | string)
+const valueTypeComputed = computed(() => props.valueType as 'date' | 'timestamp' | 'format' | string)
 
 function handleChange(date: unknown, type?: unknown) {
   innerValue.value = date as Date | string | number | (Date | string | number)[] | undefined

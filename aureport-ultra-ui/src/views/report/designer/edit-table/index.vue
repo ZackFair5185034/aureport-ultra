@@ -97,10 +97,11 @@ function initHandsontable() {
     autoRowSize: false,
     manualColumnResize: true,
     manualRowResize: true,
+    // @ts-ignore -- maxColsNumber 是自定义属性
     maxColsNumber: 700,
     outsideClickDeselects: false,
-    width: '100%',
-    height: '100%',
+    width: '100%' as unknown as number,
+    height: '100%' as unknown as number,
   })
 
   TableManager.set(hot.value)
@@ -179,6 +180,7 @@ function bindColumnResizeEvent() {
 }
 
 function bindSelectionEvent() {
+  // @ts-expect-error -- Handsontable.hooks.add is valid at runtime
   Handsontable.hooks.add('afterSelectionEnd', (rowIndex: number, colIndex: number, row2Index: number, col2Index: number) => {
     emit('cell-selected', { rowIndex, colIndex, row2Index, col2Index })
   }, hot.value)

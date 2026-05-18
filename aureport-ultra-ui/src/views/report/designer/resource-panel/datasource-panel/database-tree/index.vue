@@ -349,9 +349,9 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   }
 
   const [rowIndex, colIndex, endRow, endCol] = selected[0]
-  const cellDef = getCell(rowIndex, colIndex)
+  const cellDef = getCell(rowIndex, colIndex)!
 
-  const oldCellDef = deepCopy(cellDef)
+  const oldCellDef: any = deepCopy(cellDef)
 
   const newCellDef: any = cellDef.value.type === 'dataset'
     ? deepCopy(cellDef)
@@ -376,65 +376,53 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   setCell(rowIndex, colIndex, newCellDef)
   hot.setDataAtCell(rowIndex, colIndex, text)
 
-  if (window.setDirty) {
-    window.setDirty()
-  }
+  ;(window as any).setDirty?.()
 
   hot.render()
 
-  if (window.Handsontable && window.Handsontable.hooks) {
-    window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
-  }
+  ;(window as any).Handsontable?.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
 
-  if (window.undoManager) {
-    window.undoManager.add({
-      redo: () => {
-        const currentCellDef = getCell(rowIndex, colIndex)
-        const redoCellDef: any = currentCellDef.value.type === 'dataset'
-          ? deepCopy(currentCellDef)
-          : {
-              value: { type: 'dataset', conditions: [] },
-              rowNumber: currentCellDef.rowNumber,
-              columnNumber: currentCellDef.columnNumber,
-              cellStyle: currentCellDef.cellStyle,
-            }
-        redoCellDef.expand = 'Down'
-        const redoValue = redoCellDef.value
-        redoValue.aggregate = 'group'
-        redoValue.datasetName = dataset.name
-        redoValue.property = field.name
-        redoValue.order = 'none'
+  ;(window as any).undoManager?.add({
+    redo: () => {
+      const currentCellDef = getCell(rowIndex, colIndex)!
+      const redoCellDef: any = currentCellDef.value.type === 'dataset'
+        ? deepCopy(currentCellDef)
+        : {
+            value: { type: 'dataset', conditions: [] },
+            rowNumber: currentCellDef.rowNumber,
+            columnNumber: currentCellDef.columnNumber,
+            cellStyle: currentCellDef.cellStyle,
+          }
+      redoCellDef.expand = 'Down'
+      const redoValue = redoCellDef.value
+      redoValue.aggregate = 'group'
+      redoValue.datasetName = dataset.name
+      redoValue.property = field.name
+      redoValue.order = 'none'
 
-        let redoText = `${redoValue.datasetName}.${redoValue.aggregate}(`
-        redoText += `${redoValue.property})`
-        setCell(rowIndex, colIndex, redoCellDef)
-        hot.setDataAtCell(rowIndex, colIndex, redoText)
-        if (window.setDirty)
-          window.setDirty()
-        hot.render()
-        if (window.Handsontable && window.Handsontable.hooks) {
-          window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
-        }
-      },
-      undo: () => {
-        setCell(rowIndex, colIndex, oldCellDef)
-        const val = oldCellDef.value
-        let text = val.value || ''
-        if (val.type === 'dataset') {
-          text = `${val.datasetName}.${val.aggregate}(`
-          text += `${val.property})`
-        }
+      let redoText = `${redoValue.datasetName}.${redoValue.aggregate}(`
+      redoText += `${redoValue.property})`
+      setCell(rowIndex, colIndex, redoCellDef)
+      hot.setDataAtCell(rowIndex, colIndex, redoText)
+      ;(window as any).setDirty?.()
+      hot.render()
+      ;(window as any).Handsontable?.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+    },
+    undo: () => {
+      setCell(rowIndex, colIndex, oldCellDef)
+      const val = oldCellDef.value
+      let text = val.value || ''
+      if (val.type === 'dataset') {
+        text = `${val.datasetName}.${val.aggregate}(`
+        text += `${val.property})`
+      }
 
-        hot.setDataAtCell(rowIndex, colIndex, text)
-        if (window.setDirty)
-          window.setDirty()
-        hot.render()
-        if (window.Handsontable && window.Handsontable.hooks) {
-          window.Handsontable.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
-        }
-      },
-    })
-  }
+      hot.setDataAtCell(rowIndex, colIndex, text)
+      ;(window as any).setDirty?.()
+      hot.render()
+      ;(window as any).Handsontable?.hooks.run(hot, 'afterSelectionEnd', rowIndex, colIndex, endRow, endCol)
+    },
+  })
 }
 </script>
 

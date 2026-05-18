@@ -286,13 +286,12 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   }
 
   const [rowIndex, colIndex, endRow, endCol] = selected[0]
-  let cellDef = getCell(rowIndex, colIndex)
+  const cellDef = getCell(rowIndex, colIndex)!
 
   if (cellDef.value.type !== 'dataset') {
     const newCellDef = deepCopy(cellDef)
     newCellDef.value = { type: 'dataset', conditions: [] }
     addCell(newCellDef)
-    cellDef = newCellDef
   }
 
   const newCellDef = deepCopy(cellDef)

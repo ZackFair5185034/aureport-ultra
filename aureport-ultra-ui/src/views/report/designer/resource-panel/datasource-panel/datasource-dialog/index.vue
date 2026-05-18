@@ -145,7 +145,7 @@ async function doTestConnection(showSuccessTips: boolean): Promise<boolean> {
   fd.append('url', formData.url)
 
   try {
-    const _data = await testConnection(fd)
+    const _data: any = await testConnection(fd)
     if (_data.result && showSuccessTips) {
       showAlert(t('dialog.datasource.testSuccess'))
     }
