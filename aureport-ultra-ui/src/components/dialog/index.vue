@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
           <i
             v-if="showClose"
             class="iconfont icon-close u-dialog-close"
-            @click="handleClose"
+            @click.stop="handleClose"
           />
         </div>
         <div v-if="rendered" class="u-dialog-body">

@@ -284,7 +284,7 @@ function handleClose() {
 
     <template #footer>
       <div style="text-align: right">
-        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button type="info" style="margin-right: 10px;" @click.stop="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
       </div>
     </template>
   </UDialog>

@@ -76,11 +76,11 @@ const rules = reactive({
 
 watch(() => props.visible, (newVal) => {
   if (newVal) {
+    resetForm()
+
     if (props.datasource) {
       fillForm(props.datasource)
     }
-
-    resetForm()
   }
 })
 

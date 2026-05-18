@@ -557,6 +557,7 @@ function handleNestPropertyChange() {
     }
   }
 
+  _updateTableData()
   setDirty()
 }
 

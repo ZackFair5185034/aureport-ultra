@@ -10,6 +10,7 @@ export function initDrawingDefaultValue() {
       label: $t('searchForm.phone'),
       vModel: 'mobile',
       formId: 6,
+      renderKey: `${Date.now()}${Math.random()}`,
       tag: 'u-input',
       placeholder: $t('searchForm.pleaseEnterPhone'),
       defaultValue: '',

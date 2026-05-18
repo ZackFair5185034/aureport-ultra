@@ -295,7 +295,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 
     <template #footer>
       <div style="text-align: right">
-        <UButton type="info" style="margin-right: 10px;" @click="handleClose">{{ t('dialog.common.cancel') }}</UButton>
+        <UButton type="info" style="margin-right: 10px;" @click.stop="handleClose">{{ t('dialog.common.cancel') }}</UButton>
         <UButton @click="handleOk">{{ t('dialog.common.ok') }}</UButton>
       </div>
     </template>

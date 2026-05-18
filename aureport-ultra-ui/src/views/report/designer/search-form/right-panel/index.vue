@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmits, defineOptions, defineProps, ref, watch } from 'vue'
+import { computed, defineEmits, defineOptions, defineProps, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import { deepCopy } from '@/components/utils'
@@ -27,12 +27,38 @@ const emit = defineEmits<{
 const localActiveData = ref(deepCopy(props.activeData))
 const localFormConf = ref(deepCopy(props.formConf))
 
+// Flags to break the emit → parent update → prop sync → emit loop
+let syncingActiveData = false
+let syncingFormConf = false
+
 watch(() => props.activeData, (newVal) => {
-  localActiveData.value = deepCopy(newVal)
+  if (newVal && Object.keys(newVal).length > 0) {
+    syncingActiveData = true
+    localActiveData.value = deepCopy(newVal)
+    nextTick(() => { syncingActiveData = false })
+  }
+}, { deep: true })
+
+watch(localActiveData, (newVal) => {
+  if (syncingActiveData) return
+  if (newVal && Object.keys(newVal).length > 0) {
+    emit('update:activeData', deepCopy(newVal))
+  }
 }, { deep: true })
 
 watch(() => props.formConf, (newVal) => {
-  localFormConf.value = deepCopy(newVal)
+  if (newVal && Object.keys(newVal).length > 0) {
+    syncingFormConf = true
+    localFormConf.value = deepCopy(newVal)
+    nextTick(() => { syncingFormConf = false })
+  }
+}, { deep: true })
+
+watch(localFormConf, (newVal) => {
+  if (syncingFormConf) return
+  if (newVal && Object.keys(newVal).length > 0) {
+    emit('update:formConf', deepCopy(newVal))
+  }
 }, { deep: true })
 
 const { t } = useI18n()
@@ -211,34 +237,6 @@ function onCheckboxMaxInput(val: any) {
       <div class="right-scrollbar">
         <!-- 组件属性 -->
         <u-form v-show="currentTab==='field' && showField" size="small" :label-width="90">
-          <u-form-item v-if="activeData.changeTag" :label="t('searchForm.componentType')">
-            <u-select
-              v-model="activeData.tagIcon"
-              :placeholder="t('searchForm.selectComponentType')"
-              :style="{width: '100%'}"
-              @change="tagChange"
-            >
-              <template v-for="group in tagList">
-                <div v-for="(item, idx) in group.options" :key="idx">
-                  <u-option
-                    :label="item.label"
-                    :value="item.tagIcon"
-                  >
-                    {{ item.label }}
-                  </u-option>
-                </div>
-              </template>
-            </u-select>
-          </u-form-item>
-          <u-form-item v-if="activeData.vModel!==undefined" :label="t('searchForm.fieldName')">
-            <u-input v-model="activeData.vModel" :placeholder="t('searchForm.enterFieldName')" />
-          </u-form-item>
-          <u-form-item v-if="activeData.componentName!==undefined" :label="t('searchForm.componentName')">
-            {{ activeData.componentName }}
-          </u-form-item>
-        </u-form>
-<!-- 组件属性 -->
-        <u-form v-show="currentTab==='field' && showField" size="small" :label-width="90">
           <u-form-item v-if="localActiveData.changeTag" :label="t('searchForm.componentType')">
             <u-select
               v-model="localActiveData.tagIcon"
@@ -392,22 +390,25 @@ function onCheckboxMaxInput(val: any) {
               :animation="340"
               group="selectItem"
               handle=".option-drag"
+              item-key="value"
             >
-              <div v-for="(item, index) in localActiveData.options" :key="index" class="select-item">
-                <div class="select-line-icon option-drag">
-                  <i class="iconfont icon-success" />
+              <template #item="{ element, index }">
+                <div class="select-item">
+                  <div class="select-line-icon option-drag">
+                    <i class="iconfont icon-success" />
+                  </div>
+                  <u-input v-model="element.label" :placeholder="t('searchForm.optionName')" size="small" />
+                  <u-input
+                    :placeholder="t('searchForm.optionValue')"
+                    size="small"
+                    :value="element.value"
+                    @input="onOptionValueInput(element, $event)"
+                  />
+                  <div class="close-btn select-line-icon" @click="localActiveData.options.splice(index, 1)">
+                    <i class="iconfont icon-delete" />
+                  </div>
                 </div>
-                <u-input v-model="item.label" :placeholder="t('searchForm.optionName')" size="small" />
-                <u-input
-                  :placeholder="t('searchForm.optionValue')"
-                  size="small"
-                  :value="item.value"
-                  @input="onOptionValueInput(item, $event)"
-                />
-                <div class="close-btn select-line-icon" @click="localActiveData.options.splice(index, 1)">
-                  <i class="iconfont icon-delete" />
-                </div>
-              </div>
+              </template>
             </draggable>
             <div style="margin-left: 20px;">
               <u-button

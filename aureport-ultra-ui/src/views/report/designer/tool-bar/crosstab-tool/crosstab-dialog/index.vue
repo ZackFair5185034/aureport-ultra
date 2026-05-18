@@ -70,7 +70,7 @@ function handleClose() {
     </div>
     <template #footer>
       <div style="text-align: right">
-        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button type="info" style="margin-right: 10px;" @click.stop="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
         <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
       </div>
     </template>

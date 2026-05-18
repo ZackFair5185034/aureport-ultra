@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
       <div v-show="show" class="u-messagebox-wrap">
         <div class="u-messagebox-title">
           <span>{{ title }}</span>
-          <i class="u-messagebox-close iconfont icon-close" @click="handleClose" />
+          <i class="u-messagebox-close iconfont icon-close" @click.stop="handleClose" />
         </div>
         <div v-if="type === 'prompt'" class="u-messagebox-prompt">
           <p v-if="useHTMLString" v-html="message" />

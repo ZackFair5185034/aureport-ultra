@@ -107,6 +107,10 @@ function getFilteredRule(trigger: string) {
 }
 
 async function validate(trigger: string, callback?: (errors?: unknown) => void): Promise<boolean> {
+  if (!props.prop) {
+    if (callback) callback()
+    return true
+  }
   let rules = getFilteredRule(trigger)
   if (!rules || rules.length === 0) {
     if (props.required) {

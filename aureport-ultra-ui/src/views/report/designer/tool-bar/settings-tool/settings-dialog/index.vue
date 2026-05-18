@@ -423,7 +423,7 @@ function handleColumnEnabledChange() {
 
     <template #footer>
       <div class="div-footer-align">
-        <u-button type="info" class="btn-cancel" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button type="info" class="btn-cancel" @click.stop="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
         <u-button @click="handleOk">{{ $t('dialog.common.ok') }}</u-button>
       </div>
     </template>

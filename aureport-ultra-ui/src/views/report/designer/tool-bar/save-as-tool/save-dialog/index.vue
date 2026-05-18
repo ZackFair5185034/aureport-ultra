@@ -342,7 +342,7 @@ function formatDateItem(date: string) {
 
     <template #footer>
       <div style="text-align: right">
-        <u-button type="info" style="margin-right: 10px;" @click="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
+        <u-button type="info" style="margin-right: 10px;" @click.stop="handleClose">{{ $t('dialog.common.cancel') }}</u-button>
         <u-button @click="handleSave">{{ $t('dialog.save.save') }}</u-button>
       </div>
     </template>

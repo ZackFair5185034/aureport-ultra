@@ -1,9 +1,40 @@
-// @ts-check
 import { defineComponent, h } from 'vue'
+import UButton from '@/components/button/index.vue'
 import UCheckbox from '@/components/checkbox/index.vue'
+import UCheckboxGroup from '@/components/checkbox-group/index.vue'
+import UCol from '@/components/col/index.vue'
+import UDatePicker from '@/components/date-picker/index.vue'
+import UForm from '@/components/form/index.vue'
+import UFormItem from '@/components/form-item/index.vue'
+import UInput from '@/components/input/index.vue'
+import UInputNumber from '@/components/input-number/index.vue'
 import UOption from '@/components/option/index.vue'
 import URadio from '@/components/radio/index.vue'
-import { makeMap } from './index'
+import URadioGroup from '@/components/radio-group/index.vue'
+import URow from '@/components/row/index.vue'
+import USelect from '@/components/select/index.vue'
+import USwitch from '@/components/switch/index.vue'
+import { deepClone, makeMap } from './index'
+
+// Component map for resolving string tags to component objects
+// In Vue 3, h('u-select', ...) creates a native HTML element, NOT a component.
+// We must use imported component objects instead.
+const componentMap = {
+  'u-button': UButton,
+  'u-checkbox-group': UCheckboxGroup,
+  'u-col': UCol,
+  'u-date-picker': UDatePicker,
+  'u-form': UForm,
+  'u-form-item': UFormItem,
+  'u-input': UInput,
+  'u-input-number': UInputNumber,
+  'u-option': UOption,
+  'u-radio': URadio,
+  'u-radio-group': URadioGroup,
+  'u-row': URow,
+  'u-select': USelect,
+  'u-switch': USwitch,
+}
 
 const isAttr = makeMap(
   'accept,accept-charset,accesskey,action,align,alt,async,autocomplete,'
@@ -22,12 +53,9 @@ const isAttr = makeMap(
 )
 
 const componentChild = {
-  'u-input': {
-    prepend(h, conf, key) {
-      return h('template', { slot: 'prepend' }, conf[key])
-    },
-    append(h, conf, key) {
-      return h('template', { slot: 'append' }, conf[key])
+  'u-button': {
+    defaultValue(h, conf, key) {
+      return [conf[key]]
     },
   },
   'u-select': {
@@ -91,7 +119,7 @@ export default defineComponent({
         on: {},
         style: {},
       }
-      const confClone = structuredClone(props.conf)
+      const confClone = deepClone(props.conf)
       const children = []
 
       const childObjs = componentChild[confClone.tag]
@@ -123,7 +151,13 @@ export default defineComponent({
         }
       }
 
-      return h(confClone.tag, dataObject, children)
+      // Resolve component from local map (Vue 3 h() with string tag creates native elements, not components)
+      const component = componentMap[confClone.tag] || confClone.tag
+
+      // Wrap children in function slot for Vue 3 performance
+      const slotChildren = children.length > 0 ? () => children : undefined
+
+      return h(component, dataObject, slotChildren)
     }
   },
 })

@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { previewData } from '@/api/designer/index'
-import { LoadingDirective } from '@/components/loading/instance.js'
+import { LoadingDirective as vLoading } from '@/components/loading/instance.js'
 
 defineOptions({ name: 'PreviewDataDialog' })
 

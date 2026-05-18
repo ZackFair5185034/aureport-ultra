@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, useAttrs } from 'vue'
+import draggable from 'vuedraggable'
 import UCol from '@/components/col/index.vue'
 import UFormItem from '@/components/form-item/index.vue'
 import URow from '@/components/row/index.vue'
@@ -29,7 +30,7 @@ function itemBtns(element: any, index: number, parent: any[]) {
         event.stopPropagation()
       },
     }, [
-      h('i', { class: 'iconfont icon-share' }),
+      h('i', { class: 'iconfont icon-copy' }),
     ]),
     h('span', {
       class: 'drawing-item-delete',
@@ -42,6 +43,18 @@ function itemBtns(element: any, index: number, parent: any[]) {
       h('i', { class: 'iconfont icon-delete' }),
     ]),
   ]
+}
+
+function renderChildren(element: any) {
+  if (!Array.isArray(element.children))
+    return null
+  return element.children.map((child: any, i: number) => {
+    const childLayout = layouts[child.layout]
+    if (childLayout) {
+      return childLayout(child, i, element.children)
+    }
+    return null
+  })
 }
 
 function colFormItem(element: any, index: number, parent: any[]) {
@@ -78,23 +91,53 @@ function rowFormItem(element: any, index: number, parent: any[]) {
   const isActive = props.activeId === element.formId
   const className = isActive ? 'drawing-row-item active-from-item' : 'drawing-row-item'
 
+  const children = renderChildren(element)
+  let childContent = [
+    h('span', { class: 'component-name' }, () => element.componentName),
+    ...itemBtns(element, index, parent),
+  ]
+
+  if (element.children && element.children.length > 0) {
+    childContent = [
+      h('span', { class: 'component-name' }, () => element.componentName),
+      h(draggable, {
+        list: element.children,
+        animation: 340,
+        group: 'componentsGroup',
+        class: 'drag-wrapper',
+        itemKey: 'renderKey',
+      }, {
+        item: ({ element: childEl }: { element: any }) => {
+          const childLayout = layouts[childEl.layout]
+          if (childLayout) {
+            return childLayout(childEl, 0, element.children)
+          }
+          return null
+        },
+      }),
+      ...itemBtns(element, index, parent),
+    ]
+  }
+
+  const rowProps: Record<string, any> = {
+    gutter: element.gutter,
+    class: className,
+    onClick(event: Event) {
+      onActiveItem.value?.(element)
+      event.stopPropagation()
+    },
+  }
+
+  if (element.type === 'flex') {
+    rowProps.type = element.type
+    rowProps.justify = element.justify
+    rowProps.align = element.align
+  }
+
   return h(UCol, {
     span: element.span,
   }, () => [
-    h(URow, {
-      gutter: element.gutter,
-      class: className,
-      type: element.type === 'flex' ? element.type : undefined,
-      justify: element.justify,
-      align: element.align,
-      onClick(event: Event) {
-        onActiveItem.value?.(element)
-        event.stopPropagation()
-      },
-    }, () => [
-      h('span', { class: 'component-name' }, () => element.componentName),
-      ...itemBtns(element, index, parent),
-    ]),
+    h(URow, rowProps, () => childContent),
   ])
 }
 
