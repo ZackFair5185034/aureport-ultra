@@ -506,7 +506,7 @@ function _buildFields(): any[] | null {
       </u-form-item>
 
       <u-form-item v-show="internalShowExpandOptions" class="property-label" :label="t('property.dataset.expand')">
-        <u-radio-group :value="internalSelectedExpand" @change="handleExpandChange">
+        <u-radio-group v-model="internalSelectedExpand" @change="handleExpandChange">
           <u-radio
             v-for="option in expandOptions"
             :key="option.value"
