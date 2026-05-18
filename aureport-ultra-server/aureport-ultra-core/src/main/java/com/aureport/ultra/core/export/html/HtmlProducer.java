@@ -21,14 +21,12 @@ import com.aureport.ultra.core.definition.Alignment;
 import com.aureport.ultra.core.definition.Border;
 import com.aureport.ultra.core.definition.CellStyle;
 import com.aureport.ultra.core.definition.value.ProgressBarValue;
-import com.aureport.ultra.core.definition.value.RichTextValue;
 import com.aureport.ultra.core.expression.model.Expression;
 import com.aureport.ultra.core.expression.model.data.BindDataListExpressionData;
 import com.aureport.ultra.core.expression.model.data.ExpressionData;
 import com.aureport.ultra.core.expression.model.data.ObjectExpressionData;
 import com.aureport.ultra.core.expression.model.data.ObjectListExpressionData;
 import com.aureport.ultra.core.model.*;
-import com.aureport.ultra.core.utils.XssFilter;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -265,15 +263,6 @@ public class HtmlProducer {
                     sb.append("<div style=\"position: relative;width:" + width + "pt;height:" + height + "pt\">");
                     sb.append("<canvas id=\"" + canvasId + "\" style=\"width:" + width + "px !important;height:" + height + "px !important\"></canvas>");
                     sb.append("</div>");
-                } else if (obj instanceof RichTextValue) {
-                    // 富文本单元格：不过滤HTML，只做XSS防护
-                    String richText = ((RichTextValue) obj).getValue();
-                    if (richText == null || richText.isEmpty()) {
-                        richText = "&nbsp;";
-                    } else {
-                        richText = XssFilter.filter(richText);
-                    }
-                    sb.append(richText);
                 } else {
                     String text = obj.toString();
                     text = StringEscapeUtils.escapeHtml4(text);

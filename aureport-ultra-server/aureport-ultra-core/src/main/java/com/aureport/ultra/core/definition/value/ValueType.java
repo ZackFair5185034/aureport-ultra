@@ -18,5 +18,5 @@ package com.aureport.ultra.core.definition.value;
  * @since 2017年2月7日
  */
 public enum ValueType {
-    simple, expression, dataset, image, chart, slash, zxing, richtext, progressbar;
+    simple, expression, dataset, image, chart, slash, zxing, progressbar;
 }
