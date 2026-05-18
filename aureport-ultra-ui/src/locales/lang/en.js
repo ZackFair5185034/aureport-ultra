@@ -535,7 +535,7 @@ const en = {
       selectBean: 'Select Bean',
       none: 'None',
       urlExpressionExample: 'E.g.: \'condition ? a.html : b.html\'',
-      urlExpressionSupport: 'Support expressions, expressions defined in {$EXPR...}',
+      urlExpressionSupport: "Support expressions, expressions defined in {'{'}$EXPR...{'}'}",
       linkUrl: 'Link Url',
     },
     base: {

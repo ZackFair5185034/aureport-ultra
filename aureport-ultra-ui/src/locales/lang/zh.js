@@ -536,7 +536,7 @@ const zh = {
       selectBean: '选择Bean',
       none: '无',
       urlExpressionExample: '如: \'条件 ? a.html : b.html\'',
-      urlExpressionSupport: '支持表达式，表达式定义在 {$EXPR...} 中',
+      urlExpressionSupport: "支持表达式，表达式定义在 {'{'}$EXPR...{'}'} 中",
       linkUrl: '链接地址',
     },
     base: {
