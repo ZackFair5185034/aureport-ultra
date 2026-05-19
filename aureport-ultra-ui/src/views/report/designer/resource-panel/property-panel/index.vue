@@ -4,6 +4,7 @@ import { deepCopy } from '@/components/utils/index'
 import { useReportStore } from '@/stores/report'
 import { getCell, getCellName, setCell } from '@/utils/contextActions'
 import { setDirty } from '@/utils/table'
+import CellValueEditor from './cell-value-editor/index.vue'
 import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class'
 import TableManager from '@/views/report/designer/edit-table/manager'
 import BubbleChartValueEditor from './bubble-chart-value-editor/index.vue'
@@ -367,6 +368,18 @@ function buildHeight(rowIndex: number, rowspan: number, hot: any): number {
 
 <template>
   <div class="property-panel">
+
+    <!-- 单元格值编辑器组件 -->
+    <CellValueEditor
+      :show-parent-group="showParentGroup"
+      :show-renderer-group="showRendererGroup"
+      :show-link-group="showLinkGroup"
+      :show-type-group="showTypeGroup"
+      :row-index="rowIndex"
+      :col-index="colIndex"
+      @select-renderer="handleSelectRenderer"
+      @cell-type-change="handleCellTypeChange"
+    />
 
     <!-- 表达式值编辑器Vue组件 -->
     <ExpressionValueEditor
