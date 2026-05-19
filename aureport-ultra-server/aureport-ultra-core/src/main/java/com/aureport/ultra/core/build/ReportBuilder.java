@@ -52,6 +52,7 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 	private NoneExpandBuilder noneExpandBuilder = new NoneExpandBuilder();
 	private HideRowColumnBuilder hideRowColumnBuilder;
 	private int queryTimeout;
+	private static final int MAX_ITERATIONS = 5000;
 
 	public ReportBuilder() {
 		cellBuildersMap.put(Expand.Right, new RightExpandBuilder());
@@ -66,7 +67,11 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 		long start = System.currentTimeMillis();
 		List<Cell> cells = new ArrayList<Cell>();
 		cells.add(report.getRootCell());
+		int iterations = 0;
 		do {
+			if (++iterations > MAX_ITERATIONS) {
+				throw new ReportComputeException("Maximum iterations " + MAX_ITERATIONS + " reached, possible circular dependency in cell references.");
+			}
 			buildCell(context, cells);
 			cells = context.nextUnprocessedCells();
 		} while (cells != null);

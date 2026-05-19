@@ -6,6 +6,7 @@ export interface ReportContext {
   rowHeaders: RowHeader[]
   LETTERS: string[]
   reportDef: ReportDef
+  [key: string]: unknown
 }
 
 /** 单元格定义 */

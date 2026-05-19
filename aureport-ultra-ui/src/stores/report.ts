@@ -130,7 +130,7 @@ export const useReportStore = defineStore('report', () => {
 
   function updateProperty(property: string, value: unknown) {
     if (context.value) {
-      (context.value as Record<string, unknown>)[property] = value
+      context.value[property] = value
     }
   }
 
