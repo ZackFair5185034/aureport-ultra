@@ -15,8 +15,12 @@ import com.aureport.ultra.web.exception.ReportDesignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,8 +38,8 @@ import java.util.Map;
  * 替代原来的ExportExcelServletAction
  */
 @RestController("bean.exportExcelController")
-@RequestMapping("${aureport-ultra.servletPrefix}/excel")
-@Tag(name = "Excel导出")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/excel", method = RequestMethod.GET)
+@Tag(name = "Excel导出", description = "Excel 2007+格式(.xlsx)报表导出功能")
 public class ExportExcelController {
 
     @Autowired
@@ -49,8 +53,20 @@ public class ExportExcelController {
     /**
      * 构建Excel报表
      */
-    @Operation(summary = "构建Excel报表")
-    @RequestMapping("/build")
+    @Operation(
+        summary = "构建Excel报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Excel文件流(.xlsx)", content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/build", method = RequestMethod.GET)
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, false);
     }
@@ -58,8 +74,20 @@ public class ExportExcelController {
     /**
      * 分页导出Excel报表
      */
-    @Operation(summary = "分页导出Excel报表")
-    @RequestMapping("/paging")
+    @Operation(
+        summary = "分页导出Excel报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Excel文件流(.xlsx)", content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/paging", method = RequestMethod.GET)
     public void paging(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, true, false);
     }
@@ -67,8 +95,20 @@ public class ExportExcelController {
     /**
      * 按Sheet导出Excel报表
      */
-    @Operation(summary = "按Sheet导出Excel报表")
-    @RequestMapping("/sheet")
+    @Operation(
+        summary = "按Sheet导出Excel报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Excel文件流(.xlsx)", content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/sheet", method = RequestMethod.GET)
     public void sheet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, true);
     }

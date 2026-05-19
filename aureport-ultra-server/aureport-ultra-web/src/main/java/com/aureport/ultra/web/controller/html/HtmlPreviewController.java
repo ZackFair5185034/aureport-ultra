@@ -22,8 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +37,8 @@ import java.io.StringWriter;
 import java.util.*;
 
 @RestController("bean.htmlPreviewController")
-@RequestMapping("${aureport-ultra.servletPrefix}/html")
-@Tag(name = "HTML预览")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/html", method = RequestMethod.GET)
+@Tag(name = "HTML预览", description = "HTML报表预览、打印与数据加载功能")
 public class HtmlPreviewController {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -47,8 +51,20 @@ public class HtmlPreviewController {
     @Autowired
     private ReportRender reportRender;
 
-    @Operation(summary = "加载HTML")
-    @RequestMapping("/loadHtml")
+    @Operation(
+        summary = "加载HTML",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_i", description = "页码索引(可选)", required = false, example = "1"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "HTML报表数据JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadHtml", method = RequestMethod.GET)
     public void loadHtml(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         Map<String, Object> result = new HashMap<String, Object>();
         HtmlReport htmlReport;
@@ -67,8 +83,19 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, result);
     }
 
-    @Operation(summary = "加载打印页面")
-    @RequestMapping("/loadPrintPages")
+    @Operation(
+        summary = "加载打印页面",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "打印页面HTML字符串JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadPrintPages", method = RequestMethod.GET)
     public void loadPrintPages(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String mode = req.getParameter("mode");
         boolean isPreview = ReportConstants.MODE_KEY.equals(mode);
@@ -122,8 +149,19 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, map);
     }
 
-    @Operation(summary = "加载页面纸张")
-    @RequestMapping("/loadPagePaper")
+    @Operation(
+        summary = "加载页面纸张",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "纸张配置JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadPagePaper", method = RequestMethod.GET)
     public void loadPagePaper(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String mode = req.getParameter("mode");
         boolean isPreview = ReportConstants.MODE_KEY.equals(mode);
@@ -142,8 +180,20 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, paper);
     }
 
-    @Operation(summary = "加载数据")
-    @RequestMapping("/loadData")
+    @Operation(
+        summary = "加载数据",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_i", description = "页码索引(可选)", required = false, example = "1"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "HTML报表数据JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadData", method = RequestMethod.GET)
     public void loadData(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         HtmlReport htmlReport = loadReport(req);
         ResponseUtils.writeObjectToJson(resp, htmlReport);

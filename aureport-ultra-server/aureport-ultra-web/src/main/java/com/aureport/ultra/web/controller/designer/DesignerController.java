@@ -23,9 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,8 +45,8 @@ import java.util.*;
  * @since 2017年1月25日
  */
 @Controller("bean.designerController")
-@RequestMapping("${aureport-ultra.servletPrefix}/designer")
-@Tag(name = "报表设计器")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/designer", method = RequestMethod.GET)
+@Tag(name = "报表设计器", description = "报表设计器脚本验证、文件管理与预览")
 public class DesignerController implements ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestHolderFilter.class);
@@ -57,8 +61,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 脚本验证
      */
-    @Operation(summary = "脚本验证")
-    @RequestMapping("/scriptValidation")
+    @Operation(
+        summary = "脚本验证",
+        parameters = {
+            @Parameter(name = "content", description = "脚本内容", required = true, example = "dataset.id == '001'")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "验证结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/scriptValidation", method = RequestMethod.GET)
     public void scriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(content);
@@ -76,8 +90,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 条件脚本验证
      */
-    @Operation(summary = "条件脚本验证")
-    @RequestMapping("/conditionScriptValidation")
+    @Operation(
+        summary = "条件脚本验证",
+        parameters = {
+            @Parameter(name = "content", description = "条件脚本内容", required = true, example = "id > 100")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "验证结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/conditionScriptValidation", method = RequestMethod.GET)
     public void conditionScriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(content);
@@ -95,8 +119,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 解析数据集名称
      */
-    @Operation(summary = "解析数据集名称")
-    @RequestMapping("/parseDatasetName")
+    @Operation(
+        summary = "解析数据集名称",
+        parameters = {
+            @Parameter(name = "expr", description = "数据集表达式", required = true, example = "ds.id")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "解析结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/parseDatasetName", method = RequestMethod.GET)
     public void parseDatasetName(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String expr = req.getParameter("expr");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(expr);
@@ -115,8 +149,19 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 保存预览文件
      */
-    @Operation(summary = "保存预览文件")
-    @RequestMapping("/savePreviewFile")
+    @Operation(
+        summary = "保存预览文件",
+        parameters = {
+            @Parameter(name = "content", description = "报表文件内容(XML格式)", required = true, example = "<?xml version=\"1.0\"?>..."),
+            @Parameter(name = "fileName", description = "报表文件名", required = true, example = "file:xxx.ureport.xml")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "保存成功"),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/savePreviewFile", method = RequestMethod.GET)
     public void savePreviewFile(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         String fileName = req.getParameter("fileName");
@@ -132,8 +177,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 加载报表
      */
-    @Operation(summary = "加载报表")
-    @RequestMapping(value = "/loadReport")
+    @Operation(
+        summary = "加载报表",
+        parameters = {
+            @Parameter(name = "filePath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "报表定义JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadReport", method = RequestMethod.GET)
     public void loadReport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String filePath = req.getParameter("filePath");
         if (filePath == null) {
@@ -154,8 +209,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 删除报表文件
      */
-    @Operation(summary = "删除报表文件")
-    @RequestMapping("/deleteReportFile")
+    @Operation(
+        summary = "删除报表文件",
+        parameters = {
+            @Parameter(name = "file", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "删除成功"),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/deleteReportFile", method = RequestMethod.GET)
     public void deleteReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
         if (file == null) {
@@ -177,8 +242,19 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 保存报表文件
      */
-    @Operation(summary = "保存报表文件")
-    @RequestMapping("/saveReportFile")
+    @Operation(
+        summary = "保存报表文件",
+        parameters = {
+            @Parameter(name = "file", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "content", description = "报表文件内容(XML格式)", required = true, example = "<?xml version=\"1.0\"?>...")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "保存成功"),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/saveReportFile", method = RequestMethod.GET)
     public void saveReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
         file = ReportUtils.decodeFileName(file);
@@ -211,8 +287,18 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 加载报表提供者
      */
-    @Operation(summary = "加载报表提供者")
-    @RequestMapping("/loadReportProviders")
+    @Operation(
+        summary = "加载报表提供者",
+        parameters = {
+            @Parameter(name = "path", description = "报表存储路径(可选)", required = false, example = "/reports")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "报表提供者列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadReportProviders", method = RequestMethod.GET)
     public void loadReportProviders(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getParameter("path");
         if (path == null || path.isEmpty()) {

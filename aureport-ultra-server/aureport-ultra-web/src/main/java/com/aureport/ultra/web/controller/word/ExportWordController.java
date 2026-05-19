@@ -14,8 +14,12 @@ import com.aureport.ultra.web.exception.ReportDesignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +37,8 @@ import java.util.Map;
  * 替代原来的ExportWordServletAction
  */
 @RestController("bean.exportWordController")
-@RequestMapping("${aureport-ultra.servletPrefix}/word")
-@Tag(name = "Word导出")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/word", method = RequestMethod.GET)
+@Tag(name = "Word导出", description = "Word格式(.docx)报表导出功能")
 public class ExportWordController {
 
     @Autowired
@@ -46,10 +50,22 @@ public class ExportWordController {
     private final WordProducer wordProducer = new WordProducer();
 
     /**
-     * 构建PDF报表
+     * 构建Word报表
      */
-    @Operation(summary = "构建Word报表")
-    @RequestMapping("/build")
+    @Operation(
+        summary = "构建Word报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Word文件流(.docx)", content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/build", method = RequestMethod.GET)
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildWord(req, resp);
     }

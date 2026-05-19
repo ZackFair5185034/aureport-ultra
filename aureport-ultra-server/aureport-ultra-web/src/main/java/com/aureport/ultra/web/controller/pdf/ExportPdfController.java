@@ -16,8 +16,12 @@ import com.aureport.ultra.web.exception.ReportDesignException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,8 +38,8 @@ import java.util.Map;
  * PDF导出控制器
  */
 @RestController("bean.exportPdfController")
-@RequestMapping("${aureport-ultra.servletPrefix}/pdf")
-@Tag(name = "PDF导出")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/pdf", method = RequestMethod.GET)
+@Tag(name = "PDF导出", description = "PDF格式报表导出与显示功能")
 public class ExportPdfController {
 
     @Autowired
@@ -52,8 +56,20 @@ public class ExportPdfController {
     /**
      * 构建PDF报表
      */
-    @Operation(summary = "构建PDF报表")
-    @RequestMapping("/build")
+    @Operation(
+        summary = "构建PDF报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "PDF文件流(.pdf)", content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/build", method = RequestMethod.GET)
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildPdf(req, resp, false);
     }
@@ -61,14 +77,38 @@ public class ExportPdfController {
     /**
      * 显示PDF报表
      */
-    @Operation(summary = "显示PDF报表")
-    @RequestMapping("/show")
+    @Operation(
+        summary = "显示PDF报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_n", description = "导出文件名(不含扩展名)", required = false, example = "report"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "PDF文件流(.pdf)", content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/show", method = RequestMethod.GET)
     public void show(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildPdf(req, resp, true);
     }
 
-    @Operation(summary = "新分页PDF报表")
-    @RequestMapping("/newPaging")
+    @Operation(
+        summary = "新分页PDF报表",
+        parameters = {
+            @Parameter(name = "reportPath", description = "报表文件路径", required = true, example = "file:xxx.ureport.xml"),
+            @Parameter(name = "_paper", description = "纸张配置JSON", required = false, example = "{\"paperType\":\"A4\",\"orientation\":\"landscape\"}"),
+            @Parameter(name = "mode", description = "预览模式(preview为预览)", required = false, example = "preview")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "PDF文件流(.pdf)", content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/newPaging", method = RequestMethod.GET)
     public void newPaging(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String fileName = req.getParameter("reportPath");
         fileName = decode(fileName);

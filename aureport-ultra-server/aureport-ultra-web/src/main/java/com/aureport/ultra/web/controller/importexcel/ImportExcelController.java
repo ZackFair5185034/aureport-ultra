@@ -7,8 +7,12 @@ import com.aureport.ultra.web.filter.RequestHolderFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,8 +28,8 @@ import java.util.Map;
  * 替代原有的ImportExcelServletAction，负责导入Excel文件并解析为报表定义
  */
 @RestController("bean.importExcelController")
-@RequestMapping("${aureport-ultra.servletPrefix}/import")
-@Tag(name = "Excel导入")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/import", method = RequestMethod.GET)
+@Tag(name = "Excel导入", description = "Excel文件导入并解析为报表定义")
 public class ImportExcelController {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestHolderFilter.class);
@@ -40,8 +44,18 @@ public class ImportExcelController {
     /**
      * 导入Excel文件并解析为报表定义
      */
-    @Operation(summary = "导入Excel文件并解析为报表定义")
-    @RequestMapping({"", "/"})
+    @Operation(
+        summary = "导入Excel文件并解析为报表定义",
+        parameters = {
+            @Parameter(name = "_excel_file", description = "Excel文件(.xls或.xlsx)", required = true, example = "report.xlsx")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "导入结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误或文件格式不正确"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
     public Map<String, Object> importExcel(@RequestParam("_excel_file") MultipartFile file) {
         Map<String, Object> result = new HashMap<>();
         ReportDefinition report = null;

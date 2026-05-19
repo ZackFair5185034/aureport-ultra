@@ -4,8 +4,12 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +23,8 @@ import java.io.OutputStream;
  * 替代原有的ResourceLoaderServletAction，提供静态资源访问功能
  */
 @RestController("bean.resourceLoaderController")
-@RequestMapping("${aureport-ultra.servletPrefix}/res")
-@Tag(name = "资源加载")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/res", method = RequestMethod.GET)
+@Tag(name = "资源加载", description = "静态资源(JS、CSS、图片等)加载功能")
 public class ResourceLoaderController {
 
     @Autowired
@@ -29,8 +33,19 @@ public class ResourceLoaderController {
     /**
      * 加载静态资源
      */
-    @Operation(summary = "加载静态资源")
-    @RequestMapping({"", "/**"})
+    @Operation(
+        summary = "加载静态资源",
+        parameters = {
+            @Parameter(name = "path", description = "资源路径(相对于/res/)", required = true, example = "js/app.js")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "资源文件流(JS/CSS/图片等)"),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "404", description = "资源不存在"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = {"", "/**"}, method = RequestMethod.GET)
     public void loadResource(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         // 获取完整URI
         String uri = req.getRequestURI();

@@ -33,8 +33,12 @@ import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.support.JdbcUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,8 +60,8 @@ import java.util.regex.Pattern;
  * 数据源控制器
  */
 @RestController("bean.datasourceController")
-@RequestMapping("${aureport-ultra.servletPrefix}/datasource")
-@Tag(name = "数据源")
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/datasource", method = RequestMethod.GET)
+@Tag(name = "数据源", description = "数据源管理、数据库连接与数据预览")
 public class DatasourceController {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -68,8 +72,14 @@ public class DatasourceController {
     /**
      * 加载内置数据源
      */
-    @Operation(summary = "加载内置数据源")
-    @RequestMapping("/loadBuildinDatasources")
+    @Operation(
+        summary = "加载内置数据源",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "内置数据源列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadBuildinDatasources", method = RequestMethod.GET)
     public void loadBuildinDatasources(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         List<String> datasources = new ArrayList<>();
         for (BuildinDatasource datasource : Utils.getBuildinDatasources()) {
@@ -81,8 +91,18 @@ public class DatasourceController {
     /**
      * 加载Bean方法
      */
-    @Operation(summary = "加载Bean方法")
-    @RequestMapping("/loadMethods")
+    @Operation(
+        summary = "加载Bean方法",
+        parameters = {
+            @Parameter(name = "beanId", description = "Spring Bean ID", required = true, example = "userService")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "方法列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/loadMethods", method = RequestMethod.GET)
     public void loadMethods(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String beanId = req.getParameter("beanId");
         Object obj = applicationContext.getBean(beanId);
@@ -146,8 +166,18 @@ public class DatasourceController {
     /**
      * 构建类字段
      */
-    @Operation(summary = "构建类字段")
-    @RequestMapping("/buildClass")
+    @Operation(
+        summary = "构建类字段",
+        parameters = {
+            @Parameter(name = "clazz", description = "类的全限定名", required = true, example = "com.example.User")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "字段列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/buildClass", method = RequestMethod.GET)
     public void buildClass(HttpServletRequest req, HttpServletResponse resp) {
         String clazz = req.getParameter("clazz");
         List<Field> result = new ArrayList<>();
@@ -185,8 +215,23 @@ public class DatasourceController {
     /**
      * 构建数据库表
      */
-    @Operation(summary = "构建数据库表")
-    @RequestMapping("/buildDatabaseTables")
+    @Operation(
+        summary = "构建数据库表",
+        parameters = {
+            @Parameter(name = "type", description = "数据源类型(jdbc或内置数据源名称)", required = true, example = "jdbc"),
+            @Parameter(name = "username", description = "数据库用户名(当type=jdbc时)", required = false, example = "root"),
+            @Parameter(name = "password", description = "数据库密码(当type=jdbc时)", required = false, example = "password"),
+            @Parameter(name = "driver", description = "数据库驱动(当type=jdbc时)", required = false, example = "com.mysql.cj.jdbc.Driver"),
+            @Parameter(name = "url", description = "数据库连接URL(当type=jdbc时)", required = false, example = "jdbc:mysql://localhost:3306/test"),
+            @Parameter(name = "name", description = "内置数据源名称(当type非jdbc时)", required = false, example = "mysql")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "数据库表列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/buildDatabaseTables", method = RequestMethod.GET)
     public void buildDatabaseTables(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException {
         Connection conn = null;
         ResultSet rs = null;
@@ -218,8 +263,25 @@ public class DatasourceController {
     /**
      * 构建字段
      */
-    @Operation(summary = "构建字段")
-    @RequestMapping("/buildFields")
+    @Operation(
+        summary = "构建字段",
+        parameters = {
+            @Parameter(name = "sql", description = "SQL查询语句", required = true, example = "SELECT * FROM users"),
+            @Parameter(name = "parameters", description = "SQL参数JSON数组", required = false, example = "[{\"name\":\"id\",\"type\":\"Integer\",\"defaultValue\":\"1\"}]"),
+            @Parameter(name = "type", description = "数据源类型(jdbc或内置数据源名称)", required = true, example = "jdbc"),
+            @Parameter(name = "username", description = "数据库用户名(当type=jdbc时)", required = false, example = "root"),
+            @Parameter(name = "password", description = "数据库密码(当type=jdbc时)", required = false, example = "password"),
+            @Parameter(name = "driver", description = "数据库驱动(当type=jdbc时)", required = false, example = "com.mysql.cj.jdbc.Driver"),
+            @Parameter(name = "url", description = "数据库连接URL(当type=jdbc时)", required = false, example = "jdbc:mysql://localhost:3306/test"),
+            @Parameter(name = "name", description = "内置数据源名称(当type非jdbc时)", required = false, example = "mysql")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "字段列表JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/buildFields", method = RequestMethod.GET)
     public void buildFields(HttpServletRequest req, HttpServletResponse resp) {
         String sql = req.getParameter("sql");
         String parameters = req.getParameter("parameters");
@@ -266,8 +328,25 @@ public class DatasourceController {
     /**
      * 预览数据
      */
-    @Operation(summary = "预览数据")
-    @RequestMapping("/previewData")
+    @Operation(
+        summary = "预览数据",
+        parameters = {
+            @Parameter(name = "sql", description = "SQL查询语句", required = true, example = "SELECT * FROM users"),
+            @Parameter(name = "parameters", description = "SQL参数JSON数组", required = false, example = "[{\"name\":\"id\",\"type\":\"Integer\",\"defaultValue\":\"1\"}]"),
+            @Parameter(name = "type", description = "数据源类型(jdbc或内置数据源名称)", required = true, example = "jdbc"),
+            @Parameter(name = "username", description = "数据库用户名(当type=jdbc时)", required = false, example = "root"),
+            @Parameter(name = "password", description = "数据库密码(当type=jdbc时)", required = false, example = "password"),
+            @Parameter(name = "driver", description = "数据库驱动(当type=jdbc时)", required = false, example = "com.mysql.cj.jdbc.Driver"),
+            @Parameter(name = "url", description = "数据库连接URL(当type=jdbc时)", required = false, example = "jdbc:mysql://localhost:3306/test"),
+            @Parameter(name = "name", description = "内置数据源名称(当type非jdbc时)", required = false, example = "mysql")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "数据预览结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/previewData", method = RequestMethod.GET)
     public void previewData(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException, IOException {
         String sql = req.getParameter("sql");
         String parameters = req.getParameter("parameters");
@@ -331,8 +410,21 @@ public class DatasourceController {
     /**
      * 测试数据库连接
      */
-    @Operation(summary = "测试数据库连接")
-    @RequestMapping("/testConnection")
+    @Operation(
+        summary = "测试数据库连接",
+        parameters = {
+            @Parameter(name = "username", description = "数据库用户名", required = true, example = "root"),
+            @Parameter(name = "password", description = "数据库密码", required = true, example = "password"),
+            @Parameter(name = "driver", description = "数据库驱动", required = true, example = "com.mysql.cj.jdbc.Driver"),
+            @Parameter(name = "url", description = "数据库连接URL", required = true, example = "jdbc:mysql://localhost:3306/test")
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "连接测试结果JSON", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "参数错误"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @RequestMapping(value = "/testConnection", method = RequestMethod.GET)
     public void testConnection(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, ClassNotFoundException {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
