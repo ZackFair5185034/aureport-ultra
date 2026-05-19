@@ -2,7 +2,7 @@
 import type { ChartTypeRegistry } from 'chart.js'
 import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+
 import { $t } from '@/locales'
 import { showAlert } from '@/utils/comnon'
 import { getCell } from '@/utils/contextActions'

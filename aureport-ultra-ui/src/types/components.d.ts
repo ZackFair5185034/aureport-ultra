@@ -21,6 +21,7 @@ declare module 'vue' {
     BuildinTree: typeof import('./../views/report/designer/resource-panel/datasource-panel/buildin-tree/index.vue')['default']
     Button: typeof import('./../components/button/index.vue')['default']
     ButtonGroup: typeof import('./../components/button-group/index.vue')['default']
+    CellValueEditor: typeof import('./../views/report/designer/resource-panel/property-panel/cell-value-editor/index.vue')['default']
     ChartAxis: typeof import('./../views/report/designer/resource-panel/property-panel/chart-value-editor/chart-axis/index.vue')['default']
     ChartDataset: typeof import('./../views/report/designer/resource-panel/property-panel/chart-value-editor/chart-dataset/index.vue')['default']
     ChartDatasetBob: typeof import('./../views/report/designer/resource-panel/property-panel/chart-value-editor/chart-dataset-bob/index.vue')['default']

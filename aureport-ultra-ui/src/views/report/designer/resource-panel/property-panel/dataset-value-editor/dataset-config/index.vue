@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
 import { useReportStore } from '@/stores/report'

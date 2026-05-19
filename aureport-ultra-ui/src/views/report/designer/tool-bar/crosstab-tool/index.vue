@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
 const H: any = Handsontable
-import { ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { deepCopy } from '@/components/utils/index'
 import { showAlert } from '@/utils/comnon'

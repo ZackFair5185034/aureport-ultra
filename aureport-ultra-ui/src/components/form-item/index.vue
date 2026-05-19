@@ -2,7 +2,6 @@
 import type { Ref } from 'vue'
 import type { FormContext, FormField } from '../form/index.vue'
 import AsyncValidator from 'async-validator'
-import { computed, inject, onBeforeUnmount, onMounted, provide, ref } from 'vue'
 
 import './style/index.css'
 

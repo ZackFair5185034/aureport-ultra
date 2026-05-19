@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { SelectContext } from '../select/index.vue'
-import { inject, onBeforeUnmount, onMounted, reactive } from 'vue'
 
 defineOptions({ name: 'UOption' })
 

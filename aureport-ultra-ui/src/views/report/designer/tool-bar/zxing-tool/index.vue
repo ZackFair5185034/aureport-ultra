@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-import { computed, ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import ButtonGroup from '@/components/button-group/index.vue'
 import { deepCopy } from '@/components/utils/index'

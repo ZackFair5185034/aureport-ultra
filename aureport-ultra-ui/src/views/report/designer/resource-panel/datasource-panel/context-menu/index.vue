@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 defineOptions({ name: 'ContextMenu' })
 

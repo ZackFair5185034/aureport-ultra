@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ClipboardJS from 'clipboard'
 import beautifier from 'js-beautify'
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 

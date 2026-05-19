@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
 
 defineOptions({ name: 'UMessage' })
 

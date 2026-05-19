@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FormItemContext } from '../form-item/index.vue'
-import { computed, inject, ref, useAttrs, useSlots } from 'vue'
+
 import DatePicker from 'vue-datepicker-next'
 import 'vue-datepicker-next/index.css'
 import 'vue-datepicker-next/locale/zh-cn'

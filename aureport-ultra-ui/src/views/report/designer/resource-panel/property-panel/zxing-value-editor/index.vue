@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CodeMirror from 'codemirror'
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { scriptValidation } from '@/api/designer/index'
 import { deepCopy } from '@/components/utils/index'

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RadioGroupContext } from '../radio-group/index.vue'
-import { computed, inject } from 'vue'
 
 defineOptions({ name: 'URadio' })
 

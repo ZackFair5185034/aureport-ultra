@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RowContext } from '../row/index.vue'
-import { computed, inject } from 'vue'
+
 import './style/index.css'
 
 defineOptions({ name: 'UCol' })

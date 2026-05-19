@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 /// @ts-expect-error JS module
 import configOptions from '../constants/config-options.js'

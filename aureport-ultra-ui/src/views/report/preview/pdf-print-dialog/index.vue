@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { getPdfPreviewUrl, loadPagePaper, pdfNewPaging } from '@/api/preview'
 import showLoading from '@/components/loading/instance'
