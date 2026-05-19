@@ -5,4 +5,4 @@ spring:
     name: aureport-ultra  # 应用名
 
   profiles:
-    active: dev
+    active: dev,local

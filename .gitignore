@@ -67,6 +67,7 @@ ehthumbs.db
 
 # Spring Boot
 *.pid
+**/application-local*.yml
 
 # Application
 *.pem
