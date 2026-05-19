@@ -22,6 +22,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -40,6 +42,7 @@ import java.util.*;
  */
 @Controller("bean.designerController")
 @RequestMapping("${aureport-ultra.servletPrefix}/designer")
+@Tag(name = "报表设计器")
 public class DesignerController implements ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestHolderFilter.class);
@@ -54,6 +57,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 脚本验证
      */
+    @Operation(summary = "脚本验证")
     @RequestMapping("/scriptValidation")
     public void scriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
@@ -72,6 +76,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 条件脚本验证
      */
+    @Operation(summary = "条件脚本验证")
     @RequestMapping("/conditionScriptValidation")
     public void conditionScriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
@@ -90,6 +95,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 解析数据集名称
      */
+    @Operation(summary = "解析数据集名称")
     @RequestMapping("/parseDatasetName")
     public void parseDatasetName(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String expr = req.getParameter("expr");
@@ -109,6 +115,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 保存预览文件
      */
+    @Operation(summary = "保存预览文件")
     @RequestMapping("/savePreviewFile")
     public void savePreviewFile(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
@@ -125,6 +132,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 加载报表
      */
+    @Operation(summary = "加载报表")
     @RequestMapping(value = "/loadReport")
     public void loadReport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String filePath = req.getParameter("filePath");
@@ -146,6 +154,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 删除报表文件
      */
+    @Operation(summary = "删除报表文件")
     @RequestMapping("/deleteReportFile")
     public void deleteReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
@@ -168,6 +177,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 保存报表文件
      */
+    @Operation(summary = "保存报表文件")
     @RequestMapping("/saveReportFile")
     public void saveReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
@@ -201,6 +211,7 @@ public class DesignerController implements ApplicationContextAware {
     /**
      * 加载报表提供者
      */
+    @Operation(summary = "加载报表提供者")
     @RequestMapping("/loadReportProviders")
     public void loadReportProviders(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getParameter("path");

@@ -24,8 +24,11 @@ public class ReportException extends RuntimeException {
         super(msg);
     }
 
+    public ReportException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
     public ReportException(Exception ex) {
         super(ex);
-        ex.printStackTrace();
     }
 }

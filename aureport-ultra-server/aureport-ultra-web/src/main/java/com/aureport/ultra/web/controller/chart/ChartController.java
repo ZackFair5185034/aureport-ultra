@@ -3,6 +3,8 @@ package com.aureport.ultra.web.controller.chart;
 import com.aureport.ultra.core.cache.CacheUtils;
 import com.aureport.ultra.core.chart.ChartData;
 import com.aureport.ultra.core.utils.UnitUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,11 +18,13 @@ import java.net.URLDecoder;
  */
 @RestController("bean.chartController")
 @RequestMapping("${aureport-ultra.servletPrefix}/chart")
+@Tag(name = "图表")
 public class ChartController {
 
     /**
      * 存储图表数据
      */
+    @Operation(summary = "存储图表数据")
     @RequestMapping("/storeData")
     public void storeData(HttpServletRequest req) {
         String chartId = req.getParameter("_chartId");

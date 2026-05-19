@@ -3,6 +3,8 @@ package com.aureport.ultra.web.controller.image;
 import com.aureport.ultra.core.cache.ResourceCache;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,11 +21,13 @@ import java.io.OutputStream;
  */
 @RestController("bean.imageController")
 @RequestMapping("${aureport-ultra.servletPrefix}/image")
+@Tag(name = "图片")
 public class ImageController {
 
     /**
      * 获取图片资源
      */
+    @Operation(summary = "获取图片资源")
     @RequestMapping(value = {"", "/"})
     public void getImage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String key = req.getParameter("_key");

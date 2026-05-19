@@ -6,6 +6,8 @@ import com.aureport.ultra.web.cache.TempObjectCache;
 import com.aureport.ultra.web.filter.RequestHolderFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +25,7 @@ import java.util.Map;
  */
 @RestController("bean.importExcelController")
 @RequestMapping("${aureport-ultra.servletPrefix}/import")
+@Tag(name = "Excel导入")
 public class ImportExcelController {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestHolderFilter.class);
@@ -37,6 +40,7 @@ public class ImportExcelController {
     /**
      * 导入Excel文件并解析为报表定义
      */
+    @Operation(summary = "导入Excel文件并解析为报表定义")
     @RequestMapping({"", "/"})
     public Map<String, Object> importExcel(@RequestParam("_excel_file") MultipartFile file) {
         Map<String, Object> result = new HashMap<>();

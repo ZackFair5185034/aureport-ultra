@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +34,7 @@ import java.util.*;
 
 @RestController("bean.htmlPreviewController")
 @RequestMapping("${aureport-ultra.servletPrefix}/html")
+@Tag(name = "HTML预览")
 public class HtmlPreviewController {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -44,6 +47,7 @@ public class HtmlPreviewController {
     @Autowired
     private ReportRender reportRender;
 
+    @Operation(summary = "加载HTML")
     @RequestMapping("/loadHtml")
     public void loadHtml(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         Map<String, Object> result = new HashMap<String, Object>();
@@ -63,6 +67,7 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, result);
     }
 
+    @Operation(summary = "加载打印页面")
     @RequestMapping("/loadPrintPages")
     public void loadPrintPages(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String mode = req.getParameter("mode");
@@ -117,6 +122,7 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, map);
     }
 
+    @Operation(summary = "加载页面纸张")
     @RequestMapping("/loadPagePaper")
     public void loadPagePaper(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String mode = req.getParameter("mode");
@@ -136,6 +142,7 @@ public class HtmlPreviewController {
         ResponseUtils.writeObjectToJson(resp, paper);
     }
 
+    @Operation(summary = "加载数据")
     @RequestMapping("/loadData")
     public void loadData(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         HtmlReport htmlReport = loadReport(req);

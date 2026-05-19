@@ -32,6 +32,8 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.support.JdbcUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,6 +57,7 @@ import java.util.regex.Pattern;
  */
 @RestController("bean.datasourceController")
 @RequestMapping("${aureport-ultra.servletPrefix}/datasource")
+@Tag(name = "数据源")
 public class DatasourceController {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -65,6 +68,7 @@ public class DatasourceController {
     /**
      * 加载内置数据源
      */
+    @Operation(summary = "加载内置数据源")
     @RequestMapping("/loadBuildinDatasources")
     public void loadBuildinDatasources(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         List<String> datasources = new ArrayList<>();
@@ -77,6 +81,7 @@ public class DatasourceController {
     /**
      * 加载Bean方法
      */
+    @Operation(summary = "加载Bean方法")
     @RequestMapping("/loadMethods")
     public void loadMethods(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String beanId = req.getParameter("beanId");
@@ -141,6 +146,7 @@ public class DatasourceController {
     /**
      * 构建类字段
      */
+    @Operation(summary = "构建类字段")
     @RequestMapping("/buildClass")
     public void buildClass(HttpServletRequest req, HttpServletResponse resp) {
         String clazz = req.getParameter("clazz");
@@ -179,6 +185,7 @@ public class DatasourceController {
     /**
      * 构建数据库表
      */
+    @Operation(summary = "构建数据库表")
     @RequestMapping("/buildDatabaseTables")
     public void buildDatabaseTables(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException {
         Connection conn = null;
@@ -211,6 +218,7 @@ public class DatasourceController {
     /**
      * 构建字段
      */
+    @Operation(summary = "构建字段")
     @RequestMapping("/buildFields")
     public void buildFields(HttpServletRequest req, HttpServletResponse resp) {
         String sql = req.getParameter("sql");
@@ -258,6 +266,7 @@ public class DatasourceController {
     /**
      * 预览数据
      */
+    @Operation(summary = "预览数据")
     @RequestMapping("/previewData")
     public void previewData(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException, IOException {
         String sql = req.getParameter("sql");
@@ -322,6 +331,7 @@ public class DatasourceController {
     /**
      * 测试数据库连接
      */
+    @Operation(summary = "测试数据库连接")
     @RequestMapping("/testConnection")
     public void testConnection(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, ClassNotFoundException {
         String username = req.getParameter("username");

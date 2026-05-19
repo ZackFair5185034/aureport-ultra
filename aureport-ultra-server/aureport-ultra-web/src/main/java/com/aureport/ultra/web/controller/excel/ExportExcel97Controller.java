@@ -12,6 +12,8 @@ import com.aureport.ultra.web.constant.ReportConstants;
 import com.aureport.ultra.web.exception.ReportDesignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +32,7 @@ import java.util.Map;
  */
 @RestController("bean.exportExcel97Controller")
 @RequestMapping("${aureport-ultra.servletPrefix}/excel97")
+@Tag(name = "Excel 97-2003导出")
 public class ExportExcel97Controller {
 
     @Autowired
@@ -40,16 +43,19 @@ public class ExportExcel97Controller {
 
     private final Excel97Producer excelProducer = new Excel97Producer();
 
+    @Operation(summary = "构建Excel 97报表")
     @RequestMapping("/build")
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, false);
     }
 
+    @Operation(summary = "分页导出Excel 97报表")
     @RequestMapping( "/paging")
     public void paging(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, true, false);
     }
 
+    @Operation(summary = "按Sheet导出Excel 97报表")
     @RequestMapping( "/sheet")
     public void sheet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, true);

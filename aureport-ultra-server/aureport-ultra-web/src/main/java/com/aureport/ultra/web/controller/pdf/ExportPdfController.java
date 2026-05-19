@@ -15,6 +15,8 @@ import com.aureport.ultra.web.constant.ReportConstants;
 import com.aureport.ultra.web.exception.ReportDesignException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,6 +35,7 @@ import java.util.Map;
  */
 @RestController("bean.exportPdfController")
 @RequestMapping("${aureport-ultra.servletPrefix}/pdf")
+@Tag(name = "PDF导出")
 public class ExportPdfController {
 
     @Autowired
@@ -49,6 +52,7 @@ public class ExportPdfController {
     /**
      * 构建PDF报表
      */
+    @Operation(summary = "构建PDF报表")
     @RequestMapping("/build")
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildPdf(req, resp, false);
@@ -57,11 +61,13 @@ public class ExportPdfController {
     /**
      * 显示PDF报表
      */
+    @Operation(summary = "显示PDF报表")
     @RequestMapping("/show")
     public void show(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildPdf(req, resp, true);
     }
 
+    @Operation(summary = "新分页PDF报表")
     @RequestMapping("/newPaging")
     public void newPaging(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String fileName = req.getParameter("reportPath");
@@ -116,11 +122,14 @@ public class ExportPdfController {
                 exportManager.exportPdf(configure);
             }
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Export PDF failed, reportPath: " + fileName, ex);
         } finally {
             if (outputStream != null) {
-                outputStream.flush();
-                outputStream.close();
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    // ignore close error
+                }
             }
         }
     }

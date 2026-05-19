@@ -13,6 +13,8 @@ import com.aureport.ultra.web.constant.ReportConstants;
 import com.aureport.ultra.web.exception.ReportDesignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +34,7 @@ import java.util.Map;
  */
 @RestController("bean.exportWordController")
 @RequestMapping("${aureport-ultra.servletPrefix}/word")
+@Tag(name = "Word导出")
 public class ExportWordController {
 
     @Autowired
@@ -45,6 +48,7 @@ public class ExportWordController {
     /**
      * 构建PDF报表
      */
+    @Operation(summary = "构建Word报表")
     @RequestMapping("/build")
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildWord(req, resp);
@@ -78,10 +82,13 @@ public class ExportWordController {
                 exportManager.exportWord(configure);
             }
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Export Word failed, reportPath: " + fileName, ex);
         } finally {
-            outputStream.flush();
-            outputStream.close();
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                // ignore close error
+            }
         }
     }
 

@@ -3,6 +3,8 @@ package com.aureport.ultra.web.controller.res;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +20,7 @@ import java.io.OutputStream;
  */
 @RestController("bean.resourceLoaderController")
 @RequestMapping("${aureport-ultra.servletPrefix}/res")
+@Tag(name = "资源加载")
 public class ResourceLoaderController {
 
     @Autowired
@@ -26,6 +29,7 @@ public class ResourceLoaderController {
     /**
      * 加载静态资源
      */
+    @Operation(summary = "加载静态资源")
     @RequestMapping({"", "/**"})
     public void loadResource(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         // 获取完整URI

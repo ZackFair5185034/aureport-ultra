@@ -33,7 +33,7 @@ public class HttpsImageProvider implements ImageProvider {
             connection.connect();
             return connection.getInputStream();
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Fetch HTTPS image failed, url: " + path, ex);
         }
     }
 

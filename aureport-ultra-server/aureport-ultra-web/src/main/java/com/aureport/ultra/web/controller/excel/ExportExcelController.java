@@ -14,6 +14,8 @@ import com.aureport.ultra.web.constant.ReportConstants;
 import com.aureport.ultra.web.exception.ReportDesignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,6 +35,7 @@ import java.util.Map;
  */
 @RestController("bean.exportExcelController")
 @RequestMapping("${aureport-ultra.servletPrefix}/excel")
+@Tag(name = "Excel导出")
 public class ExportExcelController {
 
     @Autowired
@@ -46,6 +49,7 @@ public class ExportExcelController {
     /**
      * 构建Excel报表
      */
+    @Operation(summary = "构建Excel报表")
     @RequestMapping("/build")
     public void build(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, false);
@@ -54,6 +58,7 @@ public class ExportExcelController {
     /**
      * 分页导出Excel报表
      */
+    @Operation(summary = "分页导出Excel报表")
     @RequestMapping("/paging")
     public void paging(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, true, false);
@@ -62,6 +67,7 @@ public class ExportExcelController {
     /**
      * 按Sheet导出Excel报表
      */
+    @Operation(summary = "按Sheet导出Excel报表")
     @RequestMapping("/sheet")
     public void sheet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         buildExcel(req, resp, false, true);
@@ -107,10 +113,13 @@ public class ExportExcelController {
                 }
             }
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Export Excel failed, reportPath: " + fileName, ex);
         } finally {
-            outputStream.flush();
-            outputStream.close();
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                // ignore close error
+            }
         }
     }
 

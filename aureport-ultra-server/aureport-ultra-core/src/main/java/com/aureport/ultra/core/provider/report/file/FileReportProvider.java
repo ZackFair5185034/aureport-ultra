@@ -118,13 +118,13 @@ public class FileReportProvider implements ReportProvider, ApplicationContextAwa
             outStream = new FileOutputStream(new File(fullPath));
             IOUtils.write(content, outStream, "utf-8");
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Save report file failed, path: " + fullPath, ex);
         } finally {
             if (outStream != null) {
                 try {
                     outStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // ignore close error
                 }
             }
         }

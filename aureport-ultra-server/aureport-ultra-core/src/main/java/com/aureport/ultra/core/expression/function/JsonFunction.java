@@ -50,7 +50,7 @@ public class JsonFunction implements Function {
             Map<?, ?> map = mapper.readValue(obj, HashMap.class);
             return Utils.getProperty(map, property);
         } catch (Exception ex) {
-            throw new ReportException(ex);
+            throw new ReportException("Parse JSON failed, json: " + obj + ", property: " + property, ex);
         }
     }
 
