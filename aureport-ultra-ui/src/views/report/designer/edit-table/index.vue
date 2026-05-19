@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Handsontable from 'handsontable'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { loadReport } from '@/api/designer'
 import Context from '@/components/Context.js'

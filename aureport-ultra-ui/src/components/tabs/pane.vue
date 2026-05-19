@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TabsContext } from './index.vue'
-import { computed, inject, onBeforeUnmount, onMounted } from 'vue'
 
 defineOptions({ name: 'UTabPane' })
 

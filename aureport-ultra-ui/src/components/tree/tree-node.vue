@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TreeContext, TreeNodeData, TreeNodeRef } from './index.vue'
-import { computed, inject, nextTick, ref, watch } from 'vue'
+
 import { deepCopy } from '../utils'
 import { setNodeChecked } from './utils'
 

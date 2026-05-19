@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v1 as uuidv1 } from 'uuid'
-import { computed, onMounted, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { buildJdbcFields } from '@/api/designer/index'
 import { deepCopy } from '@/components/utils/index'

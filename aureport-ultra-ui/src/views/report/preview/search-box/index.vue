@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import beautifier from 'js-beautify'
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { beautifierConf, deepClone } from '@/views/report/designer/search-form/utils'
 import { makeUpCss } from '@/views/report/designer/search-form/utils/css'

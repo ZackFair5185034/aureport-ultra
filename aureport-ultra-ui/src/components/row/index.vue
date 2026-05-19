@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, reactive } from 'vue'
+
 import './style/index.css'
 
 defineOptions({ name: 'URow' })

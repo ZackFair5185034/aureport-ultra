@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+
 import { deepCopy } from '@/components/utils/index'
 import { useReportStore } from '@/stores/report'
 import { getCell, getCellName, setCell } from '@/utils/contextActions'

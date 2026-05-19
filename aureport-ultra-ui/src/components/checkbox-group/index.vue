@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FormItemContext } from '../form-item/index.vue'
-import { inject, provide, reactive } from 'vue'
 
 defineOptions({ name: 'UCheckboxGroup' })
 

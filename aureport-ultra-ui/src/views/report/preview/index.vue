@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { loadHtml, loadReportData } from '@/api/preview'
 import showLoading from '@/components/loading/instance'

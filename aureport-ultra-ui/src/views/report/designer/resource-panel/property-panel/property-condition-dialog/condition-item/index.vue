@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v1 as uuid } from 'uuid'
-import { ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { showAlert, showConfirm } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'

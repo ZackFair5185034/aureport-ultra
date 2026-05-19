@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v1 as uuid } from 'uuid'
-import { computed, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { useReportStore } from '@/stores/report'
 import { showAlert } from '@/utils/comnon'

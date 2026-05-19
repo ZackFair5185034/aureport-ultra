@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+
 import { useReportStore } from '@/stores/report'
 
 defineOptions({ name: 'PrintLine' })

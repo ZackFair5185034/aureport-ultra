@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FormItemContext } from '../form-item/index.vue'
-import { computed, inject } from 'vue'
 
 defineOptions({ name: 'USwitch' })
 

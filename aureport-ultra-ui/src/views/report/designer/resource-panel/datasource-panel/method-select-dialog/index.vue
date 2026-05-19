@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { loadMethods } from '@/api/designer/index'
 import { showAlert } from '@/utils/comnon'

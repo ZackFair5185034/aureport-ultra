@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VueSimpleSuggest from '@ffrosch/vue-simple-suggest'
 import CodeMirror from 'codemirror'
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+
 import { useI18n } from 'vue-i18n'
 import { parseDatasetName, scriptValidation } from '@/api/designer/index'
 import { deepCopy } from '@/components/utils/index'

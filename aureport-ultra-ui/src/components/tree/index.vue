@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNode } from 'vue'
-import { computed, h, nextTick, provide, ref, useSlots, watch } from 'vue'
+
 import { deepCopy } from '../utils'
 
 defineOptions({ name: 'UTree' })

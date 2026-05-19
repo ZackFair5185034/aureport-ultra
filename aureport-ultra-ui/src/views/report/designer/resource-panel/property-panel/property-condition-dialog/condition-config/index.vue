@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+
 import AlignConfig from './align-config/index.vue'
 import BorderConfig from './border-config/index.vue'
 import ColorConfig from './color-config/index.vue'

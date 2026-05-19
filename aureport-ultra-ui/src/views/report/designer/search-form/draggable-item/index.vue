@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineComponent, h, useAttrs } from 'vue'
+
 import draggable from 'vuedraggable'
 import UCol from '@/components/col/index.vue'
 import UFormItem from '@/components/form-item/index.vue'

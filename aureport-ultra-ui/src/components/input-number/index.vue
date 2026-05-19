@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FormItemContext } from '../form-item/index.vue'
-import { inject, ref, watch } from 'vue'
 
 defineOptions({ name: 'UInputNumber' })
 

@@ -2,7 +2,7 @@
 import Raphael from 'raphael'
 // @ts-expect-error -- save-svg-as-png 没有类型声明
 import saveSvgAsPng from 'save-svg-as-png'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+
 import { deepCopy } from '@/components/utils'
 import { getCell, setCell } from '@/utils/contextActions'
 import TableManager from '../manager.js'
