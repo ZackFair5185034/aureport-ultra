@@ -7,12 +7,10 @@ import { setDirty } from '@/utils/table'
 import CrossTabWidget from '@/views/report/designer/edit-table/cross-tab-widget/class'
 import TableManager from '@/views/report/designer/edit-table/manager'
 import BubbleChartValueEditor from './bubble-chart-value-editor/index.vue'
-import CellValueEditor from './cell-value-editor/index.vue'
 import ChartValueEditor from './chart-value-editor/index.vue'
 import DatasetValueEditor from './dataset-value-editor/index.vue'
 import ExpressionValueEditor from './expression-value-editor/index.vue'
 import ImageValueEditor from './image-value-editor/index.vue'
-import RichTextEditor from './rich-text-value-editor/index.vue'
 import ScatterChartValueEditor from './scatter-chart-value-editor/index.vue'
 import SimpleValueEditor from './simple-value-editor/index.vue'
 import SlashValueEditor from './slash-value-editor/index.vue'
@@ -67,7 +65,6 @@ const slashValueEditorVisible = ref(false)
 const zxingValueEditorVisible = ref(false)
 const bubbleChartValueEditorVisible = ref(false)
 const scatterChartValueEditorVisible = ref(false)
-const richTextValueEditorVisible = ref(false)
 
 const expressionValueEditor = ref<any>(null)
 const simpleValueEditor = ref<any>(null)
@@ -79,7 +76,6 @@ const chartEditor = ref<any>(null)
 const bubbleChartEditor = ref<any>(null)
 const scatterChartEditor = ref<any>(null)
 const chartEditorContainer = ref<HTMLDivElement | null>(null)
-const richTextEditor = ref<any>(null)
 
 watch(() => props.refreshTrigger, () => {
   refresh()
@@ -94,7 +90,6 @@ function hideAllEditors() {
   zxingValueEditorVisible.value = false
   bubbleChartValueEditorVisible.value = false
   scatterChartValueEditorVisible.value = false
-  richTextValueEditorVisible.value = false
   currentChartType.value = ''
 }
 
@@ -119,7 +114,6 @@ function refresh() {
   zxingValueEditorVisible.value = false
   bubbleChartValueEditorVisible.value = false
   scatterChartValueEditorVisible.value = false
-  richTextValueEditorVisible.value = false
 
   const type = cellDef.value.type || 'simple'
   if (type === 'chart') {
@@ -181,12 +175,6 @@ function refresh() {
 
       case 'zxing': {
         zxingValueEditorVisible.value = true
-
-        break
-      }
-
-      case 'richtext': {
-        richTextValueEditorVisible.value = true
 
         break
       }
@@ -338,19 +326,6 @@ function handleCellTypeChange(value: string) {
 
       break
     }
-
-    case 'richtext': {
-      if (newCellDef.value.type !== 'richtext') {
-        newCellDef.value = { type: 'richtext', value: '' }
-      }
-
-      newCellDef.expand = 'None'
-      setCell(props.rowIndex, props.colIndex, newCellDef)
-      hideAllEditors()
-      richTextValueEditorVisible.value = true
-
-      break
-    }
   // No default
   }
 
@@ -392,17 +367,6 @@ function buildHeight(rowIndex: number, rowspan: number, hot: any): number {
 
 <template>
   <div class="property-panel">
-    <!-- 单元格值编辑器组件 -->
-    <CellValueEditor
-      :show-parent-group="showParentGroup"
-      :show-renderer-group="showRendererGroup"
-      :show-link-group="showLinkGroup"
-      :show-type-group="showTypeGroup"
-      :row-index="rowIndex"
-      :col-index="colIndex"
-      @select-renderer="handleSelectRenderer"
-      @cell-type-change="handleCellTypeChange"
-    />
 
     <!-- 表达式值编辑器Vue组件 -->
     <ExpressionValueEditor
@@ -464,17 +428,6 @@ function buildHeight(rowIndex: number, rowspan: number, hot: any): number {
       v-if="zxingValueEditorVisible"
       key="editor-zxing"
       ref="zxingValueEditor"
-      :row-index="rowIndex"
-      :col-index="colIndex"
-      :row2-index="row2Index"
-      :col2-index="col2Index"
-    />
-
-    <!-- 富文本值编辑器Vue组件 -->
-    <rich-text-value-editor
-      v-if="richTextValueEditorVisible"
-      key="editor-richtext"
-      ref="richTextEditor"
       :row-index="rowIndex"
       :col-index="colIndex"
       :row2-index="row2Index"

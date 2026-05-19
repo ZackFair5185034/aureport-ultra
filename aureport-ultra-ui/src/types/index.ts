@@ -29,7 +29,7 @@ export interface CellDef {
 
 /** 单元格值 */
 export interface CellValue {
-  type: 'simple' | 'expression' | 'dataset' | 'image' | 'slash' | 'zxing' | 'chart' | 'richtext'
+  type: 'simple' | 'expression' | 'dataset' | 'image' | 'slash' | 'zxing' | 'chart'
   value?: string
   // dataset
   datasetName?: string

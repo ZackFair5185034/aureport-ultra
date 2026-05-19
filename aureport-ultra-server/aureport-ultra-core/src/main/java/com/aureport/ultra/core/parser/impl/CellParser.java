@@ -44,7 +44,6 @@ public class CellParser implements Parser<CellDefinition> {
         parsers.put("slash-value", new SlashValueParser());
         parsers.put("zxing-value", new ZxingValueParser());
         parsers.put("chart-value", new ChartValueParser());
-        parsers.put("richtext-value", new RichTextValueParser());
         parsers.put("progressbar-value", new ProgressBarValueParser());
         parsers.put("cell-style", new CellStyleParser());
         parsers.put("link-parameter", new LinkParameterParser());
