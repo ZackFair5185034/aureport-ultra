@@ -34,6 +34,7 @@ const datasetExpanded = ref<Record<number, boolean>>({})
 const localDatasets = ref<any[]>(props.datasets)
 const currentDataset = ref<any>(null)
 const fieldNameDialogVisible = ref(false)
+const currentField = ref<any>(null)
 const sqlDatasetDialogVisible = ref(false)
 const currentDbInfo = ref<any>(null)
 const currentDatasetData = ref<any>(null)
@@ -140,29 +141,59 @@ function handleDatasetMenuAction(key: string, dataset: any, index: number) {
 
 function addFieldAction(dataset: any) {
   currentDataset.value = dataset
+  currentField.value = null
   fieldNameDialogVisible.value = true
 }
 
-function handleFieldNameSave(fieldName: string, dataset: any) {
-  if (fieldName) {
-    if (!dataset.fields) {
-      dataset.fields = []
-    }
+function editFieldAction(dataset: any, field: any) {
+  currentDataset.value = dataset
+  currentField.value = field
+  fieldNameDialogVisible.value = true
+}
 
+function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
+  if (fieldName) {
     const newDatasets = deepCopy(localDatasets.value)
     const targetDataset = newDatasets.find((ds: any) => ds.name === dataset.name)
+    if (!targetDataset) return
+
     if (!targetDataset.fields) {
       targetDataset.fields = []
     }
 
-    const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
-    if (exists) {
-      showAlert(t('tree.fieldExist'))
-      return
+    const editField = currentField.value
+    if (editField) {
+      const nameConflict = editField.name !== fieldName
+        && targetDataset.fields.some((f: any) => f.name === fieldName)
+      if (nameConflict) {
+        showAlert(t('tree.fieldExist'))
+        return
+      }
+      const oldField = targetDataset.fields.find((f: any) => f.name === editField.name)
+      if (oldField) {
+        oldField.name = fieldName
+        if (label) {
+          oldField.label = label
+        }
+        else {
+          delete oldField.label
+        }
+      }
+    }
+    else {
+      const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
+      if (exists) {
+        showAlert(t('tree.fieldExist'))
+        return
+      }
+      const field: any = { name: fieldName }
+      if (label) {
+        field.label = label
+      }
+      targetDataset.fields.push(field)
     }
 
-    const field = { name: fieldName }
-    targetDataset.fields.push(field)
+    currentField.value = null
     emit('update-datasource', {
       name: props.name,
       oldName: props.name,
@@ -200,6 +231,7 @@ function refreshDatasetAction(dataset: any, index: number) {
 
 function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
   const items = [
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
     { key: 'delete', name: t('tree.del'), icon: 'delete' },
   ]
 
@@ -209,8 +241,16 @@ function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, field
 }
 
 function handleFieldMenuAction(key: string, dataset: any, field: any, fieldIndex: number) {
-  if (key === 'delete') {
-    deleteFieldAction(dataset, field, fieldIndex)
+  switch (key) {
+    case 'edit': {
+      editFieldAction(dataset, field)
+      break
+    }
+    case 'delete': {
+      deleteFieldAction(dataset, field, fieldIndex)
+      break
+    }
+  // No default
   }
 }
 
@@ -488,6 +528,7 @@ async function handleSqlDatasetSave(nameVal: string, oldName: string, sql: strin
     <FieldNameDialog
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
+      :field="currentField"
       @save="handleFieldNameSave"
       @close="fieldNameDialogVisible = false"
     />

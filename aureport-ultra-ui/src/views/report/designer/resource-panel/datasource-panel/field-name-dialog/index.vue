@@ -8,13 +8,15 @@ defineOptions({ name: 'FieldNameDialog' })
 const props = withDefaults(defineProps<{
   visible?: boolean
   dataset?: any
+  field?: any
 }>(), {
   visible: false,
   dataset: null,
+  field: null,
 })
 
 const emit = defineEmits<{
-  (e: 'save', fieldName: string, dataset: any): void
+  (e: 'save', fieldName: string, dataset: any, label?: string): void
   (e: 'close'): void
 }>()
 
@@ -24,6 +26,7 @@ const _form = ref<any>(null)
 const form = _form
 const formData = reactive({
   fieldName: '',
+  label: '',
 })
 const rules = reactive({
   fieldName: [{
@@ -36,6 +39,10 @@ const rules = reactive({
 watch(() => props.visible, (newVal) => {
   if (newVal) {
     resetForm()
+    if (props.field) {
+      formData.fieldName = props.field.name || ''
+      formData.label = props.field.label || ''
+    }
   }
 })
 
@@ -65,7 +72,7 @@ async function handleOk() {
     return
   }
 
-  emit('save', formData.fieldName.trim(), props.dataset)
+  emit('save', formData.fieldName.trim(), props.dataset, formData.label.trim() || undefined)
   emit('close')
 }
 
@@ -97,6 +104,13 @@ function handleKeydown(e: KeyboardEvent) {
             ref="_input"
             v-model="formData.fieldName"
             :placeholder="$t('tree.inputTip')"
+            @keyup.enter="handleOk"
+          />
+        </u-form-item>
+        <u-form-item :label="$t('tree.fieldLabel')" prop="label">
+          <u-input
+            v-model="formData.label"
+            :placeholder="$t('tree.fieldLabelTip')"
             @keyup.enter="handleOk"
           />
         </u-form-item>

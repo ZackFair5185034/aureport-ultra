@@ -195,8 +195,10 @@ function buildPanel() {
         :key="`jdbc_` + `_${index}`"
         :datasources="datasources"
         :ds="datasource"
+        :datasets="datasource.datasets || []"
         @remove="removeDatasource"
         @update-datasource="updateDatasource"
+        @update-datasets="updateSpringDatasets(datasource, $event)"
       />
 
       <!-- Spring树组件 -->

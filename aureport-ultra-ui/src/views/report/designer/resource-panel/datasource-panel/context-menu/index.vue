@@ -11,11 +11,15 @@ const justShown = ref(false)
 
 function handleDocumentClick(e: MouseEvent) {
   if (justShown.value) {
+    justShown.value = false
     return
   }
 
-  if (visible.value && !document.contains(e.target as Node)) {
-    hideMenu()
+  if (visible.value) {
+    const menuEl = document.querySelector('.context-menu') as HTMLElement | null
+    if (menuEl && !menuEl.contains(e.target as Node)) {
+      hideMenu()
+    }
   }
 }
 

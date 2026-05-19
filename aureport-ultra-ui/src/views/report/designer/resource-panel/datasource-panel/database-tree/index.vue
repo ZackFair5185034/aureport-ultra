@@ -18,10 +18,12 @@ defineOptions({ name: 'DatabaseTree' })
 const props = defineProps<{
   ds: any
   datasources: any[]
+  datasets?: any[]
 }>()
 const emit = defineEmits<{
   (e: 'remove', name: string): void
   (e: 'update-datasource', data: any): void
+  (e: 'update-datasets', datasets: any[]): void
 }>()
 const { t } = useI18n()
 const store = useReportStore()
@@ -33,13 +35,14 @@ const username = ref(props.ds.username)
 const password = ref(props.ds.password)
 const driver = ref(props.ds.driver)
 const url = ref(props.ds.url)
-const datasets = ref<any[]>(props.ds.datasets || [])
+const datasets = ref<any[]>(props.datasets || [])
 const datasourceExpanded = ref(true)
 const datasetExpanded = ref<Record<number, boolean>>({})
 const currentDataset = ref<any>(null)
 const datasourceDialogVisible = ref(false)
 const currentDatasource = ref<any>(null)
 const fieldNameDialogVisible = ref(false)
+const currentField = ref<any>(null)
 const sqlDatasetDialogVisible = ref(false)
 const currentDbInfo = ref<any>(null)
 const currentDatasetData = ref<any>(null)
@@ -48,6 +51,13 @@ const datasourceDialogRef = ref<any>(null)
 
 const context = computed(() => store.context)
 
+watch(() => props.datasets, (newDatasets) => {
+  if (newDatasets) {
+    datasets.value = newDatasets
+    initDatasetExpanded()
+  }
+}, { deep: true, immediate: true })
+
 watch(() => props.ds, (newDs) => {
   if (newDs) {
     name.value = newDs.name
@@ -55,14 +65,9 @@ watch(() => props.ds, (newDs) => {
     password.value = newDs.password
     driver.value = newDs.driver
     url.value = newDs.url
-    datasets.value = newDs.datasets || []
-    initDatasetExpanded()
   }
 }, { deep: true })
 
-onMounted(() => {
-  initDatasetExpanded()
-})
 
 function initDatasetExpanded() {
   for (const [index, dataset] of datasets.value.entries()) {
@@ -162,11 +167,15 @@ function showDatasetContextMenu(event: MouseEvent, dataset: any, index: number) 
 
 function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
   const items = [
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
     { key: 'delete', name: t('tree.del'), icon: 'delete' },
   ]
 
   contextMenu.value.show(event, items, (key: string) => {
-    if (key === 'delete') {
+    if (key === 'edit') {
+      editFieldAction(dataset, field)
+    }
+    else if (key === 'delete') {
       deleteFieldAction(dataset, field, fieldIndex)
     }
   })
@@ -202,24 +211,60 @@ function deleteDatasourceAction() {
 
 function addFieldAction(dataset: any) {
   currentDataset.value = dataset
+  currentField.value = null
   fieldNameDialogVisible.value = true
 }
 
-function handleFieldNameSave(fieldName: string, dataset: any) {
+function editFieldAction(dataset: any, field: any) {
+  currentDataset.value = dataset
+  currentField.value = field
+  fieldNameDialogVisible.value = true
+}
+
+function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
   if (fieldName) {
-    if (!dataset.fields) {
-      dataset.fields = []
+    const newDatasets = deepCopy(datasets.value)
+    const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
+    if (!targetDataset) return
+
+    if (!targetDataset.fields) {
+      targetDataset.fields = []
     }
 
-    const exists = dataset.fields.some((field: any) => field.name === fieldName)
-    if (exists) {
-      showAlert(t('tree.fieldExist'))
-      return
+    const editField = currentField.value
+    if (editField) {
+      const nameConflict = editField.name !== fieldName
+        && targetDataset.fields.some((f: any) => f.name === fieldName)
+      if (nameConflict) {
+        showAlert(t('tree.fieldExist'))
+        return
+      }
+      const oldField = targetDataset.fields.find((f: any) => f.name === editField.name)
+      if (oldField) {
+        oldField.name = fieldName
+        if (label) {
+          oldField.label = label
+        }
+        else {
+          delete oldField.label
+        }
+      }
+    }
+    else {
+      const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
+      if (exists) {
+        showAlert(t('tree.fieldExist'))
+        return
+      }
+      const field: any = { name: fieldName }
+      if (label) {
+        field.label = label
+      }
+      targetDataset.fields.push(field)
     }
 
-    const field = { name: fieldName }
-    dataset.fields.push(field)
-    emitDatasourceUpdate()
+    currentField.value = null
+    emit('update-datasets', newDatasets)
   }
 }
 
@@ -564,6 +609,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
     <FieldNameDialog
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
+      :field="currentField"
       @save="handleFieldNameSave"
       @close="fieldNameDialogVisible = false"
     />
