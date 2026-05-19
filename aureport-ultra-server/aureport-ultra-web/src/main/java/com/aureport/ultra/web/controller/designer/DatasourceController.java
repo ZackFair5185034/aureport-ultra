@@ -111,7 +111,22 @@ public class DatasourceController {
         String clazz = req.getParameter("clazz");
         List<Field> result = new ArrayList<>();
         try {
-            Class<?> targetClass = Class.forName(clazz);
+            // 支持内部类名：将最后一段的 . 替换为 $，
+            // 如 "com.example.Foo.Bar" → "com.example.Foo$Bar"
+            Class<?> targetClass;
+            try {
+                targetClass = Class.forName(clazz);
+            } catch (ClassNotFoundException e) {
+                int dot = clazz.lastIndexOf('.');
+                int dollar = clazz.lastIndexOf('$');
+                if (dot > dollar) {
+                    targetClass = Class.forName(
+                        clazz.substring(0, dot) + "$" + clazz.substring(dot + 1)
+                    );
+                } else {
+                    throw e;
+                }
+            }
             PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(targetClass);
             for (PropertyDescriptor pd : propertyDescriptors) {
                 String name = pd.getName();
