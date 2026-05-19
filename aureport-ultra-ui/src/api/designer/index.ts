@@ -34,51 +34,40 @@ export function loadBuildinDatasources(): Promise<DatasourceItem[]> {
   return get('/datasource/loadBuildinDatasources')
 }
 
-export function buildFields(parameters: Record<string, unknown>): Promise<unknown> {
-  const formData = new FormData()
-  for (const key in parameters) {
-    formData.append(key, String(parameters[key]))
+function toFormParams(data: Record<string, unknown>): URLSearchParams {
+  const params = new URLSearchParams()
+  for (const key in data) {
+    params.append(key, String(data[key]))
   }
+  return params
+}
 
-  return post('/datasource/buildFields', formData, {
+export function buildFields(parameters: Record<string, unknown>): Promise<unknown> {
+  return post('/datasource/buildFields', toFormParams(parameters), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 
 export function scriptValidation(content: string): Promise<unknown> {
-  const formData = new FormData()
-  formData.append('content', content)
-  return post('/designer/scriptValidation', formData, {
+  return post('/designer/scriptValidation', toFormParams({ content }), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 
 export function conditionScriptValidation(content: string): Promise<unknown> {
-  const formData = new FormData()
-  formData.append('content', content)
-  return post('/designer/conditionScriptValidation', formData, {
+  return post('/designer/conditionScriptValidation', toFormParams({ content }), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 
 export function buildDatabaseTables(parameters: Record<string, unknown>): Promise<unknown> {
-  const formData = new FormData()
-  for (const key in parameters) {
-    formData.append(key, String(parameters[key]))
-  }
-
-  return post('/datasource/buildDatabaseTables', formData, {
+  return post('/datasource/buildDatabaseTables', toFormParams(parameters), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
 
 export function buildJdbcFields(parameters: Record<string, unknown>): Promise<unknown> {
-  const formData = new FormData()
-  for (const key in parameters) {
-    formData.append(key, String(parameters[key]))
-  }
-
-  return post('/datasource/buildFields', formData, {
+  return post('/datasource/buildFields', toFormParams(parameters), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
@@ -92,9 +81,7 @@ export function buildClass(clazz: string): Promise<unknown> {
 }
 
 export function parseDatasetName(expr: string): Promise<unknown> {
-  const formData = new FormData()
-  formData.append('expr', expr)
-  return post('/designer/parseDatasetName', formData, {
+  return post('/designer/parseDatasetName', toFormParams({ expr }), {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   })
 }
