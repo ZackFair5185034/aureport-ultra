@@ -6,6 +6,8 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 import Components from 'unplugin-vue-components/vite'
 import UnoCSS from 'unocss/vite'
 
+import AutoImport from 'unplugin-auto-import/vite'
+
 const babelPolyfillShim = () => ({
   name: 'babel-polyfill-shim',
   resolveId(id: string) {
@@ -40,6 +42,10 @@ export default defineConfig({
       extensions: ['vue'],
       deep: true,
       dts: resolve(__dirname, 'src/types/components.d.ts'),
+    }),
+    AutoImport({
+      imports: ['vue', 'vue-router', 'pinia'],
+      dts: resolve(__dirname, 'src/types/auto-imports.d.ts'),
     }),
   ],
   resolve: {
