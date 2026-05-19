@@ -502,12 +502,12 @@ async function handleSqlDatasetSave(nameVal: string, oldName: string, sql: strin
               >
                 <span
                   :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
-                  :title="$t('tree.doubleClick')"
+                  :title="field.label ? `${field.name} (${field.label})` : field.name"
                   @dblclick="handleFieldDoubleClick(dataset, field)"
                   @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
                 >
                   <i class="iconfont icon-property" />
-                  <a href="###">{{ field.name }}</a>
+                  <a href="###">{{ field.label || field.name }}</a>
                 </span>
               </li>
             </ul>

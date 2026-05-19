@@ -502,7 +502,7 @@ function handleSpringDatasourceSave(datasourceData: any) {
                       :key="`${field.name}_${child.name}_${childIndex}`"
                     >
                       <span
-                        :title="$t('tree.doubleClick')"
+                        :title="child.label ? `${child.name} (${child.label})` : child.name"
                         @dblclick="handleFieldDoubleClick(dataset, child)"
                         @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, child, fieldIndex)"
                       >
@@ -515,7 +515,7 @@ function handleSpringDatasourceSave(datasourceData: any) {
                 <li v-else>
                   <span
                     :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
-                    :title="$t('tree.doubleClick')"
+                    :title="field.label ? `${field.name} (${field.label})` : field.name"
                     @dblclick="handleFieldDoubleClick(dataset, field)"
                     @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
                   >
