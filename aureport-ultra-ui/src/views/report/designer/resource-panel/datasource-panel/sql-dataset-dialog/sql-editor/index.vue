@@ -84,12 +84,12 @@ function handleFormatSql() {
         <span>SQL(<span style="color: #999999;font-size: 12px;">{{ $t('dialog.sql.desc') }}：</span>)</span>
         <u-button type="info" size="mini" icon="icon-font-code" @click="handleFormatSql" />
       </div>
-      <Editor
+      <VueMonacoEditor
         ref="editorRef"
-        v-model="editorValue"
+        v-model:value="editorValue"
+        language="sql"
+        theme="vs"
         :options="{
-          language: 'sql',
-          theme: 'vs',
           fontSize: 13,
           lineNumbers: 'on',
           roundedSelection: true,
