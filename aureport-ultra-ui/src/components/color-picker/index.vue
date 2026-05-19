@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Sketch } from '@ckpack/vue-color'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineOptions({ name: 'UColorPicker' })
 

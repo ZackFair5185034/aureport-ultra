@@ -1,6 +1,5 @@
 import type { CellDef, ReportContext } from '@/types'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
 
 export const useReportStore = defineStore('report', () => {
   const context = ref<ReportContext | null>(null)
