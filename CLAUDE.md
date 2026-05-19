@@ -35,7 +35,7 @@ mvn clean install -pl aureport-ultra-core -am -DskipTests
 
 **运行时端口**：
 - `application.yml` 默认端口：`8050`
-- 开发环境（`--server.port=18080` 启动参数覆盖）：`18080`
+- 开发环境（`--server.port=13000` 启动参数覆盖）：`13000`
 
 **前置要求**：JDK >= 17（推荐 21），Maven 构建。
 

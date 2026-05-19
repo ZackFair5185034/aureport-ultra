@@ -196,7 +196,7 @@ export default defineConfig({
     alias: { '@': resolve(__dirname, 'src') },
   },
   server: {
-    port: Number(process.env.VITE_DEV_PORT) || 8080,
+    port: Number(process.env.VITE_DEV_PORT) || 3000,
     proxy: { '/api': { target: '...', changeOrigin: true, rewrite: p => p.replace(/^\/api/, '/report') } },
   },
   build: { target: 'esnext', outDir: 'dist', assetsDir: 'assets', sourcemap: false },

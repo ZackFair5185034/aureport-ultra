@@ -71,7 +71,7 @@
   - render.jsx 混用 Options API 导致 Vue 3 兼容问题
   - draggable-item 双 script 块混用（Options API + Composition API）
 - **ClasspathReportProvider 前缀**：`"classpath"` 缺少冒号，修复为 `"classpath:"`
-- **Vite proxy 目标端口**：硬编码为 `http://localhost:18080`
+- **Vite proxy 目标端口**：硬编码为 `http://localhost:3000`
 - **paper 标签 paging-mode NPE**：缺省 `paging-mode` 属性时解析返回 null 导致 NPE
 
 ---
