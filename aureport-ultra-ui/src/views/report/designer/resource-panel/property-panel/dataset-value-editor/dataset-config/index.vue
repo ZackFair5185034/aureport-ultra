@@ -141,7 +141,14 @@ const datasetOptions = computed(() =>
 const propertyOptions = computed(() =>
   props.currentFields.map((field: any) => ({
     value: field.name,
-    label: field.name,
+    label: field.label ? `${field.name} (${field.label})` : field.name,
+  })),
+)
+
+const nestPropertyOptions = computed(() =>
+  props.currentFields.map((field: any) => ({
+    value: field.name,
+    label: field.label ? `${field.name} (${field.label})` : field.name,
   })),
 )
 
@@ -484,13 +491,20 @@ function _buildFields(): any[] | null {
       </u-form-item>
 
       <u-form-item v-show="internalSelectedAggregate === 'iterate'" class="property-label" :label="t('property.dataset.nestProperty')">
-        <u-input
+        <u-select
           v-model="internalNestProperty"
           :clearable="true"
           style="width:250px"
           :placeholder="t('property.dataset.nestPropertyTip')"
           @change="handleNestPropertyChange"
-        />
+        >
+          <u-option
+            v-for="option in nestPropertyOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+          />
+        </u-select>
       </u-form-item>
 
       <u-form-item v-show="internalShowSortOptions" class="property-label" :label="t('property.dataset.sortType')">

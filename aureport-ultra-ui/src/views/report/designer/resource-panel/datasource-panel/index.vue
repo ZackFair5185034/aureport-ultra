@@ -142,7 +142,10 @@ function updateDatasource(data: any) {
 }
 
 function updateSpringDatasets(datasource: any, datasets: any[]) {
-  datasource.datasets = datasets
+  const index = datasources.value.findIndex((ds: any) => ds.name === datasource.name)
+  if (index !== -1) {
+    datasources.value[index] = { ...datasource, datasets }
+  }
   const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
   updateReportDef(reportDef)
 }

@@ -48,7 +48,7 @@ const leftTypeOptions = computed(() => [
 const fieldOptions = computed(() =>
   props.dialogFields.map((field: any) => ({
     value: field.name,
-    label: field.name,
+    label: field.label ? `${field.name} (${field.label})` : field.name,
   })),
 )
 

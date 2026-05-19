@@ -1,5 +1,6 @@
 package com.aureport.ultra.web.demo.service;
 
+import com.aureport.ultra.bean.ReportBeanMarker;
 import com.aureport.ultra.web.demo.model.Employee;
 import com.aureport.ultra.web.demo.model.FamilyMember;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,12 @@ import java.util.Map;
  * 方法签名必须为: List<T> methodName(String datasourceName, String datasetName, Map<String, Object> parameters)
  */
 @Service("employeeService")
-public class EmployeeService {
+public class EmployeeService implements ReportBeanMarker {
+
+    @Override
+    public String name() {
+        return "员工服务（主子表演示）";
+    }
 
     /**
      * 查询员工列表（主表）

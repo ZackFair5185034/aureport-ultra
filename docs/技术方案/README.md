@@ -9,6 +9,8 @@
 | [架构设计.md](./架构设计.md) | 整体架构、模块划分、数据流 | ✅ 完成 |
 | [报表XML格式.md](./报表XML格式.md) | .ureport.xml 文件格式规范 | ✅ 完成 |
 | [聚合聚合器设计.md](./聚合聚合器设计.md) | Sum/Avg/Count/Max/Min/Iterate 实现原理 | ✅ 完成 |
+| [SpringBean数据源增强方案.md](./SpringBean数据源增强方案.md) | 嵌套Bean + @FieldDesc注解实现 | 📋 待实现 |
+| [SpringBean数据源增强方案_Phase1.md](./SpringBean数据源增强方案_Phase1.md) | 本地Bean发现 + 前端选择UI + 独立Starter模块 | 📋 设计阶段 |
 | [父子格机制.md](./父子格机制.md) | leftParentCell/topParentCell 联动原理 | 📋 待完成 |
 | [DSL表达式引擎.md](./DSL表达式引擎.md) | ANTLR4 语法定义与表达式解析 | 📋 待完成 |
 

@@ -3,6 +3,7 @@
 import { useI18n } from 'vue-i18n'
 import { showAlert } from '@/utils/comnon'
 import { setDirty } from '@/utils/table'
+import { listReportBeans, type ReportBeanInfo } from '@/api/designer/index'
 
 defineOptions({ name: 'SpringDialog' })
 
@@ -26,15 +27,26 @@ const { t } = useI18n()
 const dsName = ref('')
 const beanId = ref('')
 const oldName = ref<string | null>(null)
+const beanOptions = ref<ReportBeanInfo[]>([])
 
 watch(() => props.visible, (newVal) => {
   if (newVal) {
     resetForm()
+    fetchBeans()
     if (props.datasource) {
       fillForm(props.datasource)
     }
   }
 })
+
+async function fetchBeans() {
+  try {
+    beanOptions.value = await listReportBeans()
+  }
+  catch {
+    beanOptions.value = []
+  }
+}
 
 function resetForm() {
   dsName.value = ''
@@ -104,7 +116,14 @@ function closeDialog() {
         <u-input v-model="dsName" />
       </u-form-item>
       <u-form-item :label="$t('dialog.springDS.bean')" :label-width="120">
-        <u-input v-model="beanId" />
+        <u-select v-model="beanId" :clearable="true" style="width: 250px" :placeholder="$t('dialog.springDS.beanTip')">
+          <u-option
+            v-for="option in beanOptions"
+            :key="option.beanId"
+            :value="option.beanId"
+            :label="`${option.name} (${option.className})`"
+          />
+        </u-select>
       </u-form-item>
     </u-form>
     <template #footer>

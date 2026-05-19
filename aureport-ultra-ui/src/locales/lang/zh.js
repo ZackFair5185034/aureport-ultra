@@ -755,6 +755,8 @@ const zh = {
     inputTip: '请输入字段名',
     addField: '添加字段',
     fieldName: '字段名',
+    fieldLabel: '字段描述',
+    fieldLabelTip: '请输入字段中文描述（可选）',
     fieldExist: '字段名已存在！',
     delDatasetConfirm: '真的要删除当前数据集',
     edit: '编辑',

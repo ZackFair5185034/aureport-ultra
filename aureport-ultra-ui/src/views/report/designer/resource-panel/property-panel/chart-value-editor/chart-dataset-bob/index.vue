@@ -67,7 +67,7 @@ const datasetOptions = computed(() =>
 const fieldOptions = computed(() =>
   availableFields.value.map((field: any) => ({
     value: field.name,
-    label: field.name,
+    label: field.label ? `${field.name} (${field.label})` : field.name,
   })),
 )
 

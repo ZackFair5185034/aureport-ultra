@@ -752,6 +752,8 @@ const en = {
     inputTip: 'Please enter field name',
     addField: 'Add Field',
     fieldName: 'Field Name',
+    fieldLabel: 'Field Label',
+    fieldLabelTip: 'Chinese description for the field (optional)',
     fieldExist: 'Field Exist!',
     delDatasetConfirm: 'Are you sure delete the dataset ',
     edit: 'Edit',

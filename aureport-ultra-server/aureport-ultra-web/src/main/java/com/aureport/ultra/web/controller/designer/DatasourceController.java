@@ -1,5 +1,6 @@
 package com.aureport.ultra.web.controller.designer;
 
+import com.aureport.ultra.core.annotation.FieldDesc;
 import com.aureport.ultra.core.exception.ReportServiceException;
 import com.aureport.ultra.core.Utils;
 import com.aureport.ultra.core.build.Context;
@@ -37,8 +38,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,7 +62,7 @@ import java.util.regex.Pattern;
  * 数据源控制器
  */
 @RestController("bean.datasourceController")
-@RequestMapping(value = "${aureport-ultra.servletPrefix}/datasource", method = RequestMethod.GET)
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/datasource")
 @Tag(name = "数据源", description = "数据源管理、数据库连接与数据预览")
 public class DatasourceController {
 
@@ -79,7 +81,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/loadBuildinDatasources", method = RequestMethod.GET)
+    @GetMapping("/loadBuildinDatasources")
     public void loadBuildinDatasources(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         List<String> datasources = new ArrayList<>();
         for (BuildinDatasource datasource : Utils.getBuildinDatasources()) {
@@ -102,7 +104,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/loadMethods", method = RequestMethod.GET)
+    @GetMapping("/loadMethods")
     public void loadMethods(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String beanId = req.getParameter("beanId");
         Object obj = applicationContext.getBean(beanId);
@@ -177,38 +179,114 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/buildClass", method = RequestMethod.GET)
+    @GetMapping("/buildClass")
     public void buildClass(HttpServletRequest req, HttpServletResponse resp) {
         String clazz = req.getParameter("clazz");
-        List<Field> result = new ArrayList<>();
         try {
-            // 支持内部类名：将最后一段的 . 替换为 $，
-            // 如 "com.example.Foo.Bar" → "com.example.Foo$Bar"
-            Class<?> targetClass;
-            try {
-                targetClass = Class.forName(clazz);
-            } catch (ClassNotFoundException e) {
-                int dot = clazz.lastIndexOf('.');
-                int dollar = clazz.lastIndexOf('$');
-                if (dot > dollar) {
-                    targetClass = Class.forName(
-                        clazz.substring(0, dot) + "$" + clazz.substring(dot + 1)
-                    );
-                } else {
-                    throw e;
-                }
-            }
-            PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(targetClass);
-            for (PropertyDescriptor pd : propertyDescriptors) {
-                String name = pd.getName();
-                if ("class".equals(name)) {
-                    continue;
-                }
-                result.add(new Field(name));
-            }
+            Class<?> targetClass = resolveClass(clazz);
+            List<Field> result = buildFieldsForClass(targetClass, 0, new HashSet<>());
             ResponseUtils.writeObjectToJson(resp, result);
         } catch (Exception ex) {
             throw new ReportDesignException(ex);
+        }
+    }
+
+    /**
+     * 递归构建类字段，支持 @FieldDesc 注解和嵌套 Bean
+     */
+    private List<Field> buildFieldsForClass(Class<?> targetClass, int depth, Set<Class<?>> visited) {
+        List<Field> result = new ArrayList<>();
+        if (targetClass == null || depth > 3 || visited.contains(targetClass)) {
+            return result;
+        }
+        visited.add(targetClass);
+
+        PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(targetClass);
+        for (PropertyDescriptor pd : propertyDescriptors) {
+            String name = pd.getName();
+            if ("class".equals(name)) {
+                continue;
+            }
+
+            Class<?> propertyType = pd.getPropertyType();
+            if (propertyType == null) {
+                continue;
+            }
+
+            String label = resolveFieldDesc(pd, targetClass);
+            String typeName = propertyType.getName();
+            List<Field> children = null;
+
+            if (isComplexType(propertyType)) {
+                children = buildFieldsForClass(propertyType, depth + 1, visited);
+            }
+
+            Field field = new Field(name, label, typeName, children);
+            result.add(field);
+        }
+
+        visited.remove(targetClass);
+        return result;
+    }
+
+    /**
+     * 解析 @FieldDesc 注解：优先 getter 方法，其次字段
+     */
+    private String resolveFieldDesc(PropertyDescriptor pd, Class<?> targetClass) {
+        Method readMethod = pd.getReadMethod();
+        if (readMethod != null) {
+            FieldDesc desc = readMethod.getAnnotation(FieldDesc.class);
+            if (desc != null) {
+                return desc.value();
+            }
+        }
+        try {
+            java.lang.reflect.Field field = targetClass.getDeclaredField(pd.getName());
+            FieldDesc desc = field.getAnnotation(FieldDesc.class);
+            if (desc != null) {
+                return desc.value();
+            }
+        } catch (NoSuchFieldException ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * 判断是否为需要递归展开的复杂类型
+     */
+    private boolean isComplexType(Class<?> type) {
+        if (type.isPrimitive()) return false;
+        if (type.isArray()) return false;
+        if (type.isEnum()) return false;
+        // JDK 标准类型不展开
+        String name = type.getName();
+        if (name.startsWith("java.")) return false;
+        if (name.startsWith("javax.")) return false;
+        // 常用简单类型
+        if (String.class.isAssignableFrom(type)) return false;
+        if (Number.class.isAssignableFrom(type)) return false;
+        if (Boolean.class.isAssignableFrom(type)) return false;
+        if (Date.class.isAssignableFrom(type)) return false;
+        if (Iterable.class.isAssignableFrom(type)) return false;
+        if (Map.class.isAssignableFrom(type)) return false;
+        return true;
+    }
+
+    /**
+     * 解析类名，支持内部类（. → $）
+     */
+    private Class<?> resolveClass(String clazz) throws ClassNotFoundException {
+        try {
+            return Class.forName(clazz);
+        } catch (ClassNotFoundException e) {
+            int dot = clazz.lastIndexOf('.');
+            int dollar = clazz.lastIndexOf('$');
+            if (dot > dollar) {
+                return Class.forName(
+                    clazz.substring(0, dot) + "$" + clazz.substring(dot + 1)
+                );
+            }
+            throw e;
         }
     }
 
@@ -231,7 +309,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/buildDatabaseTables", method = RequestMethod.GET)
+    @GetMapping("/buildDatabaseTables")
     public void buildDatabaseTables(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException {
         Connection conn = null;
         ResultSet rs = null;
@@ -281,7 +359,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/buildFields", method = RequestMethod.GET)
+    @GetMapping("/buildFields")
     public void buildFields(HttpServletRequest req, HttpServletResponse resp) {
         String sql = req.getParameter("sql");
         String parameters = req.getParameter("parameters");
@@ -346,7 +424,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/previewData", method = RequestMethod.GET)
+    @GetMapping("/previewData")
     public void previewData(HttpServletRequest req, HttpServletResponse resp) throws ReportServiceException, IOException {
         String sql = req.getParameter("sql");
         String parameters = req.getParameter("parameters");
@@ -424,7 +502,7 @@ public class DatasourceController {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/testConnection", method = RequestMethod.GET)
+    @PostMapping("/testConnection")
     public void testConnection(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, ClassNotFoundException {
         String username = req.getParameter("username");
         String password = req.getParameter("password");

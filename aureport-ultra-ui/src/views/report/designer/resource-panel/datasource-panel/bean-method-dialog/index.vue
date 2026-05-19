@@ -83,6 +83,10 @@ function handleMethodSelect(selectedMethod: string, returnClass?: string | null)
   if (returnClass) {
     clazz.value = returnClass
   }
+  // 自动生成数据集名称：取方法名作为默认名
+  if (!name.value) {
+    name.value = selectedMethod
+  }
 }
 
 function validateName(): boolean {

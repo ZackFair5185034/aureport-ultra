@@ -3,6 +3,7 @@ package com.aureport.ultra.pub.config;
 import com.aureport.ultra.pub.config.model.Department;
 import com.aureport.ultra.pub.config.model.Employee;
 import com.aureport.ultra.pub.config.model.SalesRecord;
+import com.aureport.ultra.bean.ReportBeanMarker;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +23,12 @@ import java.util.Map;
  * 返回 List<T>，引擎自动将每项作为一行数据
  */
 @Service("reportDataService")
-public class ReportDataService {
+public class ReportDataService implements ReportBeanMarker {
+
+    @Override
+    public String name() {
+        return "报表数据源示例";
+    }
 
     /**
      * 查询员工列表

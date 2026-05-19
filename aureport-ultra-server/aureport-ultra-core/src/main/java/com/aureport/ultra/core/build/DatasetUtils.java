@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.aureport.ultra.core.definition.value.AggregateType.iterate;
+
 /**
  * @author Jacky.gao
  * @since 2016年12月26日
@@ -44,6 +46,7 @@ public class DatasetUtils {
         aggregates.put(AggregateType.max, new MaxAggregate());
         aggregates.put(AggregateType.customgroup, new CustomGroupAggregate());
         aggregates.put(AggregateType.groupstat, new GroupStatAggregate());
+        aggregates.put(iterate, new IterateAggregate());
         aggregates.put(AggregateType.grouphead, new GroupHeadAggregate());
         aggregates.put(AggregateType.groupfoot, new GroupFootAggregate());
     }

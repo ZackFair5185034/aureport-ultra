@@ -1,5 +1,7 @@
 package com.aureport.ultra.web.demo.model;
 
+import com.aureport.ultra.core.annotation.FieldDesc;
+
 import java.io.Serializable;
 
 /**
@@ -25,21 +27,27 @@ public class FamilyMember implements Serializable {
         this.occupation = occupation;
     }
 
+    @FieldDesc("姓名")
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
+    @FieldDesc("关系")
     public String getRelation() { return relation; }
     public void setRelation(String relation) { this.relation = relation; }
 
+    @FieldDesc("电话")
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
+    @FieldDesc("年龄")
     public Integer getAge() { return age; }
     public void setAge(Integer age) { this.age = age; }
 
+    @FieldDesc("职业")
     public String getOccupation() { return occupation; }
     public void setOccupation(String occupation) { this.occupation = occupation; }
 
+    @FieldDesc("匹配姓名")
     public String getMatchingName() { return matchingName; }
     public void setMatchingName(String matchingName) { this.matchingName = matchingName; }
 }

@@ -155,7 +155,7 @@ mvn clean package -DskipTests
 curl "http://localhost:8050/report/html/loadHtml?reportPath=file:sales_report.ureport.xml"
 
 # 通过前端代理
-http://localhost:8080/report/preview?reportPath=file:sales_report.ureport.xml
+http://localhost:3000/report/preview?reportPath=file:sales_report.ureport.xml
 ```
 
 返回格式：

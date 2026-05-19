@@ -5,7 +5,7 @@ Aureport Ultra 报表设计器前端，基于 Vue 3 + Vite 8 + TypeScript。
 ## 开发
 
 ```bash
-npx vite --port 8080
+npx vite --port 3000
 ```
 
 ## 构建

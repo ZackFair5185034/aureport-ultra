@@ -12,11 +12,15 @@
 - **Tooltip 悬浮提示**：单元格新增 `tooltip` 属性，鼠标悬停显示提示内容
 - **GroupStatAggregate 分组聚合**：新增 `groupstat` 聚合类型，支持从父格 BindData 读取统计字段
 - **SpringBean 数据源增强**：新增 `@FieldDesc` 注解支持字段中文描述；支持嵌套 Bean 属性递归展开
+- **Bean 自动发现 Starter 模块**：新增 `aureport-ultra-bean-discovery-starter` 模块，基于 Spring Boot AutoConfiguration 自动扫描 `@ReportBean` 注解 Bean 并暴露 REST 端点（`/api/report-beans`）
 
 #### 前端设计器
 - **ProgressBarValueEditor**：进度条单元格值编辑器，支持配置 value/max 属性
 - **Tooltip 配置**：单元格属性面板新增 tooltip 配置项
 - **SpringBean 字段展示增强**：树节点同时显示字段名和 label 描述；嵌套 Bean 子字段可展开
+- **SpringBean 数据集配置增强**：Bean 方法对话框添加 label 展示、编辑后自动重建字段树、支持不指定方法（仅用于获取嵌套属性）
+- **Web Component Lib 构建**：新增 Vite lib 模式构建配置，导出 `AureportDesigner`/`AureportPreview` 自定义元素，替换原 `LuckDesigner`/`LuckPreview`
+- **数据集配置字段 label 统一展示**：SpringBean 树节点、数据集属性面板下拉选项（6 个条件属性配置面板 + data-mapping）同时展示字段名和 label 描述
 
 ### 修复
 
@@ -37,7 +41,9 @@
   - **Buildin/Database/Spring 统一**：三棵树均支持通过右键菜单编辑字段名和标签（`FieldNameDialog` 添加 `field` prop 支持编辑预填、label 输入框）
   - **字段标签显示**：数据集属性面板下拉选项、SpringBean 树节点同时展示字段名和 label
   - **BuildinTree 编辑不持久化修复**：原编辑分支缺少 `emit` 调用，导致修改仅在本地 deepCopy 副本上生效而未持久化。将所有字段变更的 `emit` 移至 if/else 外部统一执行
-  - **DatabaseTree 编辑后渲染不更新**：将 `datasets` 通过独立 prop 传递并直连 watch，避免依赖 `props.ds` 的 deep watcher 无法可靠检测深层变化的问题
+  - **DatabaseTree 编辑后渲染不更新**：将 `datasets` 通过独立 prop 传递并直连 watch，避免依赖 `props.ds` 的 deep watcher 无法可靠检测深层变化的问题。后续补充：
+    - 子组件 `handleFieldNameSave` 中添加 `datasets.value = newDatasets` 本地 ref 更新，确保模板响应式链触发
+    - 父组件 `updateSpringDatasets` 从原地修改改为元素替换（`datasources.value[index] = { ... }`），确保 computed 正确重新求值
 
 #### 核心引擎
 - **ReportParser rowSpan/colSpan 自减 Bug 修复（P0-2）**：后缀 `--` 改为前缀 `--`，确保合并单元格范围计算正确。**根因**：后缀 `--` 在表达式解析中产生歧义

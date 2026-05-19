@@ -14,7 +14,7 @@ import '@/assets/css/common/index.css'
 
 Chart.register(...registerables, ChartDataLabels)
 
-class LuckPreviewElement extends HTMLElement {
+class AureportPreviewElement extends HTMLElement {
   private _app: App<Element> | null = null
   private _vm: any = null
   private _i18n: any = null
@@ -117,7 +117,7 @@ class LuckPreviewElement extends HTMLElement {
     this._syncUrlFromAttributes()
 
     const container = document.createElement('div')
-    container.className = 'luck-preview-container'
+    container.className = 'aureport-preview-container'
     container.style.width = '100%'
     container.style.height = '100%'
     this.append(container)
@@ -191,4 +191,4 @@ class LuckPreviewElement extends HTMLElement {
   }
 }
 
-export default LuckPreviewElement
+export default AureportPreviewElement

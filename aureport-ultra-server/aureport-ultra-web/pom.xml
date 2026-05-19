@@ -64,6 +64,11 @@
             <artifactId>aureport-ultra-font</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.aureport.ultra</groupId>
+            <artifactId>aureport-ultra-bean-discovery-starter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

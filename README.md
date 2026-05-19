@@ -11,7 +11,7 @@
 | 后端模块 | 4 个 Maven 模块（core/web/font/pub） |
 | Java 文件 | 490 个 |
 | 数据库 | MySQL / Oracle / SQLServer / 达梦（仅用作数据源） |
-| 前端端口 | 8080（Vite 开发服务器） |
+| 前端端口 | 3000（Vite 开发服务器） |
 | 后端端口 | 8050（Spring Boot） |
 
 **核心架构**：报表定义以 `.ureport.xml` 文件存储在 `fileStoreDir` 目录，**不是数据库存储**。数据库连接只用来执行用户配置的 SQL 数据集查询。
@@ -41,18 +41,18 @@ curl http://localhost:8050/report/datasource/loadBuildinDatasources
 cd /home/coding/aureport-ultra/aureport-ultra-ui
 
 # ⚠️ 必须用 npx vite，不能用 pnpm dev（@parcel/watcher postinstall 问题）
-npx vite --port 8080 --host
+npx vite --port 3000 --host
 
 # 验证前端访问
-curl -s http://localhost:8080 | head -5
+curl -s http://localhost:3000 | head -5
 ```
 
 **⚠️ `--host` 参数必须加**，否则其他机器无法访问（Vite 默认只监听 127.0.0.1）。
 
 ### 3. 访问报表设计器
 
-- 报表设计器：http://localhost:8080/report/designer
-- 报表预览：http://localhost:8080/report/preview?reportPath=file:报表名.ureport.xml
+- 报表设计器：http://localhost:3000/report/designer
+- 报表预览：http://localhost:3000/report/preview?reportPath=file:报表名.ureport.xml
 
 ## 项目结构
 
@@ -116,11 +116,11 @@ ls /home/coding/aureport-ultra/reports/
 curl "http://localhost:8050/report/html/loadHtml?reportPath=file:sales_report.ureport.xml"
 
 # 通过前端预览（浏览器打开）
-http://localhost:8080/report/preview?reportPath=file:sales_report.ureport.xml
+http://localhost:3000/report/preview?reportPath=file:sales_report.ureport.xml
 ```
 
 ### 新建报表
-1. 打开 http://localhost:8080/report/designer
+1. 打开 http://localhost:3000/report/designer
 2. 点击工具栏「新建报表」
 3. 配置数据源（右侧面板 → 数据源管理）
 4. 在表格中拖拽单元格，输入 `${dataset.field}` 绑定数据

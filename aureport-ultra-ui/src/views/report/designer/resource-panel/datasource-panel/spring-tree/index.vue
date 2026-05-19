@@ -41,6 +41,7 @@ const localName = ref(props.name)
 const localBeanId = ref(props.beanId)
 const localDatasets = ref<any[]>(props.datasets)
 const currentDataset = ref<any>(null)
+const currentField = ref<any>(null)
 const beanMethodDialogVisible = ref(false)
 const springDialogVisible = ref(false)
 const currentSpringDatasource = ref<any>(null)
@@ -175,10 +176,11 @@ function handleDatasetMenuAction(key: string, dataset: any, index: number) {
 
 function addFieldAction(dataset: any) {
   currentDataset.value = dataset
+  currentField.value = null
   fieldNameDialogVisible.value = true
 }
 
-function handleFieldNameSave(fieldName: string, dataset: any) {
+function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
   if (fieldName) {
     const newDatasets = deepCopy(localDatasets.value)
     const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
@@ -187,14 +189,40 @@ function handleFieldNameSave(fieldName: string, dataset: any) {
       targetDataset.fields = []
     }
 
-    const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
-    if (exists) {
-      showAlert(t('tree.fieldExist'))
-      return
+    const editField = currentField.value
+    if (editField) {
+      const oldField = targetDataset.fields.find((f: any) => f.name === editField.name)
+      if (oldField) {
+        const nameConflict = editField.name !== fieldName
+          && targetDataset.fields.some((f: any) => f.name === fieldName)
+        if (nameConflict) {
+          showAlert(t('tree.fieldExist'))
+          return
+        }
+        oldField.name = fieldName
+        if (label) {
+          oldField.label = label
+        }
+        else {
+          delete oldField.label
+        }
+      }
+    }
+    else {
+      const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
+      if (exists) {
+        showAlert(t('tree.fieldExist'))
+        return
+      }
+
+      const field: any = { name: fieldName }
+      if (label) {
+        field.label = label
+      }
+      targetDataset.fields.push(field)
     }
 
-    const field = { name: fieldName }
-    targetDataset.fields.push(field)
+    currentField.value = null
     emit('update-datasets', newDatasets)
   }
 }
@@ -260,6 +288,7 @@ function refreshDatasetAction(dataset: any, index: number) {
 
 function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, fieldIndex: number) {
   const items = [
+    { key: 'edit', name: t('tree.edit'), icon: 'edit' },
     { key: 'delete', name: t('tree.del'), icon: 'delete' },
   ]
 
@@ -269,8 +298,16 @@ function showFieldContextMenu(event: MouseEvent, dataset: any, field: any, field
 }
 
 function handleFieldMenuAction(key: string, dataset: any, field: any, fieldIndex: number) {
-  if (key === 'delete') {
-    deleteFieldAction(dataset, field, fieldIndex)
+  switch (key) {
+    case 'edit': {
+      editFieldAction(dataset, field)
+      break
+    }
+    case 'delete': {
+      deleteFieldAction(dataset, field, fieldIndex)
+      break
+    }
+  // No default
   }
 }
 
@@ -285,8 +322,28 @@ function deleteFieldAction(dataset: any, field: any, fieldIndex: number) {
   })
 }
 
+function editFieldAction(dataset: any, field: any) {
+  currentDataset.value = dataset
+  currentField.value = field
+  fieldNameDialogVisible.value = true
+}
+
 function handleFieldDoubleClick(dataset: any, field: any) {
   _buildClickEvent(dataset, field, context.value)
+}
+
+async function toggleFieldChildren(field: any) {
+  field._expanded = !field._expanded
+}
+
+function initFieldExpandState(fields: any[]) {
+  if (!fields) return
+  for (const f of fields) {
+    if (f.children && f.children.length > 0) {
+      f._expanded = true
+      initFieldExpandState(f.children)
+    }
+  }
 }
 
 async function buildFields(dataset: any, index: number, refresh = false, newDatasets: any[] | null = null) {
@@ -294,14 +351,15 @@ async function buildFields(dataset: any, index: number, refresh = false, newData
 
   if (!refresh && defaultFields) {
     if (newDatasets) {
+      initFieldExpandState(defaultFields)
       emit('update-datasets', newDatasets)
     }
-
     return
   }
 
   try {
     const response = await buildClass(dataset.clazz)
+    initFieldExpandState(response)
     dataset.fields = response
     if (newDatasets) {
       emit('update-datasets', newDatasets)
@@ -424,20 +482,48 @@ function handleSpringDatasourceSave(datasourceData: any) {
               v-show="datasetExpanded[index]"
               style="padding-left: 22px;"
             >
-              <li
-                v-for="(field, fieldIndex) in dataset.fields"
-                :key="`${field.name}_${fieldIndex}`"
-              >
-                <span
-                  :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
-                  :title="$t('tree.doubleClick')"
-                  @dblclick="handleFieldDoubleClick(dataset, field)"
-                  @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
-                >
-                  <i class="iconfont icon-property" />
-                  <a href="###">{{ field.name }}</a>
-                </span>
-              </li>
+              <template v-for="(field, fieldIndex) in dataset.fields" :key="`${field.name}_${fieldIndex}`">
+                <li v-if="field.children && field.children.length > 0">
+                  <span
+                    :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
+                    @click="toggleFieldChildren(field)"
+                  >
+                    <i
+                      class="iconfont"
+                      :class="field._expanded ? 'icon-minus-circle' : 'icon-plus-circle'"
+                      style="margin-right:2px"
+                    />
+                    <i class="iconfont icon-property" />
+                    <a href="###">{{ field.label ? `${field.name} (${field.label})` : field.name }}</a>
+                  </span>
+                  <ul v-show="field._expanded" style="padding-left: 22px;">
+                    <li
+                      v-for="(child, childIndex) in field.children"
+                      :key="`${field.name}_${child.name}_${childIndex}`"
+                    >
+                      <span
+                        :title="$t('tree.doubleClick')"
+                        @dblclick="handleFieldDoubleClick(dataset, child)"
+                        @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, child, fieldIndex)"
+                      >
+                        <i class="iconfont icon-property" />
+                        <a href="###">{{ child.label ? `${child.name} (${child.label})` : child.name }}</a>
+                      </span>
+                    </li>
+                  </ul>
+                </li>
+                <li v-else>
+                  <span
+                    :id="`field_${dataset.name}_${field.name}_${fieldIndex}`"
+                    :title="$t('tree.doubleClick')"
+                    @dblclick="handleFieldDoubleClick(dataset, field)"
+                    @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
+                  >
+                    <i class="iconfont icon-property" />
+                    <a href="###">{{ field.label ? `${field.name} (${field.label})` : field.name }}</a>
+                  </span>
+                </li>
+              </template>
             </ul>
           </li>
         </ul>
@@ -468,6 +554,7 @@ function handleSpringDatasourceSave(datasourceData: any) {
     <FieldNameDialog
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
+      :field="currentField"
       @save="handleFieldNameSave"
       @close="fieldNameDialogVisible = false"
     />

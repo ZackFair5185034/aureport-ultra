@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
       </slot>
     </div>
     <div v-if="pickerVisible" class="u-color-picker-popover">
-      <Sketch v-model="colors as any" />
+      <Sketch :model-value="colors as any" @update:model-value="colors = $event as any" />
     </div>
   </div>
 </template>

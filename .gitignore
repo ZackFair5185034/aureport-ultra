@@ -33,6 +33,9 @@ logs/
 # OMC
 **/.omc/
 
+# CodeGraph
+.codegraph/
+
 # Playwright MCP
 .playwright-mcp/
 

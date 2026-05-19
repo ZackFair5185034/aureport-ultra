@@ -1,6 +1,6 @@
-import LuckDesignerElement from './components/LuckDesigner'
+import AureportDesignerElement from './components/AureportDesigner'
 
-import LuckPreviewElement from './components/LuckPreview'
+import AureportPreviewElement from './components/AureportPreview'
 import navigationAdapter from './navigationAdapter'
 import { getLibMode, setLibMode } from './navigator'
 import requestAdapter from './requestAdapter'
@@ -15,12 +15,12 @@ import '@/assets/css/iconfont/iconfont.css'
 import '@/assets/css/common/index.css'
 
 function install() {
-  if (!customElements.get('luck-designer')) {
-    customElements.define('luck-designer', LuckDesignerElement)
+  if (!customElements.get('aureport-designer')) {
+    customElements.define('aureport-designer', AureportDesignerElement)
   }
 
-  if (!customElements.get('luck-preview')) {
-    customElements.define('luck-preview', LuckPreviewElement)
+  if (!customElements.get('aureport-preview')) {
+    customElements.define('aureport-preview', AureportPreviewElement)
   }
 }
 
@@ -38,8 +38,8 @@ export default {
   navigationAdapter,
   setLibMode,
   getLibMode,
-  LuckDesignerElement,
-  LuckPreviewElement,
+  AureportDesignerElement,
+  AureportPreviewElement,
 }
 
 export {
@@ -48,8 +48,8 @@ export {
 
 }
 
-export { default as LuckDesignerElement } from './components/LuckDesigner'
-export { default as LuckPreviewElement } from './components/LuckPreview'
+export { default as AureportDesignerElement } from './components/AureportDesigner'
+export { default as AureportPreviewElement } from './components/AureportPreview'
 export { default as navigationAdapter } from './navigationAdapter'
 export { getLibMode, setLibMode } from './navigator'
 export { default as requestAdapter } from './requestAdapter'

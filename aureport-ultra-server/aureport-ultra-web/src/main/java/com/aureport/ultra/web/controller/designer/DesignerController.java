@@ -28,8 +28,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,7 +46,7 @@ import java.util.*;
  * @since 2017年1月25日
  */
 @Controller("bean.designerController")
-@RequestMapping(value = "${aureport-ultra.servletPrefix}/designer", method = RequestMethod.GET)
+@RequestMapping(value = "${aureport-ultra.servletPrefix}/designer")
 @Tag(name = "报表设计器", description = "报表设计器脚本验证、文件管理与预览")
 public class DesignerController implements ApplicationContextAware {
 
@@ -72,7 +73,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/scriptValidation", method = RequestMethod.GET)
+    @GetMapping("/scriptValidation")
     public void scriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(content);
@@ -101,7 +102,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/conditionScriptValidation", method = RequestMethod.GET)
+    @GetMapping("/conditionScriptValidation")
     public void conditionScriptValidation(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(content);
@@ -130,7 +131,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/parseDatasetName", method = RequestMethod.GET)
+    @GetMapping("/parseDatasetName")
     public void parseDatasetName(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String expr = req.getParameter("expr");
         ANTLRInputStream antlrInputStream = new ANTLRInputStream(expr);
@@ -161,7 +162,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/savePreviewFile", method = RequestMethod.GET)
+    @PostMapping("/savePreviewFile")
     public void savePreviewFile(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String content = req.getParameter("content");
         String fileName = req.getParameter("fileName");
@@ -188,7 +189,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/loadReport", method = RequestMethod.GET)
+    @GetMapping("/loadReport")
     public void loadReport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String filePath = req.getParameter("filePath");
         if (filePath == null) {
@@ -220,7 +221,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/deleteReportFile", method = RequestMethod.GET)
+    @PostMapping("/deleteReportFile")
     public void deleteReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
         if (file == null) {
@@ -254,7 +255,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/saveReportFile", method = RequestMethod.GET)
+    @PostMapping("/saveReportFile")
     public void saveReportFile(HttpServletRequest req, HttpServletResponse resp) {
         String file = req.getParameter("file");
         file = ReportUtils.decodeFileName(file);
@@ -298,7 +299,7 @@ public class DesignerController implements ApplicationContextAware {
             @ApiResponse(responseCode = "500", description = "服务器错误")
         }
     )
-    @RequestMapping(value = "/loadReportProviders", method = RequestMethod.GET)
+    @GetMapping("/loadReportProviders")
     public void loadReportProviders(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getParameter("path");
         if (path == null || path.isEmpty()) {

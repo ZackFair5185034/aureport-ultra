@@ -112,6 +112,10 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
                 continue;
             }
             Field field = new Field(ele.attributeValue("name"));
+            String label = ele.attributeValue("label");
+            if (label != null) {
+                field.setLabel(label);
+            }
             fields.add(field);
         }
         return fields;

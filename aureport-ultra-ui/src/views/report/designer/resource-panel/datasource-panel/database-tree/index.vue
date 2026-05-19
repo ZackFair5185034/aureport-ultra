@@ -264,6 +264,7 @@ function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
     }
 
     currentField.value = null
+    datasets.value = newDatasets
     emit('update-datasets', newDatasets)
   }
 }

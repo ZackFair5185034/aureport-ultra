@@ -1,10 +1,8 @@
 import type { DatasourceItem, ProviderItem, ReportFile } from '@/types'
 import { get, post } from '@/utils/request'
 
-export function loadReport(formData: FormData): Promise<unknown> {
-  return post('/designer/loadReport', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+export function loadReport(filePath: string): Promise<unknown> {
+  return get('/designer/loadReport', { params: { filePath } })
 }
 
 export function testConnection(formData: FormData): Promise<unknown> {
@@ -14,62 +12,49 @@ export function testConnection(formData: FormData): Promise<unknown> {
 }
 
 export function previewData(parameters: Record<string, unknown>): Promise<unknown> {
-  const formData = new URLSearchParams()
+  const params: Record<string, string> = {}
   for (const key in parameters) {
     const value = parameters[key]
-    if (typeof value === 'object' && value !== null) {
-      formData.append(key, JSON.stringify(value))
-    }
-    else {
-      formData.append(key, String(value))
-    }
+    params[key] = typeof value === 'object' && value !== null
+      ? JSON.stringify(value)
+      : String(value)
   }
-
-  return post('/datasource/previewData', formData, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/datasource/previewData', { params })
 }
 
 export function loadBuildinDatasources(): Promise<DatasourceItem[]> {
   return get('/datasource/loadBuildinDatasources')
 }
 
-function toFormParams(data: Record<string, unknown>): URLSearchParams {
-  const params = new URLSearchParams()
-  for (const key in data) {
-    params.append(key, String(data[key]))
-  }
-  return params
+export interface FieldInfo {
+  name: string
+  label?: string
+  type?: string
+  children?: FieldInfo[]
 }
 
 export function buildFields(parameters: Record<string, unknown>): Promise<unknown> {
-  return post('/datasource/buildFields', toFormParams(parameters), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/datasource/buildFields', { params: parameters })
+}
+
+export function buildClass(clazz: string): Promise<FieldInfo[]> {
+  return get('/datasource/buildClass', { params: { clazz } })
 }
 
 export function scriptValidation(content: string): Promise<unknown> {
-  return post('/designer/scriptValidation', toFormParams({ content }), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/designer/scriptValidation', { params: { content } })
 }
 
 export function conditionScriptValidation(content: string): Promise<unknown> {
-  return post('/designer/conditionScriptValidation', toFormParams({ content }), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/designer/conditionScriptValidation', { params: { content } })
 }
 
 export function buildDatabaseTables(parameters: Record<string, unknown>): Promise<unknown> {
-  return post('/datasource/buildDatabaseTables', toFormParams(parameters), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/datasource/buildDatabaseTables', { params: parameters })
 }
 
 export function buildJdbcFields(parameters: Record<string, unknown>): Promise<unknown> {
-  return post('/datasource/buildFields', toFormParams(parameters), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/datasource/buildFields', { params: parameters })
 }
 
 export interface MethodInfo {
@@ -81,14 +66,18 @@ export function loadMethods(beanId: string): Promise<MethodInfo[]> {
   return get('/datasource/loadMethods', { params: { beanId } })
 }
 
-export function buildClass(clazz: string): Promise<unknown> {
-  return get('/datasource/buildClass', { params: { clazz } })
+export interface ReportBeanInfo {
+  beanId: string
+  name: string
+  className: string
+}
+
+export function listReportBeans(): Promise<ReportBeanInfo[]> {
+  return get('/report-beans')
 }
 
 export function parseDatasetName(expr: string): Promise<unknown> {
-  return post('/designer/parseDatasetName', toFormParams({ expr }), {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  })
+  return get('/designer/parseDatasetName', { params: { expr } })
 }
 
 export function saveReportFile(file: string, content: string): Promise<unknown> {

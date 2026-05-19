@@ -14,7 +14,7 @@ import '@/assets/css/designer/tree.css'
 import '@/assets/css/iconfont/iconfont.css'
 import '@/assets/css/common/index.css'
 
-class LuckDesignerElement extends HTMLElement {
+class AureportDesignerElement extends HTMLElement {
   private _app: App<Element> | null = null
   private _vm: any = null
   private _props: Record<string, any> = {}
@@ -59,7 +59,7 @@ class LuckDesignerElement extends HTMLElement {
 
   private _mount() {
     const container = document.createElement('div')
-    container.className = 'luck-designer-container'
+    container.className = 'aureport-designer-container'
     container.style.width = '100%'
     container.style.height = '100%'
     this.append(container)
@@ -76,7 +76,7 @@ class LuckDesignerElement extends HTMLElement {
     const reportPath = this.getAttribute('report-path') || ''
 
     const Wrapper = {
-      name: 'LuckDesignerWrapper',
+      name: 'AureportDesignerWrapper',
       props: { reportPath: String },
       data() {
         return { internalReportPath: (this as any).reportPath || reportPath }
@@ -173,4 +173,4 @@ class LuckDesignerElement extends HTMLElement {
   }
 }
 
-export default LuckDesignerElement
+export default AureportDesignerElement

@@ -39,7 +39,7 @@ const joinOptions = computed(() => [
 const propertyOptions = computed(() =>
   props.fields.map((field: any) => ({
     value: field.name,
-    label: field.name,
+    label: field.label ? `${field.name} (${field.label})` : field.name,
   })),
 )
 

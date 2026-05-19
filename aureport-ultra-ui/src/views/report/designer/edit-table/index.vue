@@ -213,9 +213,7 @@ function processRowHeaders() {
 
 async function loadFile(filePath: string, callback: (...args: unknown[]) => void) {
   try {
-    const formData = new FormData()
-    formData.append('filePath', filePath)
-    const rDef: any = await loadReport(formData)
+    const rDef: any = await loadReport(filePath)
 
     reportDef.value = rDef
     _buildReportData(rDef)

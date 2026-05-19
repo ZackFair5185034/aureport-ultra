@@ -1,17 +1,6 @@
-/*******************************************************************************
- * Copyright 2017 Bstek
- *
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
- ******************************************************************************/
 package com.aureport.ultra.core.definition.dataset;
+
+import java.util.List;
 
 /**
  * @author Jacky.gao
@@ -19,9 +8,22 @@ package com.aureport.ultra.core.definition.dataset;
  */
 public class Field {
     private String name;
+    private String label;
+    private String type;
+    private List<Field> children;
+
+    public Field() {
+    }
 
     public Field(String name) {
+        this(name, null, null, null);
+    }
+
+    public Field(String name, String label, String type, List<Field> children) {
         this.name = name;
+        this.label = label;
+        this.type = type;
+        this.children = children;
     }
 
     public String getName() {
@@ -30,5 +32,29 @@ public class Field {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public List<Field> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Field> children) {
+        this.children = children;
     }
 }

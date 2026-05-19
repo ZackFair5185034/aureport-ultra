@@ -1,5 +1,7 @@
 package com.aureport.ultra.web.demo.model;
 
+import com.aureport.ultra.core.annotation.FieldDesc;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,36 +45,47 @@ public class Employee implements Serializable {
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
+    @FieldDesc("姓名")
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
+    @FieldDesc("部门")
     public String getDept() { return dept; }
     public void setDept(String dept) { this.dept = dept; }
 
+    @FieldDesc("职位")
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
 
+    @FieldDesc("薪资")
     public Double getSalary() { return salary; }
     public void setSalary(Double salary) { this.salary = salary; }
 
+    @FieldDesc("邮箱")
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
+    @FieldDesc("年龄")
     public Integer getAge() { return age; }
     public void setAge(Integer age) { this.age = age; }
 
+    @FieldDesc("学历")
     public String getEducation() { return education; }
     public void setEducation(String education) { this.education = education; }
 
+    @FieldDesc("手机号")
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
+    @FieldDesc("爱好")
     public String getHobbies() { return hobbies; }
     public void setHobbies(String hobbies) { this.hobbies = hobbies; }
 
+    @FieldDesc("身份证号")
     public String getIdNumber() { return idNumber; }
     public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
 
+    @FieldDesc("家庭成员")
     public List<FamilyMember> getFamilyMembers() { return familyMembers; }
     public void setFamilyMembers(List<FamilyMember> familyMembers) { this.familyMembers = familyMembers; }
 

@@ -36,7 +36,13 @@ public class DatasetExpressionBuilder extends BaseExpressionBuilder {
         expr.setDatasetName(context.Identifier().getText());
         expr.setAggregate(AggregateType.valueOf(context.aggregate().getText()));
         if (context.property() != null) {
-            expr.setProperty(context.property().getText());
+            String propertyText = context.property().getText();
+            if (expr.getAggregate() == AggregateType.iterate) {
+                // iterate 聚合时，括号内的 property 实际是 nestProperty
+                expr.setNestProperty(propertyText);
+            } else {
+                expr.setProperty(propertyText);
+            }
         }
         ConditionsContext conditionsContext = context.conditions();
         if (conditionsContext != null) {

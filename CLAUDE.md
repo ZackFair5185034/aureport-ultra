@@ -45,7 +45,7 @@ mvn clean install -pl aureport-ultra-core -am -DskipTests
 cd aureport-ultra-ui
 
 # 开发（注意：需用 npx vite 代替 pnpm dev，绕过 @parcel/watcher postinstall 脚本阻塞）
-npx vite --port 8080
+npx vite --port 3000
 
 # 构建生产版本
 pnpm build        # vue-tsc 类型检查 + vite build
@@ -57,7 +57,7 @@ pnpm typecheck    # vue-tsc --noEmit
 pnpm preview
 ```
 
-**已知问题**：`@parcel/watcher` 的 postinstall 脚本会被 pnpm 拦截拒绝，导致 `pnpm dev` 失败。临时解决方案是用 `npx vite --port 8080` 直接启动。
+**已知问题**：`@parcel/watcher` 的 postinstall 脚本会被 pnpm 拦截拒绝，导致 `pnpm dev` 失败。临时解决方案是用 `npx vite --port 3000` 直接启动。
 
 ## 前端技术栈
 

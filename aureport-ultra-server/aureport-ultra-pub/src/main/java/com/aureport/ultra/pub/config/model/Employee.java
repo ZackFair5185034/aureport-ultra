@@ -1,5 +1,7 @@
 package com.aureport.ultra.pub.config.model;
 
+import com.aureport.ultra.core.annotation.FieldDesc;
+
 public class Employee {
     private Long id;
     private String name;
@@ -17,10 +19,13 @@ public class Employee {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    @FieldDesc("姓名")
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    @FieldDesc("部门")
     public String getDept() { return dept; }
     public void setDept(String dept) { this.dept = dept; }
+    @FieldDesc("薪资")
     public Double getSalary() { return salary; }
     public void setSalary(Double salary) { this.salary = salary; }
 }
