@@ -18,6 +18,7 @@ import com.aureport.ultra.web.sql.IPageDialect;
 import com.aureport.ultra.web.utils.ResponseUtils;
 import io.micrometer.common.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.springframework.util.ClassUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,8 @@ import javax.sql.DataSource;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
@@ -79,28 +82,60 @@ public class DatasourceController {
         String beanId = req.getParameter("beanId");
         Object obj = applicationContext.getBean(beanId);
         Class<?> clazz = obj.getClass();
+        // 如果 Spring 使用了 CGLIB 代理，取父类获取原始方法的泛型信息
+        Class<?> userClass = ClassUtils.getUserClass(clazz);
         Method[] methods = clazz.getMethods();
-        List<String> result = new ArrayList<>();
+        List<Map<String, Object>> result = new ArrayList<>();
         for (Method method : methods) {
             Class<?>[] types = method.getParameterTypes();
             if (types.length != 3) {
                 continue;
             }
-            Class<?> typeClass1 = types[0];
-            Class<?> typeClass2 = types[1];
-            Class<?> typeClass3 = types[2];
-            if (!String.class.isAssignableFrom(typeClass1)) {
+            if (!String.class.isAssignableFrom(types[0])) {
                 continue;
             }
-            if (!String.class.isAssignableFrom(typeClass2)) {
+            if (!String.class.isAssignableFrom(types[1])) {
                 continue;
             }
-            if (!Map.class.isAssignableFrom(typeClass3)) {
+            if (!Map.class.isAssignableFrom(types[2])) {
                 continue;
             }
-            result.add(method.getName());
+            Map<String, Object> item = new HashMap<>();
+            item.put("method", method.getName());
+            item.put("returnClass", resolveReturnClass(userClass, method));
+            result.add(item);
         }
         ResponseUtils.writeObjectToJson(resp, result);
+    }
+
+    /**
+     * 解析方法返回值中的泛型类型。支持以下场景：
+     * <ul>
+     *   <li>返回 {@code List<X>} → 提取 X 的全限定类名</li>
+     *   <li>返回普通 POJO → 直接使用返回类型</li>
+     *   <li>无法解析 → null</li>
+     * </ul>
+     */
+    private String resolveReturnClass(Class<?> userClass, Method proxyMethod) {
+        try {
+            // 在原始类（非 CGLIB 代理）上找到对应方法以保留泛型签名
+            Method userMethod = userClass.getMethod(proxyMethod.getName(), proxyMethod.getParameterTypes());
+            Type returnType = userMethod.getGenericReturnType();
+            if (returnType instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) returnType;
+                Type[] args = pt.getActualTypeArguments();
+                if (args.length == 1 && args[0] instanceof Class) {
+                    return ((Class<?>) args[0]).getName();
+                }
+            } else if (returnType instanceof Class) {
+                Class<?> retClass = (Class<?>) returnType;
+                if (retClass != List.class && retClass != Collection.class && !retClass.isArray()) {
+                    return retClass.getName();
+                }
+            }
+        } catch (NoSuchMethodException ignored) {
+        }
+        return null;
     }
 
     /**

@@ -250,6 +250,7 @@ const zh = {
     methodSelect: {
       title: 'SpringBean数据集配置',
       methodName: '方法名',
+      returnClass: '返回类型',
       select: '选择',
       load: '加载Bean',
     },

@@ -249,6 +249,7 @@ const en = {
     methodSelect: {
       title: 'SpringBean Dataset config',
       methodName: 'Method Name',
+      returnClass: 'Return Type',
       select: 'Select',
       load: 'Load Bean',
     },

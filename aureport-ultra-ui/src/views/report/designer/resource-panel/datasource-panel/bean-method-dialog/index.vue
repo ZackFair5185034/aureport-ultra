@@ -78,8 +78,11 @@ function selectMethod(event?: Event) {
   methodSelectDialogVisible.value = true
 }
 
-function handleMethodSelect(selectedMethod: string) {
+function handleMethodSelect(selectedMethod: string, returnClass?: string | null) {
   method.value = selectedMethod
+  if (returnClass) {
+    clazz.value = returnClass
+  }
 }
 
 function validateName(): boolean {

@@ -72,7 +72,12 @@ export function buildJdbcFields(parameters: Record<string, unknown>): Promise<un
   })
 }
 
-export function loadMethods(beanId: string): Promise<unknown> {
+export interface MethodInfo {
+  method: string
+  returnClass: string | null
+}
+
+export function loadMethods(beanId: string): Promise<MethodInfo[]> {
   return get('/datasource/loadMethods', { params: { beanId } })
 }
 

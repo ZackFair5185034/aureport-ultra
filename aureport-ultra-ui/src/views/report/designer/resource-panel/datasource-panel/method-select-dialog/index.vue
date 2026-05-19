@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { useI18n } from 'vue-i18n'
-import { loadMethods } from '@/api/designer/index'
+import { loadMethods, type MethodInfo } from '@/api/designer/index'
 import { showAlert } from '@/utils/comnon'
 
 defineOptions({ name: 'MethodSelectDialog' })
@@ -15,14 +15,14 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'save', method: string): void
+  (e: 'save', method: string, returnClass?: string | null): void
   (e: 'close'): void
 }>()
 
 const { t } = useI18n()
 
 const loading = ref(false)
-const methods = ref<string[]>([])
+const methods = ref<MethodInfo[]>([])
 
 watch(() => props.visible, (newVal) => {
   if (newVal && props.beanId) {
@@ -42,7 +42,7 @@ function handleClose() {
 async function loadMethodsData() {
   loading.value = true
   try {
-    methods.value = await loadMethods(props.beanId) as any
+    methods.value = await loadMethods(props.beanId)
     loading.value = false
   }
   catch (error: any) {
@@ -56,8 +56,8 @@ async function loadMethodsData() {
   }
 }
 
-function selectMethod(methodItem: string) {
-  emit('save', methodItem)
+function selectMethod(methodItem: MethodInfo) {
+  emit('save', methodItem.method, methodItem.returnClass)
   emit('close')
 }
 </script>
@@ -78,12 +78,14 @@ function selectMethod(methodItem: string) {
         <thead>
           <tr style="background: #f4f4f4; height: 30px;">
             <td><span>{{ $t('dialog.methodSelect.methodName') }}</span></td>
-            <td><span>{{ $t('dialog.methodSelect.select') }}</span></td>
+            <td style="width: 40%;"><span>{{ $t('dialog.methodSelect.returnClass') }}</span></td>
+            <td style="width: 60px;"><span>{{ $t('dialog.methodSelect.select') }}</span></td>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(methodItem, index) in methods" :key="index" style="height: 35px;">
-            <td><span>{{ methodItem }}</span></td>
+            <td><span>{{ methodItem.method }}</span></td>
+            <td><span style="color: #999; font-size: 12px;">{{ methodItem.returnClass || '-' }}</span></td>
             <td>
               <u-button type="text" icon="icon-hand-up" @click="selectMethod(methodItem)" />
             </td>
