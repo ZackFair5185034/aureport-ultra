@@ -81,6 +81,11 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
+		<!-- Caffeine 缓存 -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 	</dependencies>
 	<name>UReport2 Core Project</name>
 	<url>https://github.com/youseries/ureport/tree/master/ureport2-core</url>

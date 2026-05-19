@@ -9,3 +9,4 @@ aureport-ultra:
   servletPrefix: report
   fileStoreDir: /home/coding/aureport-ultra/reports
   debug: true
+  queryTimeout: 30  # SQL 执行超时（秒），0 表示不限制

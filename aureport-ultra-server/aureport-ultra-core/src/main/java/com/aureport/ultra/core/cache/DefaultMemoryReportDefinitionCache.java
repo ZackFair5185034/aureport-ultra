@@ -14,6 +14,8 @@
 package com.aureport.ultra.core.cache;
 
 import com.aureport.ultra.core.definition.ReportDefinition;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,18 +25,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2016年12月4日
  */
 public class DefaultMemoryReportDefinitionCache implements ReportDefinitionCache {
-    private Map<String, ReportDefinition> reportMap = new ConcurrentHashMap<String, ReportDefinition>();
+    private final Cache<String, ReportDefinition> cache;
+
+    public DefaultMemoryReportDefinitionCache() {
+        this.cache = Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterAccess(30, java.util.concurrent.TimeUnit.MINUTES)
+                .build();
+    }
 
     @Override
     public ReportDefinition getReportDefinition(String file) {
-        return reportMap.get(file);
+        return cache.getIfPresent(file);
     }
 
     @Override
     public void cacheReportDefinition(String file, ReportDefinition reportDefinition) {
-        if (reportMap.containsKey(file)) {
-            reportMap.remove(file);
-        }
-        reportMap.put(file, reportDefinition);
+        cache.put(file, reportDefinition);
     }
 }

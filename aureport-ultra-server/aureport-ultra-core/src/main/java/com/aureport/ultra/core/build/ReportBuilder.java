@@ -51,6 +51,7 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 	private Map<Expand, CellBuilder> cellBuildersMap = new HashMap<Expand, CellBuilder>();
 	private NoneExpandBuilder noneExpandBuilder = new NoneExpandBuilder();
 	private HideRowColumnBuilder hideRowColumnBuilder;
+	private int queryTimeout;
 
 	public ReportBuilder() {
 		cellBuildersMap.put(Expand.Right, new RightExpandBuilder());
@@ -119,8 +120,8 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 					if (datasourceProviderMap.containsKey(dsName)) {
 						conn = datasourceProviderMap.get(dsName).getConnection();
 					}
-					JdbcDatasourceDefinition ds = (JdbcDatasourceDefinition) dsDef;
-					List<Dataset> ls = ds.buildDatasets(conn, parameters);
+			JdbcDatasourceDefinition ds = (JdbcDatasourceDefinition) dsDef;
+				List<Dataset> ls = ds.buildDatasets(conn, parameters, queryTimeout);
 					if (ls != null) {
 						for (Dataset dataset : ls) {
 							datasetMap.put(dataset.getName(), dataset);
@@ -159,7 +160,7 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 						throw new ReportComputeException("Buildin datasource [" + dsName + "] not exist.");
 					}
 					BuildinDatasourceDefinition ds = (BuildinDatasourceDefinition) dsDef;
-					List<Dataset> ls = ds.buildDatasets(conn, parameters);
+					List<Dataset> ls = ds.buildDatasets(conn, parameters, queryTimeout);
 					if (ls != null) {
 						for (Dataset dataset : ls) {
 							datasetMap.put(dataset.getName(), dataset);
@@ -446,6 +447,10 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 
 	public void setHideRowColumnBuilder(HideRowColumnBuilder hideRowColumnBuilder) {
 		this.hideRowColumnBuilder = hideRowColumnBuilder;
+	}
+
+	public void setQueryTimeout(int queryTimeout) {
+		this.queryTimeout = queryTimeout;
 	}
 
 	@Override

@@ -17,10 +17,10 @@ import com.aureport.ultra.core.build.Dataset;
 import com.aureport.ultra.core.definition.dataset.DatasetDefinition;
 import com.aureport.ultra.core.definition.dataset.SqlDatasetDefinition;
 import com.aureport.ultra.core.exception.ReportComputeException;
-import org.springframework.jdbc.support.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,23 +37,32 @@ public class JdbcDatasourceDefinition implements DatasourceDefinition {
     private String password;
     private List<DatasetDefinition> datasets;
 
-    public List<Dataset> buildDatasets(Connection conn, Map<String, Object> parameters) {
+    public List<Dataset> buildDatasets(Connection conn, Map<String, Object> parameters, int queryTimeout) {
         if (datasets == null || datasets.size() == 0) {
             return null;
         }
-        if (conn == null) conn = getConnection();
+        boolean callerSuppliedConnection = (conn != null);
+        if (!callerSuppliedConnection) {
+            conn = getConnection();
+        }
         List<Dataset> list = new ArrayList<Dataset>();
         try {
-
             for (DatasetDefinition dsDef : datasets) {
                 SqlDatasetDefinition sqlDataset = (SqlDatasetDefinition) dsDef;
+                sqlDataset.setQueryTimeout(queryTimeout);
                 Dataset ds = sqlDataset.buildDataset(parameters, conn);
                 list.add(ds);
             }
+            return list;
         } finally {
-            JdbcUtils.closeConnection(conn);
+            if (!callerSuppliedConnection && conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // ignore close error
+                }
+            }
         }
-        return list;
     }
 
     private Connection getConnection() {

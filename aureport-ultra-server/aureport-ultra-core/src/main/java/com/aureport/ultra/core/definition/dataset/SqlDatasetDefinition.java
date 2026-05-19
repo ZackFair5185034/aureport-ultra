@@ -22,10 +22,15 @@ import com.aureport.ultra.core.expression.model.Expression;
 import com.aureport.ultra.core.expression.model.data.ExpressionData;
 import com.aureport.ultra.core.expression.model.data.ObjectExpressionData;
 import com.aureport.ultra.core.utils.ProcedureUtils;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-/**
- * @author Jacky.gao
- * @since 2016年12月27日
- */
 public class SqlDatasetDefinition implements DatasetDefinition {
     private static final long serialVersionUID = -1134526105416805870L;
     private String name;
@@ -44,6 +45,7 @@ public class SqlDatasetDefinition implements DatasetDefinition {
     private List<Parameter> parameters;
     private List<Field> fields;
     private Expression sqlExpression;
+    private int queryTimeout;
 
     public Dataset buildDataset(Map<String, Object> parameterMap, Connection conn) {
         String sqlForUse = sql;
@@ -69,7 +71,30 @@ public class SqlDatasetDefinition implements DatasetDefinition {
         }
         SingleConnectionDataSource datasource = new SingleConnectionDataSource(conn, false);
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(datasource);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sqlForUse, pmap);
+        final int timeout = this.queryTimeout;
+        List<Map<String, Object>> list = jdbcTemplate.execute(sqlForUse, pmap,
+            (PreparedStatementCallback<List<Map<String, Object>>>) ps -> {
+                if (timeout > 0) {
+                    ps.setQueryTimeout(timeout);
+                }
+                ResultSet rs = ps.executeQuery();
+                List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+                ResultSetMetaData metaData = rs.getMetaData();
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<String, Object>();
+                    int columnCount = metaData.getColumnCount();
+                    for (int i = 1; i <= columnCount; i++) {
+                        String columnName = metaData.getColumnLabel(i);
+                        if (columnName == null || columnName.isEmpty()) {
+                            columnName = metaData.getColumnName(i);
+                        }
+                        row.put(columnName, rs.getObject(i));
+                    }
+                    resultList.add(row);
+                }
+                rs.close();
+                return resultList;
+            });
         return new Dataset(name, list);
     }
 
@@ -139,5 +164,9 @@ public class SqlDatasetDefinition implements DatasetDefinition {
 
     public void setSql(String sql) {
         this.sql = sql;
+    }
+
+    public void setQueryTimeout(int queryTimeout) {
+        this.queryTimeout = queryTimeout;
     }
 }
