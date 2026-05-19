@@ -358,6 +358,9 @@ public class DatasourceController {
 
     private String parseSql(String sql, Map<String, Object> parameters) {
         sql = sql.trim();
+        while (sql.endsWith(";")) {
+            sql = sql.substring(0, sql.length() - 1).trim();
+        }
         Context context = new Context(applicationContext, parameters);
         if (sql.startsWith(ExpressionUtils.EXPR_PREFIX) && sql.endsWith(ExpressionUtils.EXPR_SUFFIX)) {
             sql = sql.substring(2, sql.length() - 1);

@@ -58,6 +58,7 @@ function initDialog() {
     datasetName.value = props.datasetData.name || ''
     sql.value = props.datasetData.sql || ''
     parameters.value = Array.isArray(props.datasetData.parameters) ? [...props.datasetData.parameters] : []
+    currentData.value.parameters = parameters.value
     oldName.value = props.datasetData.name || ''
   }
 

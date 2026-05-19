@@ -30,6 +30,12 @@ watch(() => props.visible, (newVal) => {
   }
 })
 
+watch(() => props.parameters, () => {
+  if (props.visible) {
+    loadPreviewData()
+  }
+})
+
 async function loadPreviewData() {
   if (!props.parameters) {
     return
@@ -46,8 +52,9 @@ async function loadPreviewData() {
   }
   catch (error: any) {
     let msg = t('dialog.sql.previewFail')
-    if (error.msg) {
-      msg = msg + t('colon') + error.msg
+    const serverMsg = error.response?.data?.msg
+    if (serverMsg) {
+      msg = msg + t('colon') + serverMsg
     }
 
     loading.value = false

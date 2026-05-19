@@ -242,7 +242,7 @@ function handleCellTypeChange(value: string) {
 
     case 'dataset': {
       if (newCellDef.value.type !== 'dataset') {
-        newCellDef.value = { type: 'dataset', datasetName: '', property: '', aggregate: '', conditions: [], order: 'none' }
+        newCellDef.value = { type: 'dataset', datasetName: '', property: '', aggregate: 'select', conditions: [], order: 'none' }
       }
 
       newCellDef.expand = 'Down'

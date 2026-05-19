@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import CodeMirror from 'codemirror'
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/mode/sql/sql.js'
 
 import { useI18n } from 'vue-i18n'
 import { format as formatSql } from 'sql-formatter'
@@ -22,15 +25,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const datasetName = ref(props.name)
-const editorValue = ref(props.sql)
-const editorRef = ref<any>(null)
+const container = ref<HTMLDivElement | null>(null)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+let cm: any = null
 
 defineExpose({
   setSqlContent(sql: string) {
-    editorValue.value = sql || ''
+    sql = sql || ''
+    if (cm) {
+      cm.setValue(sql)
+    }
+    emit('sql-change', sql)
   },
   refreshEditor() {
-    // handled by automaticLayout
+    if (cm) {
+      cm.refresh()
+    }
   },
 })
 
@@ -39,25 +49,58 @@ watch(() => props.name, (newVal) => {
 })
 
 watch(() => props.sql, (newVal) => {
-  if (newVal !== editorValue.value) {
-    editorValue.value = newVal || ''
+  if (cm) {
+    const val = newVal || ''
+    if (val !== cm.getValue()) {
+      cm.setValue(val)
+    }
   }
 })
 
-function handleEditorChange(value: string) {
-  emit('sql-change', value)
-}
+onMounted(() => {
+  const textarea = textareaRef.value
+  if (!textarea) return
+
+  cm = CodeMirror.fromTextArea(textarea, {
+    mode: 'text/x-mysql',
+    lineNumbers: true,
+    lineWrapping: true,
+    viewportMargin: Infinity,
+    indentWithTabs: false,
+    tabSize: 2,
+    smartIndent: true,
+    cursorScrollMargin: 10,
+  })
+  cm.setSize('100%', '204px')
+
+  if (props.sql) {
+    cm.setValue(props.sql)
+  }
+
+  cm.on('change', () => {
+    const value = cm.getValue()
+    emit('sql-change', value)
+  })
+})
+
+onBeforeUnmount(() => {
+  if (cm) {
+    cm.toTextArea()
+    cm = null
+  }
+})
 
 function handleDatasetNameChange() {
   emit('dataset-name-change', datasetName.value)
 }
 
 function handleFormatSql() {
-  const sql = editorValue.value
+  if (!cm) return
+  const sql = cm.getValue()
   if (!sql) return
   try {
     const formatted = formatSql(sql, { language: 'sql', tabWidth: 2, useTabs: false })
-    editorValue.value = formatted
+    cm.setValue(formatted)
     emit('sql-change', formatted)
   }
   catch {
@@ -82,34 +125,31 @@ function handleFormatSql() {
     <div class="row" style="margin:10px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
         <span>SQL(<span style="color: #999999;font-size: 12px;">{{ $t('dialog.sql.desc') }}：</span>)</span>
-        <u-button type="info" size="mini" icon="icon-font-code" @click="handleFormatSql" />
+        <i class="iconfont icon-font-code sql-format-btn" @click="handleFormatSql" />
       </div>
-      <VueMonacoEditor
-        ref="editorRef"
-        v-model:value="editorValue"
-        language="sql"
-        theme="vs"
-        :options="{
-          fontSize: 13,
-          lineNumbers: 'on',
-          roundedSelection: true,
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          wordWrap: 'on',
-          minimap: { enabled: false },
-          scrollbar: {
-            verticalScrollbarSize: 8,
-            horizontalScrollbarSize: 8,
-          },
-        }"
-        style="width:660px;height:204px;"
-        @change="handleEditorChange"
-      />
+      <textarea ref="textareaRef" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.sql-editor-container {
+.sql-format-btn {
+  font-size: 14px;
+  cursor: pointer;
+  color: #606266;
+  padding: 2px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.sql-format-btn:hover {
+  color: #00554a;
+  background: #e8f4f0;
+}
+
+.sql-editor-container :deep(.CodeMirror) {
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  height: auto;
+  min-height: 204px;
 }
 </style>
