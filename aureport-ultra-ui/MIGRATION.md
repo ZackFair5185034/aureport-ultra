@@ -222,6 +222,82 @@ pnpm dev       # vite
 
 ---
 
+## 2026-05-20 更新：移除分组表头/分组表尾功能
+
+### 背景
+
+分组表头（grouphead）/分组表尾（groupfoot）是 UReport2 原有功能，允许在聚合下拉中选择这两种类型，在报表中呈现分组的表头和表尾样式。实现过程中遇到 `StackOverflowError`（父子单元格循环引用），产品侧认为该功能当前无明确使用场景，决定暂时移除，待需求明确后再恢复。
+
+### 移除内容
+
+#### 已删除文件
+- `aureport-ultra-core/src/main/java/.../build/aggregate/GroupHeadAggregate.java` — 分组表头聚合处理器
+- `aureport-ultra-core/src/main/java/.../build/aggregate/GroupFootAggregate.java` — 分组表尾聚合处理器
+- `reports/grouphead-test.ureport.xml` — 测试用报表文件
+
+#### 后端修改（11个文件）
+- `AggregateType.java` — 移除 `grouphead`、`groupfoot` 枚举值
+- `DatasetUtils.java` — 移除两个聚合器的注册
+- `CellDefinition.java` — 移除 `groupHead`/`groupFoot` 字段和 getter/setter
+- `Cell.java` — 移除 `groupHead`/`groupFoot` 字段和 getter/setter
+- `DatasetExpression.java` — 移除 `subAggregate`/`groupHead`/`groupFoot` 字段和 getter/setter
+- `CellParser.java` — 移除 `group-head`/`group-foot` XML 属性解析
+- `DatasetValueParser.java` — 移除 `sub-aggregate`/`group-head`/`group-foot` XML 属性解析
+- `HtmlProducer.java` — 移除 `grouphead-cell`/`groupfoot-cell` CSS 类输出
+
+#### 前端修改（6个文件）
+- `types/index.ts` — 移除 `groupHead`/`groupFoot` TypeScript 类型定义
+- `utils/table.ts` — 移除 `group-head`/`group-foot`/`sub-aggregate` XML 序列化
+- `dataset-value-editor/index.vue` — 移除自动设置 groupHead/groupFoot 逻辑
+- `dataset-value-editor/dataset-config/index.vue` — 移除下拉选项中的分组表头/分组表尾
+- `locales/lang/zh.js` / `locales/lang/en.js` — 移除对应语言标签
+
+### 防御性修复：循环引用 StackOverflowError
+
+在移除过程中发现并修复了两个潜在的 StackOverflowError 根因，均为父子单元格关系中的循环引用：
+
+#### 修复1：ReportRender.rebuildReportDefinition
+
+**文件**：`ReportRender.java`（aureport-ultra-core/export）
+
+**问题**：`addColumnChildCell` / `addRowChildCell` 在构建 CellDefinition 层的父子关系树时，递归遍历 `topParentCell`/`leftParentCell` 链。当两个单元格互相引用（如 A1.topParentCell=A2，A2 自动取 A1 作为 topParentCell）时形成死循环，导致 `StackOverflowError`。
+
+**修复**：添加 `Set<CellDefinition> visited` 参数，跟踪已访问单元格，检测到重复访问时立即终止递归。
+
+```java
+private void addColumnChildCell(CellDefinition cell, CellDefinition childCell, Set<CellDefinition> visited) {
+    CellDefinition topCell = cell.getTopParentCell();
+    if (topCell == null) { return; }
+    if (!visited.add(topCell)) { return; }  // 检测循环
+    topCell.getColumnChildrenCells().add(childCell);
+    addColumnChildCell(topCell, childCell, visited);
+}
+```
+
+#### 修复2：Cell.addColumnChild / addRowChild
+
+**文件**：`Cell.java`（aureport-ultra-core/model）
+
+**问题**：运行时 `Cell` 模型的 `addColumnChild` / `addRowChild` 在向上传播父子关系时，如果 topParentCell 或 leftParentCell 形成环，也会无限递归。
+
+**修复**：同样添加 `Set<Cell> visited` 参数防止循环。
+
+```java
+public void addColumnChild(Cell child) {
+    addColumnChild(child, new HashSet<>());
+}
+private void addColumnChild(Cell child, Set<Cell> visited) {
+    // ... 逻辑同 ReportRender
+    if (topParentCell != null && visited.add(topParentCell)) {
+        topParentCell.addColumnChild(child, visited);
+    }
+}
+```
+
+这两个防御性修复保留，即使分组表头/表尾功能已移除，仍可避免其他配置导致的类似问题。
+
+---
+
 ## 遗留问题与后续工作
 
 ### 需调研
