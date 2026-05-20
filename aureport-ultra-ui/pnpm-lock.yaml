@@ -11,15 +11,9 @@ importers:
       '@ckpack/vue-color':
         specifier: ^1.6.0
         version: 1.6.0(vue@3.5.34(typescript@5.8.2))
-      '@ffrosch/vue-simple-suggest':
-        specifier: ^2.0.7
-        version: 2.0.7(vue@3.5.34(typescript@5.8.2))
       '@guolao/vue-monaco-editor':
         specifier: ^1.6.0
         version: 1.6.0(monaco-editor@0.55.1)(vue@3.5.34(typescript@5.8.2))
-      '@parcel/watcher':
-        specifier: ^2.4.1
-        version: 2.5.6
       async-validator:
         specifier: ^4.2.5
         version: 4.2.5
@@ -44,9 +38,6 @@ importers:
       js-beautify:
         specifier: ^1.15.0
         version: 1.15.4
-      monaco-editor:
-        specifier: ^0.55.1
-        version: 0.55.1
       pinia:
         specifier: ^2.3.0
         version: 2.3.1(typescript@5.8.2)(vue@3.5.34(typescript@5.8.2))
@@ -90,6 +81,9 @@ importers:
       '@eslint/js':
         specifier: ^9.22.0
         version: 9.39.4
+      '@ffrosch/vue-simple-suggest':
+        specifier: ^2.0.7
+        version: 2.0.7(vue@3.5.34(typescript@5.8.2))
       '@playwright/test':
         specifier: ^1.60.0
         version: 1.60.0
@@ -4490,6 +4484,7 @@ snapshots:
       '@parcel/watcher-win32-arm64': 2.5.6
       '@parcel/watcher-win32-ia32': 2.5.6
       '@parcel/watcher-win32-x64': 2.5.6
+    optional: true
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -6511,7 +6506,8 @@ snapshots:
       railroad-diagrams: 1.0.0
       randexp: 0.4.6
 
-  node-addon-api@7.1.1: {}
+  node-addon-api@7.1.1:
+    optional: true
 
   node-fetch-native@1.6.7: {}
 
