@@ -60,14 +60,6 @@ public class CellDefinition implements Serializable {
      */
     private int multiple;
 
-    /**
-     * 是否为分组表头单元格
-     */
-    private boolean groupHead;
-    /**
-     * 是否为分组表尾单元格
-     */
-    private boolean groupFoot;
 
     private Expand expand = Expand.None;
 
@@ -132,8 +124,6 @@ public class CellDefinition implements Serializable {
         cell.setLinkUrlExpression(linkUrlExpression);
         cell.setTooltip(tooltip);
         cell.setTooltipExpression(tooltipExpression);
-        cell.setGroupHead(groupHead);
-        cell.setGroupFoot(groupFoot);
         return cell;
     }
 
@@ -332,21 +322,5 @@ public class CellDefinition implements Serializable {
 
     public void setTooltipExpression(Expression tooltipExpression) {
         this.tooltipExpression = tooltipExpression;
-    }
-
-    public boolean isGroupHead() {
-        return groupHead;
-    }
-
-    public void setGroupHead(boolean groupHead) {
-        this.groupHead = groupHead;
-    }
-
-    public boolean isGroupFoot() {
-        return groupFoot;
-    }
-
-    public void setGroupFoot(boolean groupFoot) {
-        this.groupFoot = groupFoot;
     }
 }

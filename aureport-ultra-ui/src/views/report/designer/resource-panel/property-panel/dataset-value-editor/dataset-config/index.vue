@@ -30,8 +30,6 @@ const props = withDefaults(defineProps<{
   showExpandOptions?: boolean
   conditionPropertyItems?: any[]
   selectedNestProperty?: string
-  groupHead?: boolean
-  groupFoot?: boolean
 }>(), {
   datasets: () => [],
   currentFields: () => [],
@@ -50,8 +48,6 @@ const props = withDefaults(defineProps<{
   showExpandOptions: true,
   conditionPropertyItems: () => [],
   selectedNestProperty: '',
-  groupHead: false,
-  groupFoot: false,
 })
 const emit = defineEmits<{
   (e: 'update:selectedDataset', value: string): void
@@ -68,8 +64,6 @@ const emit = defineEmits<{
   (e: 'update:showExpandOptions', value: boolean): void
   (e: 'update:conditionPropertyItems', value: any[]): void
   (e: 'update:selectedNestProperty', value: string): void
-  (e: 'update:groupHead', value: boolean): void
-  (e: 'update:groupFoot', value: boolean): void
   (e: 'dataset-change', value: string): void
   (e: 'property-change', value: string): void
   (e: 'aggregate-change', value: any): void
@@ -101,8 +95,6 @@ const internalMultiple = ref(0)
 const internalShowSortOptions = ref(true)
 const internalShowExpandOptions = ref(true)
 const internalNestProperty = ref('')
-const internalGroupHead = ref(false)
-const internalGroupFoot = ref(false)
 const isInitialized = ref(false)
 const propertyConditionDialogVisible = ref(false)
 const propertyConditionDialogDatasetName = ref('')
@@ -138,12 +130,41 @@ const datasetOptions = computed(() =>
   })),
 )
 
-const propertyOptions = computed(() =>
-  props.currentFields.map((field: any) => ({
+const propertyOptions = computed(() => {
+  // iterate 聚合时，属性下拉只展示嵌套类型子字段（去除前缀）
+  if (internalSelectedAggregate.value === 'iterate' && internalNestProperty.value) {
+    const prefix = internalNestProperty.value + '.'
+    return props.currentFields
+      .filter(f => f.name.startsWith(prefix))
+      .map(f => {
+        const shortName = f.name.substring(prefix.length)
+        return {
+          value: shortName,
+          label: f.label ? `${shortName} (${f.label})` : shortName,
+        }
+      })
+  }
+  // 非 iterate 时，展示全部字段，同时附加嵌套字段的短名称以便子格使用
+  const result = props.currentFields.map((field: any) => ({
     value: field.name,
     label: field.label ? `${field.name} (${field.label})` : field.name,
-  })),
-)
+  }))
+  // 附加嵌套字段的短名称（无前缀），让引用 iterate 父格的子格能直接选到
+  for (const field of props.currentFields) {
+    const dotIndex = field.name.indexOf('.')
+    if (dotIndex > 0) {
+      const shortName = field.name.substring(dotIndex + 1)
+      // 避免与顶层字段重名
+      if (!props.currentFields.some(f => f.name === shortName)) {
+        result.push({
+          value: shortName,
+          label: field.label ? `${shortName} (${field.label})` : shortName,
+        })
+      }
+    }
+  }
+  return result
+})
 
 const nestPropertyOptions = computed(() =>
   props.currentFields.map((field: any) => ({
@@ -157,8 +178,6 @@ const aggregateOptions = computed(() => [
   { value: 'group', label: t('property.dataset.group') },
   { value: 'customgroup', label: t('property.dataset.customGroup') },
   { value: 'iterate', label: t('property.dataset.iterate') },
-  { value: 'grouphead', label: t('property.dataset.groupHead') },
-  { value: 'groupfoot', label: t('property.dataset.groupFoot') },
   { value: 'sum', label: t('property.dataset.sum') },
   { value: 'count', label: t('property.dataset.count') },
   { value: 'max', label: t('property.dataset.max') },
@@ -227,12 +246,6 @@ watch(() => props.showExpandOptions, (val) => {
 watch(() => props.selectedNestProperty, (val) => {
   internalNestProperty.value = val
 })
-watch(() => props.groupHead, (val) => {
-  internalGroupHead.value = val
-})
-watch(() => props.groupFoot, (val) => {
-  internalGroupFoot.value = val
-})
 
 initData()
 
@@ -250,8 +263,6 @@ function initData() {
   internalShowSortOptions.value = props.showSortOptions
   internalShowExpandOptions.value = props.showExpandOptions
   internalNestProperty.value = props.selectedNestProperty
-  internalGroupHead.value = props.groupHead
-  internalGroupFoot.value = props.groupFoot
 }
 
 onMounted(() => {
@@ -354,7 +365,12 @@ function handlePropertyConditionSave(propertyConditions: any[]) {
 }
 
 function handleNestPropertyChange() {
+  // 嵌套属性切换后清空已选的属性，避免不匹配
+  internalSelectedProperty.value = ''
+  emit('update:selectedProperty', '')
+  emit('property-change', '')
   emit('update:selectedNestProperty', internalNestProperty.value)
+  emit('nest-property-change', internalNestProperty.value)
   setDirty()
 }
 
@@ -370,20 +386,6 @@ function handleCustomGroupConfig() {
 
 function handleCustomGroupSave(groupItems: any[]) {
   emit('update-custom-group', groupItems)
-  setDirty()
-}
-
-function handleGroupHeadChange() {
-  if (!isInitialized.value)
-    return
-  emit('update:groupHead', internalGroupHead.value)
-  setDirty()
-}
-
-function handleGroupFootChange() {
-  if (!isInitialized.value)
-    return
-  emit('update:groupFoot', internalGroupFoot.value)
   setDirty()
 }
 
@@ -419,7 +421,8 @@ function _buildFields(): any[] | null {
         <u-select
           v-model="internalSelectedDataset"
           :clearable="true"
-          style="width:250px"
+          class="property-select"
+          style="width:100%"
           @change="handleDatasetChange"
         >
           <u-option
@@ -431,27 +434,11 @@ function _buildFields(): any[] | null {
         </u-select>
       </u-form-item>
 
-      <u-form-item class="property-label" :label="t('property.dataset.property')">
-        <u-select
-          v-model="internalSelectedProperty"
-          :clearable="true"
-          style="width:250px"
-          @change="handlePropertyChange"
-        >
-          <u-option
-            v-for="option in propertyOptions"
-            :key="option.value"
-            :value="option.value"
-            :label="option.label"
-          />
-        </u-select>
-      </u-form-item>
-
       <u-form-item class="property-label" :label="t('property.dataset.aggregateType')">
         <u-select
           v-model="internalSelectedAggregate"
           :clearable="true"
-          style="width:250px"
+          style="width:200px"
           @change="handleAggregateChange"
         >
           <u-option
@@ -463,38 +450,19 @@ function _buildFields(): any[] | null {
         </u-select>
         <u-button
           v-show="internalSelectedAggregate === 'customgroup'"
+          icon="icon-settings"
+          size="mini"
           style="margin-left: 5px"
           @click="handleCustomGroupConfig"
-        >
-          {{ t('property.dataset.configCustomGroup') }}
-        </u-button>
-      </u-form-item>
-
-      <u-form-item class="property-label">
-        <u-checkbox-group>
-          <u-checkbox
-            v-model="internalGroupHead"
-            :disabled="internalSelectedAggregate !== 'grouphead'"
-            @change="handleGroupHeadChange"
-          >
-            {{ t('property.dataset.groupHead') }}
-          </u-checkbox>
-          <u-checkbox
-            v-model="internalGroupFoot"
-            :disabled="internalSelectedAggregate !== 'groupfoot'"
-            style="margin-left: 20px"
-            @change="handleGroupFootChange"
-          >
-            {{ t('property.dataset.groupFoot') }}
-          </u-checkbox>
-        </u-checkbox-group>
+        />
       </u-form-item>
 
       <u-form-item v-show="internalSelectedAggregate === 'iterate'" class="property-label" :label="t('property.dataset.nestProperty')">
         <u-select
           v-model="internalNestProperty"
           :clearable="true"
-          style="width:250px"
+          class="property-select"
+          style="width:100%"
           :placeholder="t('property.dataset.nestPropertyTip')"
           @change="handleNestPropertyChange"
         >
@@ -503,6 +471,24 @@ function _buildFields(): any[] | null {
             :key="option.value"
             :value="option.value"
             :label="option.label"
+          />
+        </u-select>
+      </u-form-item>
+
+      <u-form-item class="property-label" :label="t('property.dataset.property')">
+        <u-select
+          v-model="internalSelectedProperty"
+          :clearable="true"
+          class="property-select"
+          style="width:100%"
+          @change="handlePropertyChange"
+        >
+          <u-option
+            v-for="option in propertyOptions"
+            :key="option.value"
+            :value="option.value"
+            :label="option.label"
+            :title="option.label"
           />
         </u-select>
       </u-form-item>
@@ -612,9 +598,38 @@ function _buildFields(): any[] | null {
 </template>
 
 <style scoped>
+.property-select {
+  width: 100%;
+  max-width: 100%;
+}
+.property-select :deep(.u-select-selection) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.property-select :deep(.u-select-selection .u-select-placeholder),
+.property-select :deep(.u-select-selection .u-select-selected-value) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
 .simple-suggest :deep(.default-input) {
   width: 250px !important;
   height: 35px;
   display: inline-block;
+}
+
+</style>
+
+<style>
+/* 下拉弹窗渲染在 body 层 portal 中，不受 scoped 限制，使用全局样式 */
+.u-select-dropdown-item {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 400px;
 }
 </style>

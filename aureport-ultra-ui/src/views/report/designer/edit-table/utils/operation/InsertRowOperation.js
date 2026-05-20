@@ -51,7 +51,7 @@ export function doInsertRow(above, number = 1) {
     return
   }
 
-  const [, startRow, , endRow] = selected[0]
+  const [startRow, , endRow] = selected[0]
   let position = startRow
   if (startRow > endRow) {
     position = above ? endRow : startRow + 1

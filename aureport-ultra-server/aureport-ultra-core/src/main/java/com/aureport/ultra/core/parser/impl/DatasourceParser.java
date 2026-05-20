@@ -116,6 +116,10 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
             if (label != null) {
                 field.setLabel(label);
             }
+            List<Field> children = parseFields(ele);
+            if (!children.isEmpty()) {
+                field.setChildren(children);
+            }
             fields.add(field);
         }
         return fields;

@@ -69,6 +69,17 @@ watch(() => props.beanId, (newBeanId) => {
 
 watch(() => props.datasets, (newDatasets) => {
   localDatasets.value = newDatasets || []
+  if (newDatasets) {
+    for (const ds of newDatasets) {
+      if (ds.fields) {
+        const needsInit = !ds.fields.some((f: any) => f._expanded !== undefined)
+        if (needsInit) {
+          initFieldExpandState(ds.fields)
+        }
+        buildFieldPaths(ds.fields)
+      }
+    }
+  }
 }, { deep: true })
 
 function toggleDatasource() {
@@ -174,13 +185,37 @@ function handleDatasetMenuAction(key: string, dataset: any, index: number) {
   }
 }
 
+function findParentChildren(fields: any[], parentPath?: string): any[] {
+  if (!parentPath) return fields
+  const parts = parentPath.split('.')
+  let children = fields
+  for (const part of parts) {
+    const parent = children.find((f: any) => f.name === part)
+    if (!parent) return fields
+    if (!parent.children) parent.children = []
+    children = parent.children
+  }
+  return children
+}
+
+function findFieldRecursively(fields: any[], name: string): any {
+  for (const f of fields) {
+    if (f.name === name) return f
+    if (f.children?.length) {
+      const found = findFieldRecursively(f.children, name)
+      if (found) return found
+    }
+  }
+  return null
+}
+
 function addFieldAction(dataset: any) {
   currentDataset.value = dataset
   currentField.value = null
   fieldNameDialogVisible.value = true
 }
 
-function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
+function handleFieldNameSave(fieldName: string, dataset: any, label?: string, parentPath?: string) {
   if (fieldName) {
     const newDatasets = deepCopy(localDatasets.value)
     const targetDataset = newDatasets.find((d: any) => d.name === dataset.name)
@@ -191,10 +226,10 @@ function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
 
     const editField = currentField.value
     if (editField) {
-      const oldField = targetDataset.fields.find((f: any) => f.name === editField.name)
+      const oldField = findFieldRecursively(targetDataset.fields, editField.name)
       if (oldField) {
         const nameConflict = editField.name !== fieldName
-          && targetDataset.fields.some((f: any) => f.name === fieldName)
+          && findFieldRecursively(targetDataset.fields, fieldName)
         if (nameConflict) {
           showAlert(t('tree.fieldExist'))
           return
@@ -209,7 +244,9 @@ function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
       }
     }
     else {
-      const exists = targetDataset.fields.some((field: any) => field.name === fieldName)
+      const parentChildren = findParentChildren(targetDataset.fields, parentPath)
+
+      const exists = parentChildren.some((field: any) => field.name === fieldName)
       if (exists) {
         showAlert(t('tree.fieldExist'))
         return
@@ -219,7 +256,8 @@ function handleFieldNameSave(fieldName: string, dataset: any, label?: string) {
       if (label) {
         field.label = label
       }
-      targetDataset.fields.push(field)
+      field.path = parentPath ? `${parentPath}.${fieldName}` : fieldName
+      parentChildren.push(field)
     }
 
     currentField.value = null
@@ -346,6 +384,15 @@ function initFieldExpandState(fields: any[]) {
   }
 }
 
+function buildFieldPaths(fields: any[], parentPath = '') {
+  for (const field of fields) {
+    field.path = parentPath ? `${parentPath}.${field.name}` : field.name
+    if (field.children?.length) {
+      buildFieldPaths(field.children, field.path)
+    }
+  }
+}
+
 async function buildFields(dataset: any, index: number, refresh = false, newDatasets: any[] | null = null) {
   const defaultFields = dataset.fields
 
@@ -360,6 +407,7 @@ async function buildFields(dataset: any, index: number, refresh = false, newData
   try {
     const response = await buildClass(dataset.clazz)
     initFieldExpandState(response)
+    buildFieldPaths(response)
     dataset.fields = response
     if (newDatasets) {
       emit('update-datasets', newDatasets)
@@ -412,7 +460,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
   const value = newCellDef.value
   value.aggregate = 'group'
   value.datasetName = dataset.name
-  value.property = field.name
+  value.property = field.path || field.name
   value.order = 'none'
 
   let text = `${value.datasetName}.${value.aggregate}(`
@@ -555,6 +603,7 @@ function handleSpringDatasourceSave(datasourceData: any) {
       :visible="fieldNameDialogVisible"
       :dataset="currentDataset"
       :field="currentField"
+      :fields="currentDataset?.fields || []"
       @save="handleFieldNameSave"
       @close="fieldNameDialogVisible = false"
     />

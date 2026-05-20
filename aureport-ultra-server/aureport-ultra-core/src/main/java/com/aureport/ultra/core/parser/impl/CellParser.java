@@ -98,15 +98,6 @@ public class CellParser implements Parser<CellDefinition> {
                 cell.setTooltipExpression(tooltipExpression);
             }
         }
-        // 解析分组表头/表尾属性
-        String groupHead = element.attributeValue("group-head");
-        if (StringUtils.isNotBlank(groupHead)) {
-            cell.setGroupHead(Boolean.valueOf(groupHead));
-        }
-        String groupFoot = element.attributeValue("group-foot");
-        if (StringUtils.isNotBlank(groupFoot)) {
-            cell.setGroupFoot(Boolean.valueOf(groupFoot));
-        }
         List<LinkParameter> linkParameters = null;
         List<ConditionPropertyItem> conditionPropertyItems = null;
         for (Object obj : element.elements()) {

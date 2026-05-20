@@ -78,14 +78,6 @@ public class Cell implements ReportCell {
     private List<Object> bindData;
     private Range duplicateRange;
     private boolean forPaging;
-    /**
-     * 是否为分组表头单元格
-     */
-    private boolean groupHead;
-    /**
-     * 是否为分组表尾单元格
-     */
-    private boolean groupFoot;
     private String linkUrl;
     private String linkTargetWindow;
     private List<LinkParameter> linkParameters;
@@ -202,6 +194,10 @@ public class Cell implements ReportCell {
     }
 
     public void addRowChild(Cell child) {
+        addRowChild(child, new HashSet<>());
+    }
+
+    private void addRowChild(Cell child, Set<Cell> visited) {
         String name = child.getName();
         List<Cell> cells = rowChildrenCellsMap.get(name);
         if (cells == null) {
@@ -211,13 +207,17 @@ public class Cell implements ReportCell {
         if (!cells.contains(child)) {
             cells.add(child);
         }
-        if (leftParentCell != null) {
-            leftParentCell.addRowChild(child);
+        if (leftParentCell != null && visited.add(leftParentCell)) {
+            leftParentCell.addRowChild(child, visited);
         }
     }
 
 
     public void addColumnChild(Cell child) {
+        addColumnChild(child, new HashSet<>());
+    }
+
+    private void addColumnChild(Cell child, Set<Cell> visited) {
         String name = child.getName();
         List<Cell> cells = columnChildrenCellsMap.get(name);
         if (cells == null) {
@@ -227,8 +227,8 @@ public class Cell implements ReportCell {
         if (!cells.contains(child)) {
             cells.add(child);
         }
-        if (topParentCell != null) {
-            topParentCell.addColumnChild(child);
+        if (topParentCell != null && visited.add(topParentCell)) {
+            topParentCell.addColumnChild(child, visited);
         }
     }
 
@@ -1017,21 +1017,5 @@ public class Cell implements ReportCell {
             }
         }
         return "";
-    }
-
-    public boolean isGroupHead() {
-        return groupHead;
-    }
-
-    public void setGroupHead(boolean groupHead) {
-        this.groupHead = groupHead;
-    }
-
-    public boolean isGroupFoot() {
-        return groupFoot;
-    }
-
-    public void setGroupFoot(boolean groupFoot) {
-        this.groupFoot = groupFoot;
     }
 }

@@ -173,6 +173,15 @@ public class Utils implements ApplicationContextAware {
             }
             return PropertyUtils.getProperty(obj, property);
         } catch (Exception ex) {
+            // 兜底：当属性路径带点时（如 familyMembers.age），尝试只用最后一段
+            // 用于子格继承 iterate 父格展开的数据后，属性名仍含嵌套前缀的场景
+            if (property != null && property.contains(".")) {
+                String lastSegment = property.substring(property.lastIndexOf(".") + 1);
+                try {
+                    return PropertyUtils.getProperty(obj, lastSegment);
+                } catch (Exception ignored) {
+                }
+            }
             throw new ReportComputeException(ex);
         }
     }

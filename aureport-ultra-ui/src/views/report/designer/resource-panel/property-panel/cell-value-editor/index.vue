@@ -87,7 +87,6 @@ const cellTypeOptions = computed(() => [
   { label: t('property.prop.qrcode'), value: 'qrcode' },
   { label: t('property.prop.barcode'), value: 'barcode' },
   { label: t('property.prop.chart'), value: 'chart' },
-  { label: t('property.prop.richtext'), value: 'richtext' },
 ])
 
 watch(() => [props.rowIndex, props.colIndex], () => {

@@ -219,6 +219,12 @@ public class DatasourceController {
 
             if (isComplexType(propertyType)) {
                 children = buildFieldsForClass(propertyType, depth + 1, visited);
+            } else if (Iterable.class.isAssignableFrom(propertyType) || propertyType.isArray()) {
+                Type genericType = pd.getReadMethod() != null ? pd.getReadMethod().getGenericReturnType() : null;
+                Class<?> elementClass = resolveElementClass(genericType);
+                if (elementClass != null && isComplexType(elementClass)) {
+                    children = buildFieldsForClass(elementClass, depth + 1, visited);
+                }
             }
 
             Field field = new Field(name, label, typeName, children);
@@ -247,6 +253,21 @@ public class DatasourceController {
                 return desc.value();
             }
         } catch (NoSuchFieldException ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * 从泛型返回类型中解析集合元素类型
+     * e.g. {@code List<FamilyMemberVO>} → {@code FamilyMemberVO.class}
+     */
+    private Class<?> resolveElementClass(Type genericType) {
+        if (genericType instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) genericType;
+            Type[] args = pt.getActualTypeArguments();
+            if (args.length == 1 && args[0] instanceof Class) {
+                return (Class<?>) args[0];
+            }
         }
         return null;
     }

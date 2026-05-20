@@ -36,7 +36,12 @@ public class BeanDatasetDefinition implements DatasetDefinition {
         try {
             Method m = obj.getClass().getMethod(method, new Class[]{String.class, String.class, Map.class});
             Object result = m.invoke(obj, new Object[]{datasourceName, name, parameters});
-            List<Object> list = (List<Object>) result;
+            List<Object> list;
+            if (result instanceof List) {
+                list = (List<Object>) result;
+            } else {
+                list = java.util.Collections.singletonList(result);
+            }
             return new Dataset(name, list);
         } catch (Exception e) {
             throw new ReportComputeException(e);

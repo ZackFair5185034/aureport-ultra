@@ -174,6 +174,7 @@ async function validateExpression() {
           <u-select
             v-model="propertyValue"
             :clearable="true"
+            class="property-select"
           >
             <u-option
               v-for="option in propertyOptions"
@@ -218,4 +219,9 @@ async function validateExpression() {
 </template>
 
 <style scoped>
+.property-select :deep(.u-select-dropdown-item) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>

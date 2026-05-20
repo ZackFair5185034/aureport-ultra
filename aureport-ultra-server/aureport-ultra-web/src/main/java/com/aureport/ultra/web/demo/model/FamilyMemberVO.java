@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 家庭成员
+ * 家庭成员信息（嵌套在 EmployeeInfoVO 中）
  */
 @Data
 @NoArgsConstructor
-public class FamilyMember implements Serializable {
+public class FamilyMemberVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @FieldDesc("姓名")
@@ -20,23 +20,20 @@ public class FamilyMember implements Serializable {
     @FieldDesc("关系")
     private String relation;
 
-    @FieldDesc("电话")
-    private String phone;
-
     @FieldDesc("年龄")
     private Integer age;
 
     @FieldDesc("职业")
     private String occupation;
 
-    @FieldDesc("匹配姓名")
-    private String matchingName;
+    @FieldDesc("电话")
+    private String phone;
 
-    public FamilyMember(String name, String relation, String phone, Integer age, String occupation) {
+    public FamilyMemberVO(String name, String relation, Integer age, String occupation, String phone) {
         this.name = name;
         this.relation = relation;
-        this.phone = phone;
         this.age = age;
         this.occupation = occupation;
+        this.phone = phone;
     }
 }

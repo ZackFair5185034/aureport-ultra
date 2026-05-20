@@ -47,8 +47,6 @@ public class DatasetUtils {
         aggregates.put(AggregateType.customgroup, new CustomGroupAggregate());
         aggregates.put(AggregateType.groupstat, new GroupStatAggregate());
         aggregates.put(iterate, new IterateAggregate());
-        aggregates.put(AggregateType.grouphead, new GroupHeadAggregate());
-        aggregates.put(AggregateType.groupfoot, new GroupFootAggregate());
     }
 
     public static List<BindData> computeDatasetExpression(DatasetExpression expr, Cell cell, Context context) {

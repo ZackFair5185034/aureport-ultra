@@ -37,8 +37,6 @@ export interface CellValue {
   property?: string
   aggregate?: AggregateType | string
   order?: SortType | string
-  groupHead?: boolean
-  groupFoot?: boolean
   mappingType?: string
   mappingDataset?: string
   mappingKeyProperty?: string

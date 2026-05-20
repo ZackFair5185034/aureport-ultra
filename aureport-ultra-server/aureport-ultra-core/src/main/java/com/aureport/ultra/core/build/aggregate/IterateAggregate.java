@@ -58,6 +58,10 @@ public class IterateAggregate extends Aggregate {
 
         String nestProperty = expr.getNestProperty();
         String property = expr.getProperty();
+        // 防御：如果 property 带了 nestProperty 前缀（如 familyMembers.name），自动剥离
+        if (property != null && nestProperty != null && property.startsWith(nestProperty + ".")) {
+            property = property.substring(nestProperty.length() + 1);
+        }
         List<BindData> result = new ArrayList<BindData>();
 
         if (parentDataList.isEmpty()) {

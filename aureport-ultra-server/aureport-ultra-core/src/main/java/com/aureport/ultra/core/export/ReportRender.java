@@ -32,8 +32,10 @@ import org.springframework.context.ApplicationContextAware;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jacky.gao
@@ -68,8 +70,8 @@ public class ReportRender implements ApplicationContextAware {
     public void rebuildReportDefinition(ReportDefinition reportDefinition) {
         List<CellDefinition> cells = reportDefinition.getCells();
         for (CellDefinition cell : cells) {
-            addRowChildCell(cell, cell);
-            addColumnChildCell(cell, cell);
+            addRowChildCell(cell, cell, new HashSet<>());
+            addColumnChildCell(cell, cell, new HashSet<>());
         }
         for (CellDefinition cell : cells) {
             Expand expand = cell.getExpand();
@@ -110,24 +112,30 @@ public class ReportRender implements ApplicationContextAware {
         return inputStream;
     }
 
-    private void addRowChildCell(CellDefinition cell, CellDefinition childCell) {
+    private void addRowChildCell(CellDefinition cell, CellDefinition childCell, Set<CellDefinition> visited) {
         CellDefinition leftCell = cell.getLeftParentCell();
         if (leftCell == null) {
             return;
         }
+        if (!visited.add(leftCell)) {
+            return;
+        }
         List<CellDefinition> childrenCells = leftCell.getRowChildrenCells();
         childrenCells.add(childCell);
-        addRowChildCell(leftCell, childCell);
+        addRowChildCell(leftCell, childCell, visited);
     }
 
-    private void addColumnChildCell(CellDefinition cell, CellDefinition childCell) {
+    private void addColumnChildCell(CellDefinition cell, CellDefinition childCell, Set<CellDefinition> visited) {
         CellDefinition topCell = cell.getTopParentCell();
         if (topCell == null) {
             return;
         }
+        if (!visited.add(topCell)) {
+            return;
+        }
         List<CellDefinition> childrenCells = topCell.getColumnChildrenCells();
         childrenCells.add(childCell);
-        addColumnChildCell(topCell, childCell);
+        addColumnChildCell(topCell, childCell, visited);
     }
 
     public void setReportParser(ReportParser reportParser) {

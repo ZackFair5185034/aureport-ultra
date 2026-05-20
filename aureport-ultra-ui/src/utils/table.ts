@@ -90,6 +90,22 @@ export function encode(text: string): string {
   return text.replaceAll(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
 }
 
+function serializeSpringFields(fields: any[], parentPath: string): string {
+  let xml = ''
+  for (const field of fields) {
+    const path = parentPath ? `${parentPath}.${field.name}` : field.name
+    if (field.children?.length) {
+      xml += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}>`
+      xml += serializeSpringFields(field.children, path)
+      xml += `</field>`
+    }
+    else {
+      xml += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
+    }
+  }
+  return xml
+}
+
 export function mmToPoint(mm: number): number {
   return Math.round(mm * 2.834646)
 }
@@ -501,10 +517,8 @@ export function tableToXml(context: ReportContext): string {
 
           const mappingType = value.mappingType || 'simple'
           let dsAttrs = `dataset-name="${encode(value.datasetName || '')}" aggregate="${encode(value.aggregate || '')}" property="${encode(value.property || '')}" order="${encode(value.order || '')}" mapping-type="${mappingType}"`
-          if (value.groupHead)
-            dsAttrs += ` group-head="true"`
-          if (value.groupFoot)
-            dsAttrs += ` group-foot="true"`
+          if (value.nestProperty)
+            dsAttrs += ` nest-property="${encode(value.nestProperty)}"`
           cellXml += `<dataset-value ${dsAttrs}>`
           if (mappingType === 'dataset') {
             cellXml += ` mapping-dataset="${value.mappingDataset}" mapping-key-property="${value.mappingKeyProperty}" mapping-value-property="${value.mappingValueProperty}"`
@@ -923,9 +937,7 @@ export function tableToXml(context: ReportContext): string {
         ds += ` bean="${datasource.beanId}">`
         for (const dataset of datasource.datasets) {
           ds += `<dataset name="${encode(dataset.name)}" type="bean" method="${dataset.method}" clazz="${dataset.clazz}">`
-          for (const field of dataset.fields) {
-            ds += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
-          }
+          ds += serializeSpringFields(dataset.fields || [], '')
 
           ds += `</dataset>`
         }

@@ -141,12 +141,6 @@ public class HtmlProducer {
                     }
                 }
                 sb.append(" class='_" + cell.getName());
-                if (cell.isGroupHead()) {
-                    sb.append(" grouphead-cell");
-                }
-                if (cell.isGroupFoot()) {
-                    sb.append(" groupfoot-cell");
-                }
                 sb.append("' ");
                 // 渲染 tooltip 属性
                 String tooltipText = cell.getTooltip();

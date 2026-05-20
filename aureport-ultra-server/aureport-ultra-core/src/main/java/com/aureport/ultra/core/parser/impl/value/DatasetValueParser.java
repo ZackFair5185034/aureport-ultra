@@ -54,20 +54,6 @@ public class DatasetValueParser extends ValueParser {
         value.setMappingDataset(element.attributeValue("mapping-dataset"));
         value.setMappingKeyProperty(element.attributeValue("mapping-key-property"));
         value.setMappingValueProperty(element.attributeValue("mapping-value-property"));
-        // 解析子聚合类型（用于 groupfoot 类型）
-        String subAggregate = element.attributeValue("sub-aggregate");
-        if (StringUtils.isNotBlank(subAggregate)) {
-            value.setSubAggregate(subAggregate);
-        }
-        // 解析分组表头/表尾属性
-        String groupHead = element.attributeValue("group-head");
-        if (StringUtils.isNotBlank(groupHead)) {
-            value.setGroupHead(Boolean.valueOf(groupHead));
-        }
-        String groupFoot = element.attributeValue("group-foot");
-        if (StringUtils.isNotBlank(groupFoot)) {
-            value.setGroupFoot(Boolean.valueOf(groupFoot));
-        }
         List<GroupItem> groupItems = null;
         List<MappingItem> mappingItems = null;
         List<Condition> conditions = new ArrayList<Condition>();
