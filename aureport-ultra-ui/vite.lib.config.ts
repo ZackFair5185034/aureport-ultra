@@ -21,6 +21,24 @@ const babelPolyfillShim = () => ({
   },
 })
 
+// 保持 vue-datepicker-next 在 externalDeps 中（它的 CSS 导入需要 external）
+const vueDatepickerNextShim = () => ({
+  name: 'vue-datepicker-next-shim',
+  renderChunk(code: string, chunk: any) {
+    if (chunk.fileName === 'aureport-ultra.es.js') {
+      // locale 文件 (require_zh_cn 等) 内部有 __require("vue-datepicker-next") 调用
+      // 这些 locale 是 CJS 格式，__require 在 ESM 环境会失败
+      // 替换策略：把 __require("vue-datepicker-next") 替换为一个空的 shim 对象
+      const shimmed = code.replace(
+        /__require\("vue-datepicker-next"\)/g,
+        '({ default: { install:()=>{}, lang:{ zhCn:{ formatLocale:{ months:[], week:null, t:()=>\'\' } } } } })'
+      )
+      return shimmed
+    }
+    return null
+  },
+})
+
 // 库模式需要 external 的依赖（宿主环境必须提供）
 const externalDeps = [
   'vue',
@@ -46,13 +64,13 @@ const externalDeps = [
   'async-validator',
   'chartjs-plugin-datalabels',
   'undo-manager',
-  'vue-datepicker-next',
   /@ckpack\/vue-color/,
 ]
 
 export default defineConfig({
   plugins: [
     babelPolyfillShim(),
+    vueDatepickerNextShim(),
     vue(),
     vueJsx(),
     Components({
