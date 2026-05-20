@@ -906,7 +906,7 @@ export function tableToXml(context: ReportContext): string {
           ds += `<dataset name="${encode(dataset.name)}" type="sql">`
           ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
           for (const field of dataset.fields) {
-            ds += `<field name="${field.name}"/>`
+            ds += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
           }
 
           for (const parameter of dataset.parameters) {
@@ -924,7 +924,7 @@ export function tableToXml(context: ReportContext): string {
         for (const dataset of datasource.datasets) {
           ds += `<dataset name="${encode(dataset.name)}" type="bean" method="${dataset.method}" clazz="${dataset.clazz}">`
           for (const field of dataset.fields) {
-            ds += `<field name="${field.name}"/>`
+            ds += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
           }
 
           ds += `</dataset>`
@@ -939,7 +939,7 @@ export function tableToXml(context: ReportContext): string {
           ds += `<dataset name="${encode(dataset.name)}" type="sql">`
           ds += `<sql><![CDATA[${dataset.sql}]]></sql>`
           for (const field of dataset.fields) {
-            ds += `<field name="${field.name}"/>`
+            ds += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
           }
 
           for (const parameter of dataset.parameters) {

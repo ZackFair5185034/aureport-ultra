@@ -578,7 +578,7 @@ function _buildClickEvent(dataset: any, field: any, ctx: any) {
                   @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
                 >
                   <i class="iconfont icon-property" />
-                  <a href="###">{{ field.label || field.name }}</a>
+                  <a href="###">{{ field.label ? `${field.name} (${field.label})` : field.name }}</a>
                 </span>
               </li>
             </ul>

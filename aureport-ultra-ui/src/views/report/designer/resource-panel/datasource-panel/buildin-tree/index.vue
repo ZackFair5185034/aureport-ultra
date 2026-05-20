@@ -507,7 +507,7 @@ async function handleSqlDatasetSave(nameVal: string, oldName: string, sql: strin
                   @contextmenu.prevent.stop="showFieldContextMenu($event, dataset, field, fieldIndex)"
                 >
                   <i class="iconfont icon-property" />
-                  <a href="###">{{ field.label || field.name }}</a>
+                  <a href="###">{{ field.label ? `${field.name} (${field.label})` : field.name }}</a>
                 </span>
               </li>
             </ul>

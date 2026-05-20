@@ -324,6 +324,7 @@ function handleCellTypeChange(value: string) {
       }
       setCell(props.rowIndex, props.colIndex, newCellDef)
       hideAllEditors()
+      currentChartType.value = 'pie'
 
       break
     }

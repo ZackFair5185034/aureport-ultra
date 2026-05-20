@@ -116,13 +116,18 @@ function closeDialog() {
         <u-input v-model="dsName" />
       </u-form-item>
       <u-form-item :label="$t('dialog.springDS.bean')" :label-width="120">
-        <u-select v-model="beanId" :clearable="true" style="width: 250px" :placeholder="$t('dialog.springDS.beanTip')">
+        <u-select v-model="beanId" :clearable="true" style="width: 280px" :placeholder="$t('dialog.springDS.beanTip')">
           <u-option
             v-for="option in beanOptions"
             :key="option.beanId"
             :value="option.beanId"
-            :label="`${option.name} (${option.className})`"
-          />
+            :label="`${option.name}`"
+          >
+            <div class="bean-option">
+              <span class="bean-option__name">{{ option.name }}</span>
+              <span class="bean-option__class">{{ option.className }}</span>
+            </div>
+          </u-option>
         </u-select>
       </u-form-item>
     </u-form>
@@ -136,4 +141,19 @@ function closeDialog() {
 </template>
 
 <style scoped>
+.bean-option {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+.bean-option__name {
+  font-weight: 500;
+  font-size: 13px;
+}
+.bean-option__class {
+  font-size: 11px;
+  color: #999;
+  word-break: break-all;
+}
 </style>
