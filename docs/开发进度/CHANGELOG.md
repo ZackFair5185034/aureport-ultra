@@ -3,9 +3,19 @@
 > 版本变更 + 开发过程记录合二为一。
 > 格式基于 [Keep a Changelog](https://keepachangelog.com/)。
 
+---
+
 ## [1.2.0] - 开发中
 
-### 新增
+### 移除
+- **分组表头/分组表尾（grouphead/groupfoot）**：产品侧认为无明确使用场景，移除该功能。涉及 `GroupHeadAggregate`、`GroupFootAggregate` 两个聚合处理器，`CellDefinition`/`Cell`/`DatasetExpression` 中的字段，以及 XML 解析、前端 UI、国际化标签全套逻辑
+
+### 修复
+
+#### 核心引擎
+- **父子单元格循环引用 StackOverflowError（P0）**：修复 `ReportRender.addColumnChildCell` 和 `Cell.addColumnChild` 在构建父子关系树时的无限递归。两个方法均添加 `Set<CellDefinition>/Set<Cell> visited` 参数检测循环引用并终止。**根因**：A1.topParentCell=A2，A2 自动取 A1 作为 topParentCell，形成死循环
+
+#### 通用
 
 #### 核心引擎
 - **ProgressBarValue 进度条单元格**：新增 `progressbar` 值类型，支持百分比进度条展示（value/max 属性）
