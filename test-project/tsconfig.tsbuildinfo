@@ -1,0 +1,1 @@
+{"root":["./playwright.config.ts","./vite.config.ts","./e2e/lib-integration.spec.ts","./src/App.vue","./src/aureport-ultra-ui.d.ts","./src/main.ts","./src/components/HelloWorld.vue"],"errors":true,"version":"6.0.3"}
