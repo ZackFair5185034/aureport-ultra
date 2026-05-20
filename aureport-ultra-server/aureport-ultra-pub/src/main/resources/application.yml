@@ -2,10 +2,12 @@ server:
   port: 8050
 spring:
   application:
-    name: aureport-ultra  # 应用名
-
+    name: aureport-ultra
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   profiles:
-    active: dev,local
+    active: dev
 
 springdoc:
   api-docs:
