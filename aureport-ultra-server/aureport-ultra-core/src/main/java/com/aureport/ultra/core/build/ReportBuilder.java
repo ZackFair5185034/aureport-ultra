@@ -148,7 +148,16 @@ public class ReportBuilder extends BasePagination implements ApplicationContextA
 						datasetMap.put(dataset.getName(), dataset);
 					}
 				}
-			} else if (dsDef instanceof BuildinDatasourceDefinition) {
+			} else if (dsDef instanceof HttpDatasourceDefinition) {
+                    HttpDatasourceDefinition ds = (HttpDatasourceDefinition) dsDef;
+                    HttpService httpService = applicationContext.getBean(HttpService.class);
+                    List<Dataset> ls = ds.buildDatasets(httpService, parameters);
+                    if (ls != null) {
+                        for (Dataset dataset : ls) {
+                            datasetMap.put(dataset.getName(), dataset);
+                        }
+                    }
+                } else if (dsDef instanceof BuildinDatasourceDefinition) {
 				String dsName = dsDef.getName();
 				Connection conn = null;
 				try {

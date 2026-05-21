@@ -23,8 +23,22 @@
 - **GroupStatAggregate 分组聚合**：新增 `groupstat` 聚合类型，支持从父格 BindData 读取统计字段
 - **SpringBean 数据源增强**：新增 `@FieldDesc` 注解支持字段中文描述；支持嵌套 Bean 属性递归展开
 - **Bean 自动发现 Starter 模块**：新增 `aureport-ultra-bean-discovery-starter` 模块，基于 Spring Boot AutoConfiguration 自动扫描 `@ReportBean` 注解 Bean 并暴露 REST 端点（`/api/report-beans`）
+- **HTTP 数据源支持**：
+  - 新增 `http` 类型数据源，支持标准协议（ReportBean）和三方协议两种场景
+  - 标准协议：类似 SpringBean 的远程 HTTP 版，通过服务发现（Nacos）或手动配置主机地址，调用远程服务暴露的 `@ReportBean` 接口
+  - 三方协议：对接任意 HTTP 接口，支持 JSONPath 解析响应数据
+  - Proxy 代理机制：前端通过服务端代理转发 metadata 请求（`report-beans`、`loadMethods`、`buildClass`），由 `DatasourceController.httpStandardProxy` 统一处理
+  - 请求头转发：代理自动转发原始请求头（排除 hop-by-hop 头），支持认证透传
+  - 服务发现：通过 `DiscoveryClient` 反射调用手动解析服务地址，避免编译期依赖 spring-cloud-commons
 
 #### 前端设计器
+- **HTTP 数据源管理**：
+  - 新增数据源配置对话框，支持协议类型选择、主机方式（手动/服务发现）、请求头 KV 编辑
+  - 标准协议数据集：类 SpringBean 交互——下拉选择 Bean → 弹窗选择方法 → 自动加载返回类型字段结构
+  - 三方协议数据集：URL/方法/头/体/JSONPath 全配置
+  - 数据源树组件：协议标签（标准/三方）内联显示，字段嵌套 children 递归展开/折叠
+  - 右键菜单刷新字段（从远程服务重新加载字段结构）
+  - 编辑回显 BeanId，编辑后自动重建字段
 - **ProgressBarValueEditor**：进度条单元格值编辑器，支持配置 value/max 属性
 - **Tooltip 配置**：单元格属性面板新增 tooltip 配置项
 - **SpringBean 字段展示增强**：树节点同时显示字段名和 label 描述；嵌套 Bean 子字段可展开

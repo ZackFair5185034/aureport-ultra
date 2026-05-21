@@ -121,3 +121,41 @@ export function importExcelFile(file: Blob): Promise<unknown> {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
+
+// ====== HTTP 数据源 API ======
+
+export interface HttpPreviewResult {
+  fields: string[]
+  currentTotal: number
+  data: Record<string, unknown>[]
+  total: number
+  error?: string
+}
+
+/** HTTP 连接测试 */
+export function testHttpConnection(params: {
+  url: string
+  method?: string
+}): Promise<{ result: boolean, message: string }> {
+  const formData = new FormData()
+  formData.append('url', params.url)
+  formData.append('method', params.method || 'GET')
+  return post('/datasource/testHttpConnection', formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  })
+}
+
+/** HTTP 数据预览 */
+export function httpPreviewData(params: Record<string, string>): Promise<HttpPreviewResult> {
+  return get('/datasource/httpPreviewData', { params })
+}
+
+/** 获取 Nacos 注册的服务列表 */
+export function listServices(): Promise<string[]> {
+  return get('/services')
+}
+
+/** 标准协议 HTTP 代理请求 */
+export function httpStandardProxy(params: Record<string, string>): Promise<any> {
+  return get('/datasource/httpStandardProxy', { params })
+}

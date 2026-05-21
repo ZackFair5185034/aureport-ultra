@@ -13,8 +13,19 @@
  ******************************************************************************/
 package com.aureport.ultra.core.parser.impl;
 
-import com.aureport.ultra.core.definition.dataset.*;
-import com.aureport.ultra.core.definition.datasource.*;
+import com.aureport.ultra.core.definition.dataset.BeanDatasetDefinition;
+import com.aureport.ultra.core.definition.dataset.DatasetDefinition;
+import com.aureport.ultra.core.definition.dataset.Field;
+import com.aureport.ultra.core.definition.dataset.HttpDatasetDefinition;
+import com.aureport.ultra.core.definition.dataset.HttpParameter;
+import com.aureport.ultra.core.definition.dataset.Parameter;
+import com.aureport.ultra.core.definition.dataset.SqlDatasetDefinition;
+import com.aureport.ultra.core.definition.datasource.BuildinDatasourceDefinition;
+import com.aureport.ultra.core.definition.datasource.DatasourceDefinition;
+import com.aureport.ultra.core.definition.datasource.HttpDatasourceDefinition;
+import com.aureport.ultra.core.definition.datasource.JdbcDatasourceDefinition;
+import com.aureport.ultra.core.definition.datasource.SpringBeanDatasourceDefinition;
+import com.aureport.ultra.core.definition.datasource.DataType;
 import com.aureport.ultra.core.expression.ExpressionUtils;
 import com.aureport.ultra.core.expression.model.Expression;
 import com.aureport.ultra.core.parser.Parser;
@@ -51,6 +62,31 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
             ds.setName(element.attributeValue("name"));
             ds.setDatasets(parseDatasets(element));
             return ds;
+        } else if (type.equals("http")) {
+            HttpDatasourceDefinition ds = new HttpDatasourceDefinition();
+            ds.setName(element.attributeValue("name"));
+            String protocol = element.attributeValue("protocol");
+            if (protocol != null) {
+                ds.setProtocolType(protocol);
+            }
+            String baseUrl = element.attributeValue("baseUrl");
+            if (baseUrl != null) {
+                ds.setBaseUrl(baseUrl);
+            }
+            String hostType = element.attributeValue("hostType");
+            if (hostType != null) {
+                ds.setHostType(hostType);
+            }
+            String host = element.attributeValue("host");
+            if (host != null) {
+                ds.setHost(host);
+            }
+            String serviceName = element.attributeValue("serviceName");
+            if (serviceName != null) {
+                ds.setServiceName(serviceName);
+            }
+            ds.setDatasets(parseDatasets(element));
+            return ds;
         }
         return null;
     }
@@ -76,6 +112,22 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
                 dataset.setMethod(ele.attributeValue("method"));
                 dataset.setFields(parseFields(ele));
                 dataset.setClazz(ele.attributeValue("clazz"));
+                list.add(dataset);
+            } else if (type.equals("http")) {
+                HttpDatasetDefinition dataset = new HttpDatasetDefinition();
+                dataset.setName(ele.attributeValue("name"));
+                String url = ele.attributeValue("url");
+                if (url != null) dataset.setUrl(url);
+                String method = ele.attributeValue("method");
+                if (method != null) dataset.setMethod(method);
+                String headers = ele.attributeValue("headers");
+                if (headers != null) dataset.setHeaders(headers);
+                String body = ele.attributeValue("body");
+                if (body != null) dataset.setBody(body);
+                String responsePath = ele.attributeValue("responsePath");
+                if (responsePath != null) dataset.setResponsePath(responsePath);
+                dataset.setFields(parseFields(ele));
+                dataset.setRequestParameters(parseHttpParameters(ele));
                 list.add(dataset);
             }
         }
@@ -123,6 +175,25 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
             fields.add(field);
         }
         return fields;
+    }
+
+    private List<HttpParameter> parseHttpParameters(Element element) {
+        List<HttpParameter> params = new ArrayList<>();
+        for (Object obj : element.elements()) {
+            if (obj == null || !(obj instanceof Element)) {
+                continue;
+            }
+            Element ele = (Element) obj;
+            if (!ele.getName().equals("requestParameter")) {
+                continue;
+            }
+            String name = ele.attributeValue("name");
+            String value = ele.attributeValue("value");
+            if (name != null) {
+                params.add(new HttpParameter(name, value));
+            }
+        }
+        return params;
     }
 
     private String parseSql(Element element, SqlDatasetDefinition dataset) {

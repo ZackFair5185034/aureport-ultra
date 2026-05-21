@@ -10,6 +10,8 @@ import DatabaseTree from './database-tree/index.vue'
 import DatasourceDialog from './datasource-dialog/index.vue'
 import SpringDialog from './spring-dialog/index.vue'
 import SpringTree from './spring-tree/index.vue'
+import HttpDialog from './http-dialog/index.vue'
+import HttpTree from './http-tree/index.vue'
 
 defineOptions({ name: 'DatasourcePanel' })
 
@@ -20,6 +22,7 @@ const treeContainer = ref<HTMLDivElement | null>(null)
 const datasourceDialog = ref<any>(null)
 const springDialog = ref<any>(null)
 const buildinDialog = ref<any>(null)
+const httpDialog = ref<any>(null)
 
 const datasources = ref<any[]>([])
 const datasourceDialogVisible = ref(false)
@@ -27,12 +30,15 @@ const currentDatasource = ref<any>(null)
 const springDialogVisible = ref(false)
 const currentSpringDatasource = ref<any>(null)
 const buildinDialogVisible = ref(false)
+const httpDialogVisible = ref(false)
+const currentHttpDatasource = ref<any>(null)
 
 const context = computed(() => store.context || null)
 
 const jdbcDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'jdbc'))
 const springDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'spring'))
 const buildinDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'buildin'))
+const httpDatasources = computed(() => datasources.value.filter((ds: any) => ds.type === 'http'))
 
 watch(context, (newContext) => {
   if (newContext && (newContext as any).reportDef) {
@@ -74,6 +80,11 @@ function showSpringDialog() {
 
 function showBuildinDialog() {
   buildinDialogVisible.value = true
+}
+
+function showHttpDialog() {
+  currentHttpDatasource.value = null
+  httpDialogVisible.value = true
 }
 
 function addJdbcDatasource(datasource: any) {
@@ -120,6 +131,25 @@ function addBuildinDatasource(datasource: any) {
   updateReportDef(reportDef)
 }
 
+function addHttpDatasource(datasource: any) {
+  const newDatasource = {
+    name: datasource.name,
+    protocolType: datasource.protocolType || 'standard',
+    hostType: datasource.hostType || 'manual',
+    host: datasource.host || '',
+    serviceName: datasource.serviceName || '',
+    baseUrl: datasource.baseUrl || '',
+    headers: datasource.headers || '',
+    type: datasource.type || 'http',
+    datasets: datasource.datasets || [],
+  }
+
+  datasources.value.push(newDatasource)
+
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
 function removeDatasource(name: string) {
   const index = datasources.value.findIndex((d: any) => d.name === name)
   if (index !== -1) {
@@ -142,6 +172,15 @@ function updateDatasource(data: any) {
 }
 
 function updateSpringDatasets(datasource: any, datasets: any[]) {
+  const index = datasources.value.findIndex((ds: any) => ds.name === datasource.name)
+  if (index !== -1) {
+    datasources.value[index] = { ...datasource, datasets }
+  }
+  const reportDef: any = { ...(context.value as any).reportDef, datasources: datasources.value }
+  updateReportDef(reportDef)
+}
+
+function updateHttpDatasets(datasource: any, datasets: any[]) {
   const index = datasources.value.findIndex((ds: any) => ds.name === datasource.name)
   if (index !== -1) {
     datasources.value[index] = { ...datasource, datasets }
@@ -188,6 +227,14 @@ function buildPanel() {
         :title="$t('property.datasource.addBuildin')"
         @click="showBuildinDialog"
       />
+
+      <u-button
+        type="info"
+        class="toolbar-btn"
+        icon="icon-link"
+        :title="$t('property.datasource.addHttp')"
+        @click="showHttpDialog"
+      />
     </div>
 
     <!-- 树容器 -->
@@ -226,6 +273,24 @@ function buildPanel() {
         @remove="removeDatasource"
         @update-datasource="updateDatasource"
       />
+
+      <!-- HTTP树组件 -->
+      <HttpTree
+        v-for="(datasource, index) in httpDatasources"
+        :key="`http_` + `_${index}`"
+        :name="datasource.name"
+        :datasets="datasource.datasets || []"
+        :datasources="datasources"
+        :protocol-type="datasource.protocolType || 'standard'"
+        :base-url="datasource.baseUrl || ''"
+        :host="datasource.host || ''"
+        :host-type="datasource.hostType || 'manual'"
+        :service-name="datasource.serviceName || ''"
+        :headers="datasource.headers || ''"
+        @remove="removeDatasource"
+        @update-datasource="updateDatasource"
+        @update-datasets="updateHttpDatasets(datasource, $event)"
+      />
     </div>
 
     <!-- 数据源对话框 -->
@@ -255,6 +320,16 @@ function buildPanel() {
       :visible="buildinDialogVisible"
       @close="buildinDialogVisible = false"
       @select="addBuildinDatasource"
+    />
+
+    <!-- HTTP数据源对话框 -->
+    <HttpDialog
+      ref="httpDialog"
+      :datasources="datasources"
+      :visible="httpDialogVisible"
+      :datasource="currentHttpDatasource"
+      @close="httpDialogVisible = false"
+      @save="addHttpDatasource"
     />
   </div>
 </template>

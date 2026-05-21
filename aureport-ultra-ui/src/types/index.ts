@@ -132,24 +132,48 @@ export interface HeaderFooter {
 /** 数据源 */
 export interface Datasource {
   name: string
-  type: 'jdbc' | 'spring' | 'buildin'
+  type: 'jdbc' | 'spring' | 'buildin' | 'http'
   username?: string
   password?: string
   url?: string
   driver?: string
   beanId?: string
+  protocolType?: 'standard' | 'thirdParty'
+  baseUrl?: string
+  /** HTTP 标准协议：主机地址（手动模式） */
+  host?: string
+  /** HTTP 标准协议：主机类型 manual/discovery */
+  hostType?: 'manual' | 'discovery'
+  /** HTTP 标准协议：服务发现服务名 */
+  serviceName?: string
   datasets: Dataset[]
 }
 
 /** 数据集 */
 export interface Dataset {
   name: string
-  type: 'sql' | 'bean'
+  type: 'sql' | 'bean' | 'http'
   sql?: string
   method?: string
   clazz?: string
+  /** HTTP 请求 URL（三方协议完整 URL） */
+  url?: string
+  /** HTTP 请求头 JSON */
+  headers?: string
+  /** HTTP 请求体模板（三方协议） */
+  body?: string
+  /** 响应 JSONPath（三方协议） */
+  responsePath?: string
+  /** HTTP 请求参数 */
+  requestParameters?: HttpParameter[]
   fields: Field[]
   parameters: Parameter[]
+}
+
+/** HTTP 请求参数 */
+export interface HttpParameter {
+  name: string
+  value: string
 }
 
 /** 字段 */

@@ -7,7 +7,22 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
   profiles:
-    active: dev,local
+    active: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        namespace: scznjz-ttv2-${spring.profiles.active}
+        name: ${spring.application.name}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        username: nacos
+        password: jszx@20260410
+      discovery:
+        server-addr: localhost:8848
+        namespace: scznjz-ttv2-${spring.profiles.active}
+        username: nacos
+        password: jszx@20260410
 
 springdoc:
   api-docs:

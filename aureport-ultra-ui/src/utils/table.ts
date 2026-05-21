@@ -963,6 +963,34 @@ export function tableToXml(context: ReportContext): string {
 
         break
       }
+
+      case 'http': {
+        ds += ` protocol="${encode(datasource.protocolType || 'standard')}"`
+        ds += ` baseUrl="${encode(datasource.baseUrl || '')}"`
+        if (datasource.hostType) ds += ` hostType="${encode(datasource.hostType)}"`
+        if (datasource.host) ds += ` host="${encode(datasource.host)}"`
+        if (datasource.serviceName) ds += ` serviceName="${encode(datasource.serviceName)}"`
+        ds += '>'
+        for (const dataset of datasource.datasets) {
+          ds += `<dataset name="${encode(dataset.name)}" type="http"`
+          if (dataset.url) ds += ` url="${encode(dataset.url)}"`
+          if (dataset.method) ds += ` method="${encode(dataset.method)}"`
+          if (dataset.headers) ds += ` headers="${encode(dataset.headers)}"`
+          if (dataset.body) ds += ` body="${encode(dataset.body)}"`
+          if (dataset.responsePath) ds += ` responsePath="${encode(dataset.responsePath)}"`
+          ds += '>'
+          for (const field of dataset.fields) {
+            ds += `<field name="${field.name}"${field.label ? ` label="${encode(field.label)}"` : ''}/>`
+          }
+          if (dataset.requestParameters && dataset.requestParameters.length > 0) {
+            for (const param of dataset.requestParameters) {
+              ds += `<requestParameter name="${encode(param.name)}" value="${encode(param.value)}"/>`
+            }
+          }
+          ds += `</dataset>`
+        }
+        break
+      }
     // No default
     }
 

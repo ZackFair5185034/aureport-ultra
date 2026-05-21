@@ -131,7 +131,7 @@ async function validate(trigger: string, callback?: (errors?: unknown) => void):
 
   const descriptor: Rules = { [props.prop as string]: rules }
 
-  const validator = new AsyncValidator(descriptor)
+  const validator = new AsyncValidator(descriptor as Record<string, unknown[]>)
   const model: Record<string, unknown> = { [props.prop as string]: fieldValue.value }
 
   try {

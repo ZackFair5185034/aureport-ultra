@@ -17,6 +17,8 @@ import com.aureport.ultra.web.sql.enums.DbType;
 import com.aureport.ultra.web.sql.DialectFactory;
 import com.aureport.ultra.web.sql.IPageDialect;
 import com.aureport.ultra.web.utils.ResponseUtils;
+import com.aureport.ultra.core.definition.datasource.HttpRequestConfig;
+import com.aureport.ultra.web.http.HttpServiceImpl;
 import io.micrometer.common.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.util.ClassUtils;
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -70,6 +73,12 @@ public class DatasourceController {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private HttpServiceImpl httpService;
+
+    @Value("${aureport-ultra.servletPrefix}")
+    private String servletPrefix;
 
     /**
      * 加载内置数据源
@@ -422,6 +431,299 @@ public class DatasourceController {
         } finally {
             JdbcUtils.closeConnection(conn);
         }
+    }
+
+    /**
+     * 测试 HTTP 数据源连接
+     */
+    @Operation(
+        summary = "测试 HTTP 数据源连接",
+        parameters = {
+            @Parameter(name = "url", description = "HTTP 请求 URL", required = true),
+            @Parameter(name = "method", description = "HTTP 方法(GET/POST)", required = false)
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "连接测试结果"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @PostMapping("/testHttpConnection")
+    public void testHttpConnection(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String url = req.getParameter("url");
+        String method = req.getParameter("method");
+        if (method == null || method.isBlank()) method = "GET";
+
+        Map<String, Object> result = new HashMap<>();
+        try {
+            HttpRequestConfig config = new HttpRequestConfig();
+            config.setUrl(url);
+            config.setMethod(method);
+            List<Map<String, Object>> data = httpService.executeThirdParty(config, Map.of());
+            result.put("result", true);
+            result.put("message", "Connection successful, got " + (data != null ? data.size() : 0) + " rows");
+        } catch (Exception e) {
+            log.warn("HTTP connection test failed: url={}", url, e);
+            result.put("result", false);
+            result.put("message", e.getMessage());
+        }
+        ResponseUtils.writeObjectToJson(resp, result);
+    }
+
+    /**
+     * HTTP 数据源预览数据
+     */
+    @Operation(
+        summary = "HTTP 数据源预览数据",
+        parameters = {
+            @Parameter(name = "protocol", description = "协议类型(standard/thirdParty)", required = true),
+            @Parameter(name = "hostType", description = "标准协议主机方式(manual/discovery)", required = false),
+            @Parameter(name = "host", description = "标准协议 host（手动模式）", required = false),
+            @Parameter(name = "serviceName", description = "标准协议服务名（服务发现模式）", required = false),
+            @Parameter(name = "url", description = "URL 路径（标准）/ 完整 URL（三方协议）", required = false),
+            @Parameter(name = "datasourceName", description = "数据源名称", required = false),
+            @Parameter(name = "datasetName", description = "数据集名称", required = true),
+            @Parameter(name = "method", description = "HTTP 方法", required = false),
+            @Parameter(name = "headers", description = "请求头 JSON", required = false),
+            @Parameter(name = "body", description = "三方协议请求体", required = false),
+            @Parameter(name = "responsePath", description = "三方协议响应 JSONPath", required = false)
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "数据预览结果"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @GetMapping("/httpPreviewData")
+    public void httpPreviewData(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String protocol = req.getParameter("protocol");
+        String datasetName = req.getParameter("datasetName");
+
+        List<Map<String, Object>> data;
+        try {
+            if ("thirdParty".equals(protocol)) {
+                HttpRequestConfig config = new HttpRequestConfig();
+                config.setUrl(req.getParameter("url"));
+                config.setMethod(req.getParameter("method"));
+                config.setHeaders(req.getParameter("headers"));
+                config.setBody(req.getParameter("body"));
+                config.setResponsePath(req.getParameter("responsePath"));
+                data = httpService.executeThirdParty(config, Map.of());
+            } else {
+                HttpRequestConfig config = new HttpRequestConfig();
+                String hostType = req.getParameter("hostType");
+                if ("discovery".equals(hostType)) {
+                    String serviceName = req.getParameter("serviceName");
+                    String urlPath = req.getParameter("url");
+                    String base = "http://" + (serviceName != null ? serviceName : "");
+                    String path = (urlPath != null) ? urlPath : "";
+                    if (!path.startsWith("/")) path = "/" + path;
+                    config.setUrl(base + path);
+                    config.setDiscoveryEnabled(true);
+                } else {
+                    String host = req.getParameter("host");
+                    String urlPath = req.getParameter("url");
+                    config.setUrl((host != null ? host : "") + (urlPath != null ? urlPath : ""));
+                }
+                config.setMethod(req.getParameter("method"));
+                config.setHeaders(req.getParameter("headers"));
+                String dsName = req.getParameter("datasourceName");
+                data = httpService.executeStandard(config, dsName, datasetName, Map.of());
+            }
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            ResponseUtils.writeObjectToJson(resp, error);
+            return;
+        }
+
+        // 构建与 SQL previewData 相同格式的响应
+        DataResult result = new DataResult();
+        List<String> fields = new ArrayList<>();
+        if (data != null && !data.isEmpty()) {
+            Map<String, Object> first = data.get(0);
+            fields.addAll(first.keySet());
+        }
+        result.setFields(fields);
+        result.setCurrentTotal(data != null ? data.size() : 0);
+        result.setData(data != null ? data : List.of());
+        result.setTotal(data != null ? data.size() : 0);
+        ResponseUtils.writeObjectToJson(resp, result);
+    }
+
+    /**
+     * 标准协议 HTTP 代理请求
+     * <p>
+     * 将前端请求代理转发到标准协议的目标服务。
+     * 根据 datasource 的 host/serviceName 配置组装目标 URL，
+     * 执行 GET 请求并从标准响应 {code, data, message} 中提取 data 返回。
+     * </p>
+     */
+    @Operation(
+        summary = "标准协议 HTTP 代理请求",
+        parameters = {
+            @Parameter(name = "datasourceName", description = "数据源名称", required = true),
+            @Parameter(name = "endpoint", description = "目标 API 路径（如 report-beans、loadMethods）", required = true),
+            @Parameter(name = "host", description = "主机地址（手动模式）", required = false),
+            @Parameter(name = "hostType", description = "主机方式 manual/discovery", required = false),
+            @Parameter(name = "serviceName", description = "服务名（服务发现模式）", required = false)
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "代理响应结果"),
+            @ApiResponse(responseCode = "500", description = "服务器错误")
+        }
+    )
+    @GetMapping("/httpStandardProxy")
+    public void httpStandardProxy(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String datasourceName = req.getParameter("datasourceName");
+        String endpoint = req.getParameter("endpoint");
+        String host = req.getParameter("host");
+        String hostType = req.getParameter("hostType");
+        String serviceName = req.getParameter("serviceName");
+
+        // 构建基础 URL
+        StringBuilder urlBuilder = new StringBuilder();
+        if ("discovery".equals(hostType) && serviceName != null && !serviceName.isBlank()) {
+            // 通过 DiscoveryClient 手动解析服务名（避免依赖 @LoadBalanced 拦截器）
+            String resolved = resolveServiceHost(serviceName);
+            if (resolved == null) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Service discovery failed: no instances found for service '" + serviceName
+                    + "'. Check Nacos console to verify the service is registered.");
+                ResponseUtils.writeObjectToJson(resp, error);
+                return;
+            }
+            urlBuilder.append(resolved);
+        } else if (host != null && !host.isBlank()) {
+            urlBuilder.append(host.replaceAll("/+$", ""));
+        } else {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "No host or service name configured for datasource: " + datasourceName);
+            ResponseUtils.writeObjectToJson(resp, error);
+            return;
+        }
+
+        // 构造完整 URL：{base}/{servletPrefix}/{endpoint}
+        urlBuilder.append('/').append(servletPrefix).append('/').append(endpoint);
+
+        // 转发剩余查询参数
+        String separator = "?";
+        Enumeration<String> paramNames = req.getParameterNames();
+        while (paramNames.hasMoreElements()) {
+            String name = paramNames.nextElement();
+            if ("datasourceName".equals(name) || "endpoint".equals(name)
+                || "host".equals(name) || "hostType".equals(name) || "serviceName".equals(name)) {
+                continue;
+            }
+            String value = req.getParameter(name);
+            if (value != null && !value.isEmpty()) {
+                urlBuilder.append(separator).append(name).append('=').append(value);
+                separator = "&";
+            }
+        }
+
+        String url = urlBuilder.toString();
+
+        // 转发原始请求头（排除 hop-by-hop 头）
+        Map<String, String> forwardedHeaders = new HashMap<>();
+        Enumeration<String> headerNames = req.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            if (isHopByHopHeader(headerName)) continue;
+            forwardedHeaders.put(headerName, req.getHeader(headerName));
+        }
+
+        try {
+            // executeProxyGet 始终使用普通 RestTemplate（URL 已在上游解析好）
+            String result = httpService.executeProxyGet(url, forwardedHeaders);
+            if (result == null || result.isBlank()) {
+                ResponseUtils.writeObjectToJson(resp, List.of());
+                return;
+            }
+
+            // 检测响应类型：JSON 数组 → 直接返回（metadata 接口如 report-beans）
+            String trimmed = result.trim();
+            if (trimmed.startsWith("[")) {
+                resp.setContentType("application/json;charset=UTF-8");
+                resp.getWriter().write(result);
+                return;
+            }
+
+            // 尝试解析标准协议响应 {code, data, message} 并提取 data
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> parsed = mapper.readValue(result, Map.class);
+            if (parsed.containsKey("code")) {
+                Object code = parsed.get("code");
+                if (code instanceof Number && ((Number) code).intValue() != 200) {
+                    Map<String, Object> errResult = new HashMap<>();
+                    errResult.put("error", parsed.getOrDefault("message", "Unknown error from standard protocol service"));
+                    ResponseUtils.writeObjectToJson(resp, errResult);
+                    return;
+                }
+                ResponseUtils.writeObjectToJson(resp, parsed.get("data"));
+                return;
+            }
+            // 非标准协议格式，直接返回
+            ResponseUtils.writeObjectToJson(resp, parsed);
+        } catch (Exception e) {
+            String causeMsg = e.getCause() != null ? e.getCause().getMessage() : null;
+            log.warn("HTTP standard proxy request failed: datasourceName={}, endpoint={}, url={}, cause={}",
+                datasourceName, endpoint, url, causeMsg, e);
+            Map<String, Object> errResult = new HashMap<>();
+            errResult.put("error", e.getMessage());
+            if (causeMsg != null) {
+                errResult.put("cause", causeMsg);
+            }
+            errResult.put("proxyUrl", url);
+            ResponseUtils.writeObjectToJson(resp, errResult);
+        }
+    }
+
+    /**
+     * 判断是否为 hop-by-hop 头，这些头不应转发到目标服务
+     */
+    private static boolean isHopByHopHeader(String name) {
+        if (name == null) return true;
+        String lower = name.toLowerCase();
+        return lower.equals("host")
+            || lower.equals("connection")
+            || lower.equals("content-length")
+            || lower.equals("transfer-encoding")
+            || lower.equals("upgrade")
+            || lower.equals("proxy-authorization")
+            || lower.equals("proxy-authenticate")
+            || lower.equals("te")
+            || lower.equals("trailer");
+    }
+
+    /**
+     * 通过 DiscoveryClient 解析服务名到实际的 http://host:port 地址。
+     * 使用反射调用以规避编译期对 spring-cloud-commons 的依赖。
+     */
+    @SuppressWarnings("unchecked")
+    private String resolveServiceHost(String serviceName) {
+        try {
+            Class<?> dcClass = Class.forName("org.springframework.cloud.client.discovery.DiscoveryClient");
+            Object discoveryClient = applicationContext.getBean(dcClass);
+            Method getInstances = dcClass.getMethod("getInstances", String.class);
+            List<Object> instances = (List<Object>) getInstances.invoke(discoveryClient, serviceName);
+            if (instances != null && !instances.isEmpty()) {
+                Object instance = instances.get(0);
+                Class<?> siClass = instance.getClass();
+                String hostName = (String) siClass.getMethod("getHost").invoke(instance);
+                int port = (int) siClass.getMethod("getPort").invoke(instance);
+                boolean secure = (boolean) siClass.getMethod("isSecure").invoke(instance);
+                String scheme = secure ? "https" : "http";
+                String resolved = scheme + "://" + hostName + ":" + port;
+                log.info("Resolved service '{}' → {}", serviceName, resolved);
+                return resolved;
+            }
+            log.warn("No instances found for service '{}' via DiscoveryClient", serviceName);
+        } catch (ClassNotFoundException e) {
+            log.warn("DiscoveryClient not available on classpath, cannot resolve service '{}'", serviceName);
+        } catch (Exception e) {
+            log.warn("Failed to resolve service '{}' via DiscoveryClient: {}", serviceName, e.getMessage());
+        }
+        return null;
     }
 
     /**
