@@ -1,27 +1,13 @@
 # CHANGELOG — Aureport Ultra 开发日志
 
-> 版本变更 + 开发过程记录合二为一。
+> 只记录已完成的历史变更。未来规划请见 [开发计划/功能路线图](../开发计划/功能路线图.md)。
 > 格式基于 [Keep a Changelog](https://keepachangelog.com/)。
 
 ---
 
 ## [1.2.0] - 开发中
 
-### 移除
-- **分组表头/分组表尾（grouphead/groupfoot）**：产品侧认为无明确使用场景，移除该功能。涉及 `GroupHeadAggregate`、`GroupFootAggregate` 两个聚合处理器，`CellDefinition`/`Cell`/`DatasetExpression` 中的字段，以及 XML 解析、前端 UI、国际化标签全套逻辑
-
-### 计划中
-
-#### 前端设计器
-- **HTTP 三方协议测试与字段发现**：数据集配置面板集成「测试并获取字段」按钮，自动检测 `{{xxx}}` 模板变量并生成参数输入框，调用实际接口后自动推断 JSON 字段结构（类型 + 嵌套展开），面板内联展示状态码/耗时/字段树/原始响应，字段保存机制同现有数据集。详见 `docs/技术方案/HTTP数据源方案.md` 第 13 节
-- **全局消息提示组件（$message）**：为 `UMessage` 组件添加编程式 API（`Message.success/warning/error/info`），支持在任意 ts/vue 文件中调用，并确保挂载点正确渲染
-
-### 修复
-
-#### 核心引擎
-- **父子单元格循环引用 StackOverflowError（P0）**：修复 `ReportRender.addColumnChildCell` 和 `Cell.addColumnChild` 在构建父子关系树时的无限递归。两个方法均添加 `Set<CellDefinition>/Set<Cell> visited` 参数检测循环引用并终止。**根因**：A1.topParentCell=A2，A2 自动取 A1 作为 topParentCell，形成死循环
-
-#### 通用
+### 新增
 
 #### 核心引擎
 - **ProgressBarValue 进度条单元格**：新增 `progressbar` 值类型，支持百分比进度条展示（value/max 属性）
@@ -49,35 +35,34 @@
 - **Tooltip 配置**：单元格属性面板新增 tooltip 配置项
 - **SpringBean 字段展示增强**：树节点同时显示字段名和 label 描述；嵌套 Bean 子字段可展开
 - **SpringBean 数据集配置增强**：Bean 方法对话框添加 label 展示、编辑后自动重建字段树、支持不指定方法（仅用于获取嵌套属性）
-- **Web Component Lib 构建**：新增 Vite lib 模式构建配置，导出 `AureportDesigner`/`AureportPreview` 自定义元素，替换原 `LuckDesigner`/`LuckPreview`
-- **数据集配置字段 label 统一展示**：SpringBean 树节点、数据集属性面板下拉选项（6 个条件属性配置面板 + data-mapping）同时展示字段名和 label 描述
+- **Web Component Lib 构建**：新增 Vite lib 模式构建配置，导出 `AureportDesigner`/`AureportPreview` 自定义元素
+- **数据集配置字段 label 统一展示**：SpringBean 树节点、数据集属性面板下拉选项统一展示字段名和 label
+- **vue-simple-suggest 兼容性修复**：将 Vue 2 不兼容的 `vue-simple-suggest` v1.11.2 替换为 Vue 3 原生 fork `@ffrosch/vue-simple-suggest` v2.0.7
+- **UCheckbox 注入警告消除**：为 9 处独立使用 `<u-checkbox>` 的组件包裹 `<u-checkbox-group>`，消除注入警告
+- **TypeScript 类型错误修复**：全面修复 TypeScript 严格模式类型错误
+- **ESLint 规范修复**：全面修复 ESLint 规范问题
 
 ### 修复
 
-#### 通用
-- **RowDefinition/ColumnDefinition 属性解析**：`RowParser`/`ColumnParser` 正确读取 `row-number`/`col-number` 属性并设置到对应字段
-- **ReportDefinition.newReport NPE**：`rowMap.get()` 可能返回 null 的问题（已加 null 检查，待完整修复）
-- **设置弹窗样式修复**：`.u-dialog-wrap` 添加 `color: #333` 解决白字白底不可见问题
-- **设置弹窗关闭按钮**：修复 `update:visible` 事件传播链，X 按钮和取消按钮恢复正常
+#### 核心引擎
+- **父子单元格循环引用 StackOverflowError（P0）**：修复 `ReportRender.addColumnChildCell` 和 `Cell.addColumnChild` 在构建父子关系树时的无限递归。两个方法均添加 `Set<CellDefinition>/Set<Cell> visited` 参数检测循环引用并终止。**根因**：A1.topParentCell=A2，A2 自动取 A1 作为 topParentCell，形成死循环
+- **ReportParser rowSpan/colSpan 自减 Bug 修复（P0-2）**：后缀 `--` 改为前缀 `--`，确保合并单元格范围计算正确。**根因**：后缀 `--` 在表达式解析中产生歧义
+- **BlankCellApply 父子格重定向修复（P0-3）**：`DownBlankCellApply` 和 `RightBlankCellApply` 同时重定向 `leftParentCell` 和 `topParentCell`
 
 #### 前端设计器
-- **vue-simple-suggest 兼容性修复**：将 Vue 2 不兼容的 `vue-simple-suggest` v1.11.2 替换为 Vue 3 原生 fork `@ffrosch/vue-simple-suggest` v2.0.7。**根因**：`this.constructor` 不存在于 Vue 3 `PublicInstanceProxyHandlers`
-- **UCheckbox 注入警告修复**：为 9 处独立使用 `<u-checkbox>` 的组件包裹 `<u-checkbox-group>`，消除 `[Vue warn]: injection 'checkboxGroupContext' not found` 警告。涉及数据集配置和全部 8 个条件属性配置面板
 - **父子格引用修复（P0-1~P0-4）**：
   - P0-1：插入/删除行列时更新受影响单元格的 `leftParentCellName`/`topParentCellName`
   - P0-4：右键清除内容时重置父格引用
-- **右键菜单点击外部关闭**：修复 `ContextMenu` 的 `document.contains(e.target)` 恒为 `true` 导致无法点击外部自动关闭的问题，改用 `menuEl.contains(e.target)`
-- **字段编辑功能**：
-  - **Buildin/Database/Spring 统一**：三棵树均支持通过右键菜单编辑字段名和标签（`FieldNameDialog` 添加 `field` prop 支持编辑预填、label 输入框）
-  - **字段标签显示**：数据集属性面板下拉选项、SpringBean 树节点同时展示字段名和 label
-  - **BuildinTree 编辑不持久化修复**：原编辑分支缺少 `emit` 调用，导致修改仅在本地 deepCopy 副本上生效而未持久化。将所有字段变更的 `emit` 移至 if/else 外部统一执行
-  - **DatabaseTree 编辑后渲染不更新**：将 `datasets` 通过独立 prop 传递并直连 watch，避免依赖 `props.ds` 的 deep watcher 无法可靠检测深层变化的问题。后续补充：
-    - 子组件 `handleFieldNameSave` 中添加 `datasets.value = newDatasets` 本地 ref 更新，确保模板响应式链触发
-    - 父组件 `updateSpringDatasets` 从原地修改改为元素替换（`datasources.value[index] = { ... }`），确保 computed 正确重新求值
+- **右键菜单点击外部关闭**：修复 `ContextMenu` 的 `document.contains(e.target)` 恒为 `true` 问题
+- **字段编辑功能修复**：BuildinTree 编辑不持久化、DatabaseTree 编辑后渲染不更新
+- **设置弹窗样式/关闭按钮修复**：白字白底、X 按钮失效
 
-#### 核心引擎
-- **ReportParser rowSpan/colSpan 自减 Bug 修复（P0-2）**：后缀 `--` 改为前缀 `--`，确保合并单元格范围计算正确。**根因**：后缀 `--` 在表达式解析中产生歧义
-- **BlankCellApply 父子格重定向修复（P0-3）**：`DownBlankCellApply` 和 `RightBlankCellApply` 同时重定向 `leftParentCell` 和 `topParentCell`，修复同时持有两种引用时一侧填充后另一侧失效的问题
+#### 通用
+- **RowDefinition/ColumnDefinition 属性解析**：`RowParser`/`ColumnParser` 正确读取 `row-number`/`col-number` 属性
+- **ReportDefinition.newReport NPE**：`rowMap.get()` null 检查
+
+### 移除
+- **分组表头/分组表尾（grouphead/groupfoot）**：移除 `GroupHeadAggregate`、`GroupFootAggregate` 及全套逻辑
 
 ---
 
@@ -94,12 +79,7 @@
 - **工具栏组件自动导入修复**：修复 `unplugin-vue-components` 无法扫描 tool-bar 目录的问题
 
 ### 修复
-
-- **搜索表单设计器白屏**：4 个根因全部修复
-  - vuedraggable 版本冲突（同时存在 vuedraggable@next 和 v4.1.0）
-  - u-* 组件在动态渲染时未注册
-  - render.jsx 混用 Options API 导致 Vue 3 兼容问题
-  - draggable-item 双 script 块混用（Options API + Composition API）
+- **搜索表单设计器白屏**：4 个根因全部修复（vuedraggable 版本冲突、u-* 组件未注册、render.jsx 兼容、draggable-item 双 script 块）
 - **ClasspathReportProvider 前缀**：`"classpath"` 缺少冒号，修复为 `"classpath:"`
 - **Vite proxy 目标端口**：硬编码为 `http://localhost:3000`
 - **paper 标签 paging-mode NPE**：缺省 `paging-mode` 属性时解析返回 null 导致 NPE
