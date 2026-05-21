@@ -336,6 +336,9 @@ function buildPanel() {
 
 <style scoped>
 .ds-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: rgb(248, 248, 248);
   line-height: 40px;
   box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);

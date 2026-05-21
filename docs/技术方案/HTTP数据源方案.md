@@ -408,3 +408,162 @@ ReportBuilder.buildDatasets()
 | JSON 数组 `[...]` | 直接返回（metadata 接口如 `report-beans`） |
 | 标准协议 `{code, data, message}` | `code==200` 时提取 `data` 返回，否则抛异常 |
 | 其他 JSON | 直接返回 |
+
+---
+
+## 13. 三方协议测试与字段发现（设计阶段，待实现）
+
+### 13.1 背景
+
+三方协议目前仅支持手动配置 URL/方法/头/体/JSONPath，用户无法在配置时查看实际接口返回的字段结构，类比 JDBC 数据源的「测试连接→自动发现字段」流程，需要在三方协议数据集配置中增加实时测试与字段自动发现能力。
+
+### 13.2 交互流程
+
+```
+数据集配置面板填好
+  → 检测 {{xxx}} 变量 → 动态生成测试参数输入框
+  → 用户填写测试参数值
+  → 点击 [测试并获取字段]
+    → 前端校验：{{xxx}} 是否有未填的 → 提示
+    → 请求后端 httpTestAndDiscover 端点
+  → 后端调实际接口
+    → 拼接完整 URL（baseUrl + 数据集 url）
+    → 替换 {{xxx}} 为测试值
+    → 继承数据源请求头
+    → 发起 HTTP 请求
+    → JSONPath 提取数据数组
+    → 从 data[0] 键名推断字段列表 + 类型
+    → 返回字段列表 + 原始响应
+  → 前端展示
+    → Status 码 + 耗时
+    → 字段树（同 http-tree 递归 children 展开）
+    → 原始响应（可折叠）
+    → 错误信息内联显示（不弹对话框）
+  → 用户保存 → 字段自动写入数据集定义
+```
+
+### 13.3 后端 API
+
+```
+POST /api/datasource/httpTestAndDiscover
+```
+
+请求体：
+
+| 字段 | 来源 | 说明 |
+|------|------|------|
+| `baseUrl` | 数据源配置 | 数据源的 baseUrl |
+| `headers` | 数据源配置 | 数据源的请求头，数据集继承复用 |
+| `url` | 数据集配置 | 请求相对路径，支持 `{{paramName}}` |
+| `method` | 数据集配置 | HTTP 方法 |
+| `body` | 数据集配置 | 请求体模板（POST/PUT 时） |
+| `responsePath` | 数据集配置 | 响应 JSONPath |
+| `requestParameters` | 数据集配置 | URL query 参数键值对 |
+| `parameters` | 测试参数 | `{{xxx}}` 替换值，含 requestParameters 值 |
+
+响应：
+
+```json
+{
+  "success": true,
+  "status": 200,
+  "elapsed": 235,
+  "fields": [
+    { "name": "orderId",   "label": "orderId",   "type": "Integer" },
+    { "name": "totalAmount", "label": "totalAmount", "type": "BigDecimal" },
+    { "name": "status",     "label": "status",     "type": "String" }
+  ],
+  "rawResponse": "{\"code\":0,\"data\":[{\"orderId\":1001,...}]}",
+  "error": null
+}
+```
+
+### 13.4 字段类型推断规则
+
+| JSON 类型 | 映射类型 |
+|-----------|---------|
+| 整数（无小数） | `Integer` / `Long` |
+| 浮点数（有小数） | `BigDecimal` / `Double` |
+| 字符串 | `String` |
+| 布尔 | `Boolean` |
+| 数组 | `Array`（递归展开 children） |
+| 对象 | `Object`（递归展开 children） |
+
+### 13.5 请求头继承规则
+
+数据集**不再单独配置请求头**，完全继承数据源的 `headers` 配置。数据源层级负责认证鉴权（API Key、Bearer Token 等），数据集层级只关注请求路径、参数和响应解析。
+
+### 13.6 URL 地址拼接
+
+```
+完整 URL = baseUrl + dataset.url
+
+示例:
+  baseUrl:    https://api.example.com
+  dataset:    /v1/users/{{userId}}/orders
+  结果:       https://api.example.com/v1/users/{{userId}}/orders
+
+测试时 {{userId}} 由测试参数替换
+```
+
+### 13.7 响应 JSONPath 为空处理
+
+| 条件 | 行为 |
+|------|------|
+| 响应为 JSON 数组 | 直接解析为数据行 |
+| 响应为 JSON 对象（非数组） | 提示用户"请配置 JSONPath" |
+| `responsePath` 已配置 | 按 JSONPath 提取 |
+
+### 13.8 面板布局
+
+```
+┌─────────────────────────────────────────┐
+│  数据集名称:  [__________________]       │
+│                                         │
+│  请求路径:    [/v1/users/{{userId}}/orders]
+│  请求方式:    [GET ▾]                   │
+│                                         │
+│  ── 请求参数 ──                          │
+│  [参数名] [参数值]          [ + ]        │
+│  [page  ] [1        ]       [ − ]        │
+│                                         │
+│  ── 请求体 (POST/PUT) ──                │
+│  [___________________________________]  │
+│                                         │
+│  响应JSONPath: [$.data.list      ]       │
+│                                         │
+│  ── 测试参数 ──                          │
+│  ⇢ 检测到模板变量:                       │
+│  userId: [__________]   ← {{userId}}     │
+│                                         │
+│  [🚀 测试并获取字段]                      │
+│                                         │
+│  ── 测试结果 ──                          │
+│  ✅ 200 OK · 235ms                      │
+│                                         │
+│  字段列表:                               │
+│  ├─ orderId        Integer              │
+│  ├─ totalAmount    BigDecimal           │
+│  ├─ status         String               │
+│  └─ items          Array                │
+│      ├─ name       String               │
+│      └─ price      BigDecimal           │
+│                                         │
+│  ▶ 原始响应（点击展开）                   │
+│                                         │
+│  ⚠ 错误信息内联显示（如有）              │
+├─────────────────────────────────────────┤
+│         [取消]          [保存]           │
+└─────────────────────────────────────────┘
+```
+
+### 13.9 涉及改动文件
+
+| 文件 | 操作 | 说明 |
+|------|------|------|
+| `core/.../datasource/HttpService.java` | 新增方法 | `testAndDiscover()` 接口方法 |
+| `core/.../datasource/HttpRequestConfig.java` | 扩展 | 添加 `parameters` 字段用于模板替换 |
+| `web/.../http/HttpServiceImpl.java` | 新增方法 | 实现：拼接 URL → 替换模板 → 继承头 → 请求 → JSONPath → 字段推断 |
+| `web/.../controller/designer/DatasourceController.java` | 新增端点 | `httpTestAndDiscover` |
+| `ui/.../http-dataset-dialog/index.vue` | 重写 | 集成测试按钮 + 动态参数输入 + 字段树展示 + 原始响应折叠 |
+| `ui/.../http-tree/index.vue` | 引用 | 复用字段树渲染逻辑（展开/折叠/右键菜单） |

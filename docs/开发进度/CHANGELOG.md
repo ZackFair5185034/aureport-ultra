@@ -10,6 +10,12 @@
 ### 移除
 - **分组表头/分组表尾（grouphead/groupfoot）**：产品侧认为无明确使用场景，移除该功能。涉及 `GroupHeadAggregate`、`GroupFootAggregate` 两个聚合处理器，`CellDefinition`/`Cell`/`DatasetExpression` 中的字段，以及 XML 解析、前端 UI、国际化标签全套逻辑
 
+### 计划中
+
+#### 前端设计器
+- **HTTP 三方协议测试与字段发现**：数据集配置面板集成「测试并获取字段」按钮，自动检测 `{{xxx}}` 模板变量并生成参数输入框，调用实际接口后自动推断 JSON 字段结构（类型 + 嵌套展开），面板内联展示状态码/耗时/字段树/原始响应，字段保存机制同现有数据集。详见 `docs/技术方案/HTTP数据源方案.md` 第 13 节
+- **全局消息提示组件（$message）**：为 `UMessage` 组件添加编程式 API（`Message.success/warning/error/info`），支持在任意 ts/vue 文件中调用，并确保挂载点正确渲染
+
 ### 修复
 
 #### 核心引擎
