@@ -15,6 +15,8 @@ import '@/assets/css/iconfont/iconfont.css'
 import '@/assets/css/common/index.css'
 
 function install() {
+  setLibMode(true)
+
   if (!customElements.get('aureport-designer')) {
     customElements.define('aureport-designer', AureportDesignerElement)
   }

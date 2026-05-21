@@ -250,28 +250,35 @@ async function loadFile(filePath: string, callback: (...args: unknown[]) => void
 
 function _buildReportData(data: any) {
   cellsMap.value.clear()
-  const rows = data.rows
+  const rows = data?.rows
+  const columns = data?.columns
+  const dataCellsMap = data?.cellsMap
+
+  if (!rows || !columns) {
+    hot.value?.loadData([])
+    hot.value?.updateSettings({ colWidths: [], rowHeights: [], mergeCells: [] })
+    return
+  }
+
   const rowHeights: number[] = []
   for (const row of rows) {
     const height = row.height
     rowHeights.push(utils.pointToPixel(height))
   }
 
-  const columns = data.columns
   const colWidths: number[] = []
   for (const col of columns) {
     const width = col.width
     colWidths.push(utils.pointToPixel(width))
   }
 
-  const dataCellsMap = data.cellsMap
   const dataArray: string[][] = []
   const mergeCells: Array<{ rowspan: number, colspan: number, row: number, col: number }> = []
   for (const row of rows) {
     const rowData: string[] = []
     for (const col of columns) {
       const key = `${row.rowNumber},${col.columnNumber}`
-      const cell = dataCellsMap[key]
+      const cell = dataCellsMap?.[key]
       if (cell) {
         cellsMap.value.set(key, cell)
         rowData.push(cell.value?.value || '')

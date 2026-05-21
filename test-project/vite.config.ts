@@ -13,7 +13,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'aureport-ultra-ui': resolve(__dirname, '../aureport-ultra/aureport-ultra-ui/dist-lib/aureport-ultra.es.js'),
+      'aureport-ultra-ui': resolve(__dirname, '../aureport-ultra-ui'),
     },
   },
 })

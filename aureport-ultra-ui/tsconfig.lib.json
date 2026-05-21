@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist-lib/types",
+    "emitDeclarationOnly": true
+  },
+  "include": [
+    "src/lib/**/*.ts",
+    "src/lib/**/*.vue",
+    "src/lib/**/*.tsx",
+    "src/types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules", "dist", "dist-lib"]
+}

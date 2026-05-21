@@ -21,7 +21,8 @@ const babelPolyfillShim = () => ({
   },
 })
 
-// 保持 vue-datepicker-next 在 externalDeps 中（它的 CSS 导入需要 external）
+// vue-datepicker-next locale 文件内部有 __require("vue-datepicker-next") 调用
+// 在 ESM 环境下替换为 mock 对象避免运行时错误
 const vueDatepickerNextShim = () => ({
   name: 'vue-datepicker-next-shim',
   renderChunk(code: string, chunk: any) {
@@ -64,6 +65,10 @@ const externalDeps = [
   'async-validator',
   'chartjs-plugin-datalabels',
   'undo-manager',
+  'vue-datepicker-next',
+  'vue-datepicker-next/index.css',
+  'vue-datepicker-next/locale/zh-cn',
+  'vue-datepicker-next/locale/en',
   /@ckpack\/vue-color/,
 ]
 
@@ -107,20 +112,9 @@ export default defineConfig({
       external: externalDeps,
       output: {
         exports: 'named',
-        // CDN 场景：把 vue 等 peer deps 暴露为全局变量
-        globals: {
-          vue: 'Vue',
-          'vue-router': 'VueRouter',
-          pinia: 'Pinia',
-          'vue-i18n': 'VueI18n',
-          axios: 'axios',
-          'chart.js': 'Chart',
-          handsontable: 'Handsontable',
-          codemirror: 'CodeMirror',
-        },
-        // 把 css 提取到单独文件
+        // 把 css 提取到单独文件，统一命名
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css')
+          if (assetInfo.name?.endsWith('.css'))
             return 'aureport-ultra.css'
           return assetInfo.name || 'assets/[name]-[hash][extname]'
         },

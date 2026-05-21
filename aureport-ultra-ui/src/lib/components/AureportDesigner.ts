@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import { createPinia } from 'pinia'
 import { createApp, h } from 'vue'
 import { createI18n } from 'vue-i18n'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import en from '@/locales/lang/en'
 import zh from '@/locales/lang/zh'
 import DesignerComponent from '@/views/report/designer/index.vue'
@@ -127,9 +128,17 @@ class AureportDesignerElement extends HTMLElement {
       },
     }
 
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', name: 'Designer', component: { template: '<div/>' } },
+      ],
+    })
+
     this._app = createApp(Wrapper)
     this._app.use(pinia)
     this._app.use(i18n)
+    this._app.use(router)
     this._vm = this._app.mount(container)
   }
 
