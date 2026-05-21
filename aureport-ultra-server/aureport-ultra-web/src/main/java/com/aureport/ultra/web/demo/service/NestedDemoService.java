@@ -1,6 +1,6 @@
 package com.aureport.ultra.web.demo.service;
 
-import com.aureport.ultra.bean.ReportBeanMarker;
+import com.aureport.ultra.bean.ReportBean;
 import com.aureport.ultra.web.demo.model.AddressInfo;
 import com.aureport.ultra.web.demo.model.OfficeInfo;
 import com.aureport.ultra.web.demo.model.Organization;
@@ -16,12 +16,8 @@ import java.util.Map;
  * 方法签名必须为: List<T> methodName(String datasourceName, String datasetName, Map<String, Object> parameters)
  */
 @Service("nestedDemoService")
-public class NestedDemoService implements ReportBeanMarker {
-
-    @Override
-    public String name() {
-        return "嵌套属性演示（3层嵌套）";
-    }
+@ReportBean(name = "嵌套属性演示（3层嵌套）")
+public class NestedDemoService {
 
     /**
      * 查询组织列表，每个组织包含嵌套的 OfficeInfo 和 AddressInfo

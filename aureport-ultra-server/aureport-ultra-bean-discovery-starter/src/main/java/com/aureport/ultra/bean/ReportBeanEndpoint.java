@@ -14,10 +14,9 @@ import java.util.List;
 /**
  * REST 端点：枚举所有可作为报表数据源的 Spring Bean。
  * <p>
- * 支持三种发现机制：
+ * 支持两种发现机制：
  * <ul>
- *   <li>实现 {@link ReportBeanMarker} 接口</li>
- *   <li>标注 {@link ReportBean} 注解</li>
+ *   <li>标注 {@link ReportBean} 注解的 Bean</li>
  *   <li>通过 {@link ReportBeanProperties} 配置文件声明</li>
  * </ul>
  * </p>
@@ -40,9 +39,9 @@ public class ReportBeanEndpoint {
     @GetMapping
     public List<ReportBeanInfo> listReportBeans() {
         List<ReportBeanInfo> result = new ArrayList<>();
-        // 1+2: 接口 + 注解 发现的 Bean
+        // 注解 + 配置文件声明的 Bean
         result.addAll(reportBeanService.listReportBeans(applicationContext));
-        // 3: 配置文件声明的 Bean
+        // 配置文件声明的 Bean
         result.addAll(reportBeanService.listConfiguredBeans(reportBeanProperties));
         return result;
     }

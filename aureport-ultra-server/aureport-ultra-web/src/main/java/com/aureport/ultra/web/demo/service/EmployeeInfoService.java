@@ -1,6 +1,6 @@
 package com.aureport.ultra.web.demo.service;
 
-import com.aureport.ultra.bean.ReportBeanMarker;
+import com.aureport.ultra.bean.ReportBean;
 import com.aureport.ultra.web.demo.model.EmployeeInfoVO;
 import com.aureport.ultra.web.demo.model.FamilyMemberVO;
 import org.springframework.stereotype.Service;
@@ -13,12 +13,8 @@ import java.util.Map;
  * 员工信息服务 - 返回单个员工 VO（含嵌套的家庭成员列表）
  */
 @Service("employeeInfoService")
-public class EmployeeInfoService implements ReportBeanMarker {
-
-    @Override
-    public String name() {
-        return "员工信息（1对多嵌套演示）";
-    }
+@ReportBean(name = "员工信息（1对多嵌套演示）")
+public class EmployeeInfoService {
 
     /**
      * 查询单个员工信息，返回一个 EmployeeInfoVO（包含基本信息和嵌套的家庭成员列表）

@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * 声明一个 Spring Bean 可作为报表数据源使用。
  * <p>
- * 替代 {@link ReportBeanMarker} 接口方式，通过注解声明：
+ * 使用方式：
  * <pre>{@code
  * @ReportBean(name = "员工服务")
  * @Service
