@@ -18,12 +18,9 @@ test('aureport-designer Web Component loads correctly', async ({ page }) => {
   const designer = page.locator('aureport-designer')
   await expect(designer).toBeAttached()
 
-  // Verify shadow root is attached
-  const shadowRoot = await page.evaluate(() => {
-    const el = document.querySelector('aureport-designer')
-    return el?.shadowRoot !== null
-  })
-  expect(shadowRoot).toBe(true)
+  // Verify the inner container div was rendered (no Shadow DOM, plain container)
+  const container = designer.locator('.aureport-designer-container')
+  await expect(container).toBeAttached()
 
   // Log any errors found
   if (errors.length > 0) {

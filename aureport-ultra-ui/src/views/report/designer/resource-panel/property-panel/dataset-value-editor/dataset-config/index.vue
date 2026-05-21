@@ -75,6 +75,7 @@ const emit = defineEmits<{
   (e: 'fill-blank-rows-change', value: string): void
   (e: 'multiple-change', value: number): void
   (e: 'condition-property-items-change', value: any[]): void
+  (e: 'nest-property-change', value: string): void
   (e: 'update-custom-group', value: any[]): void
 }>()
 const { t } = useI18n()

@@ -9,6 +9,7 @@ import en from '@/locales/lang/en'
 import zh from '@/locales/lang/zh'
 import { updateUrlParams } from '@/utils/url'
 import PreviewComponent from '@/views/report/preview/index.vue'
+import { registerUComponents } from '@/lib/registerUComponents'
 import '@/assets/css/iconfont/iconfont.css'
 import '@/assets/css/common/index.css'
 
@@ -115,6 +116,9 @@ class AureportPreviewElement extends HTMLElement {
 
   private _mount() {
     this._syncUrlFromAttributes()
+    this.style.display = this.style.display || 'block'
+    this.style.width = this.style.width || '100%'
+    this.style.height = this.style.height || '100%'
 
     const container = document.createElement('div')
     container.className = 'aureport-preview-container'
@@ -132,6 +136,7 @@ class AureportPreviewElement extends HTMLElement {
     })
 
     this._app = createApp(PreviewComponent)
+    registerUComponents(this._app)
     this._app.use(pinia)
     this._app.use(this._i18n)
     this._vm = this._app.mount(container)

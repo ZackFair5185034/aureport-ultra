@@ -1,5 +1,3 @@
-import navigationAdapter from './navigationAdapter'
-
 let isLibMode = false
 
 export function setLibMode(mode) {
@@ -14,7 +12,7 @@ export function createNavigator(component) {
   return {
     navigate(options) {
       if (isLibMode) {
-        navigationAdapter.navigate(options)
+        window.dispatchEvent(new CustomEvent('aureport-navigate', { detail: options }))
         return
       }
 
@@ -33,44 +31,26 @@ export function createNavigator(component) {
     },
 
     openPreview(params, openInNewTab = true) {
-      this.navigate({
-        target: 'Preview',
-        params,
-        openInNewTab,
-      })
+      this.navigate({ target: 'Preview', params, openInNewTab })
     },
 
     openDesigner(params, openInNewTab = false) {
-      this.navigate({
-        target: 'Designer',
-        params,
-        openInNewTab,
-      })
+      this.navigate({ target: 'Designer', params, openInNewTab })
     },
 
     refresh() {
-      if (isLibMode) {
-        navigationAdapter.refresh()
-      }
-      else {
-        window.location.reload()
-      }
+      if (isLibMode) return
+      window.location.reload()
     },
 
     getRouteParams() {
-      if (isLibMode) {
-        return {}
-      }
-
+      if (isLibMode) return {}
       return component.$route?.query || {}
     },
   }
 }
 
 export function getRouteParams(component) {
-  if (isLibMode) {
-    return {}
-  }
-
+  if (isLibMode) return {}
   return component.$route?.query || {}
 }

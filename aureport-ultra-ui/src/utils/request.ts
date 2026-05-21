@@ -37,7 +37,7 @@ export async function post<T = unknown>(
   data?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const res = await request.post<T>(url, data, config)
+  const res = await request.post(url, data, config)
   return dealAxiosResult(res)
 }
 
@@ -45,7 +45,7 @@ export async function get<T = unknown>(
   url: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const res = await request.get<T>(url, config)
+  const res = await request.get(url, config)
   return dealAxiosResult(res)
 }
 

@@ -1,19 +1,31 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 import vue from '@vitejs/plugin-vue'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: tag => tag.startsWith('aureport-'),
+        },
+      },
+    }),
+  ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
-  },
-  resolve: {
-    alias: {
-      'aureport-ultra-ui': resolve(__dirname, '../aureport-ultra-ui'),
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8050',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api/, '/report'),
+      },
     },
   },
 })

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
+import type { RuleItem, Rules } from 'async-validator'
 import type { FormContext, FormField } from '../form/index.vue'
 import AsyncValidator from 'async-validator'
 
@@ -7,12 +8,16 @@ import './style/index.css'
 
 defineOptions({ name: 'UFormItem' })
 
+type ValidationRule = RuleItem & {
+  trigger?: string
+}
+
 const props = withDefaults(defineProps<{
   label?: string
   labelWidth?: number
   prop?: string
   required?: boolean
-  rules?: Record<string, unknown> | Record<string, unknown>[]
+  rules?: ValidationRule | ValidationRule[]
   error?: string
   validateStatus?: boolean
   showMessage?: boolean
@@ -85,10 +90,10 @@ function getPropByPath(obj: Record<string, unknown>, path: string): { o: Record<
   return { o: tempObj, k: keyArr[i], v: tempObj[keyArr[i]] }
 }
 
-function getRules(): Record<string, unknown>[] {
+function getRules(): ValidationRule[] {
   const formRules = form?.rules || {}
   const selfRules = props.rules
-  const propRules = formRules[props.prop as string] as Record<string, unknown> | Record<string, unknown>[] | undefined
+  const propRules = formRules[props.prop as string] as ValidationRule | ValidationRule[] | undefined
   if (selfRules) {
     return Array.isArray(selfRules) ? selfRules : [selfRules]
   }
@@ -102,7 +107,7 @@ function getRules(): Record<string, unknown>[] {
 
 function getFilteredRule(trigger: string) {
   const rules = getRules()
-  return rules.filter((rule: Record<string, unknown>) => !rule.trigger || (rule.trigger as string).includes(trigger))
+  return rules.filter((rule: ValidationRule) => !rule.trigger || rule.trigger.includes(trigger))
 }
 
 async function validate(trigger: string, callback?: (errors?: unknown) => void): Promise<boolean> {
@@ -124,7 +129,7 @@ async function validate(trigger: string, callback?: (errors?: unknown) => void):
 
   validateState.value = 'validating'
 
-  const descriptor: Record<string, unknown[]> = { [props.prop as string]: rules }
+  const descriptor: Rules = { [props.prop as string]: rules }
 
   const validator = new AsyncValidator(descriptor)
   const model: Record<string, unknown> = { [props.prop as string]: fieldValue.value }
@@ -200,7 +205,7 @@ function setRules() {
   if (rules.length && isRequired.value)
     return
   if (rules.length) {
-    rules.every((rule: Record<string, unknown>) => {
+    rules.every((rule: ValidationRule) => {
       isRequired.value = rule.required as boolean
       return true
     })

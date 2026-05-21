@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.5.0",
+    "aureport-ultra-ui": "file:../aureport-ultra-ui",
     "axios": "^1.16.1",
     "chart.js": "^4.5.1",
     "chartjs-plugin-datalabels": "^2.2.0",

@@ -6,6 +6,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import en from '@/locales/lang/en'
 import zh from '@/locales/lang/zh'
 import DesignerComponent from '@/views/report/designer/index.vue'
+import { registerUComponents } from '@/lib/registerUComponents'
 
 import 'handsontable/dist/handsontable.min.css'
 import 'codemirror/lib/codemirror.css'
@@ -59,6 +60,10 @@ class AureportDesignerElement extends HTMLElement {
   }
 
   private _mount() {
+    this.style.display = this.style.display || 'block'
+    this.style.width = this.style.width || '100%'
+    this.style.height = this.style.height || '100%'
+
     const container = document.createElement('div')
     container.className = 'aureport-designer-container'
     container.style.width = '100%'
@@ -136,6 +141,7 @@ class AureportDesignerElement extends HTMLElement {
     })
 
     this._app = createApp(Wrapper)
+    registerUComponents(this._app)
     this._app.use(pinia)
     this._app.use(i18n)
     this._app.use(router)

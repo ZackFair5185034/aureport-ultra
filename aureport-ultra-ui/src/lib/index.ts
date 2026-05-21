@@ -1,7 +1,5 @@
 import AureportDesignerElement from './components/AureportDesigner'
-
 import AureportPreviewElement from './components/AureportPreview'
-import navigationAdapter from './navigationAdapter'
 import { getLibMode, setLibMode } from './navigator'
 import requestAdapter from './requestAdapter'
 import './publicPath'
@@ -37,21 +35,15 @@ autoInstall()
 export default {
   install,
   requestAdapter,
-  navigationAdapter,
   setLibMode,
   getLibMode,
   AureportDesignerElement,
   AureportPreviewElement,
 }
 
-export {
-
-  install,
-
-}
+export { install }
 
 export { default as AureportDesignerElement } from './components/AureportDesigner'
 export { default as AureportPreviewElement } from './components/AureportPreview'
-export { default as navigationAdapter } from './navigationAdapter'
 export { getLibMode, setLibMode } from './navigator'
 export { default as requestAdapter } from './requestAdapter'

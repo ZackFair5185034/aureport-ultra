@@ -1,57 +1,11 @@
-import axios from 'axios'
+import request from '@/utils/request'
 
-const defaultRequest = axios.create({
-  baseURL: '/api',
-  timeout: 60000,
-})
-
-let customRequestHandler = null
-let externalRequestInstance = null
-
-const requestAdapter = {
-  setRequest(request) {
-    externalRequestInstance = request
-  },
-
-  setRequestHandler(handler) {
-    customRequestHandler = handler
-  },
-
+export default {
   setBaseURL(url) {
-    defaultRequest.defaults.baseURL = url
+    request.defaults.baseURL = url
   },
 
   setDefaultHeaders(headers) {
-    Object.assign(defaultRequest.defaults.headers.common, headers)
-  },
-
-  addRequestInterceptor(onFulfilled, onRejected) {
-    return defaultRequest.interceptors.request.use(onFulfilled, onRejected)
-  },
-
-  addResponseInterceptor(onFulfilled, onRejected) {
-    return defaultRequest.interceptors.response.use(onFulfilled, onRejected)
-  },
-
-  async request(config) {
-    if (externalRequestInstance) {
-      return externalRequestInstance(config)
-    }
-
-    if (customRequestHandler) {
-      return customRequestHandler(config)
-    }
-
-    return defaultRequest(config)
-  },
-
-  async post(url, data, config) {
-    return this.request({ method: 'POST', url, data, ...config })
-  },
-
-  async get(url, config) {
-    return this.request({ method: 'GET', url, ...config })
+    Object.assign(request.defaults.headers.common, headers)
   },
 }
-
-export default requestAdapter

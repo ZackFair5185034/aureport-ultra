@@ -155,6 +155,7 @@ export interface Dataset {
 /** 字段 */
 export interface Field {
   name: string
+  label?: string
 }
 
 /** 参数 */

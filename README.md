@@ -4,15 +4,15 @@
 
 ## 项目概述
 
-| 维度 | 数据 |
-|------|------|
-| 定位 | Java 报表引擎 + Vue 3 可视化设计器 |
+| 维度 | 数据                                           |
+|------|----------------------------------------------|
+| 定位 | Java 报表引擎 + Vue 3 可视化设计器                     |
 | 技术栈 | SpringBoot 3.2.5 + Vue 3 + Vite + TypeScript |
-| 后端模块 | 4 个 Maven 模块（core/web/font/pub） |
-| Java 文件 | 490 个 |
-| 数据库 | MySQL / Oracle / SQLServer / 达梦（仅用作数据源） |
-| 前端端口 | 3000（Vite 开发服务器） |
-| 后端端口 | 8050（Spring Boot） |
+| 后端模块 | 4 个 Maven 模块（core/web/font/pub）              |
+| Java 文件 | 490 个                                        |
+| 数据库 | MySQL / Oracle / SQLServer / 达梦（仅用作数据源）      |
+| 前端端口 | 9527（Vite 开发服务器）                             |
+| 后端端口 | 8050（Spring Boot）                            |
 
 **核心架构**：报表定义以 `.ureport.xml` 文件存储在 `fileStoreDir` 目录，**不是数据库存储**。数据库连接只用来执行用户配置的 SQL 数据集查询。
 
