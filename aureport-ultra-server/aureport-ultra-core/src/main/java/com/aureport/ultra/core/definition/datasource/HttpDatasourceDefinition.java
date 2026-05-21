@@ -74,7 +74,7 @@ public class HttpDatasourceDefinition implements DatasourceDefinition {
                 config.setRequestParameters(httpDsDef.getRequestParameters());
 
                 List<Map<String, Object>> data = httpService.executeStandard(
-                    config, name, httpDsDef.getName(), parameters);
+                    config, name, httpDsDef.getName(), httpDsDef.getBeanId(), httpDsDef.getBeanMethod(), parameters);
                 list.add(new Dataset(httpDsDef.getName(), data));
             }
         }

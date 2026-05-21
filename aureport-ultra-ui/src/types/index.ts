@@ -315,7 +315,7 @@ export interface ChartPlugin {
 
 export type ExpandType = 'None' | 'Down' | 'Right'
 export type SortType = 'none' | 'asc' | 'desc'
-export type AggregateType = 'select' | 'group' | 'customgroup' | 'sum' | 'count' | 'max' | 'min' | 'avg'
+export type AggregateType = 'select' | 'group' | 'customgroup' | 'iterate' | 'sum' | 'count' | 'max' | 'min' | 'avg'
 export type BandType = 'header' | 'footer' | 'detail' | 'title' | 'summary'
 
 // ====== API 类型 ======

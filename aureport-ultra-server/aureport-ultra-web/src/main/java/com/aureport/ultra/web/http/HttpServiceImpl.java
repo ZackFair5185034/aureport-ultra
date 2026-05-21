@@ -48,12 +48,22 @@ public class HttpServiceImpl implements HttpService {
     public List<Map<String, Object>> executeStandard(HttpRequestConfig config,
                                                      String datasourceName,
                                                      String datasetName,
+                                                     String beanId,
+                                                     String beanMethod,
                                                      Map<String, Object> parameters) {
         // 构建标准协议请求体
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("datasourceName", datasourceName);
-        requestBody.put("datasetName", datasetName);
-        requestBody.put("parameters", parameters != null ? parameters : Map.of());
+        if (beanId != null && !beanId.isBlank() && beanMethod != null && !beanMethod.isBlank()) {
+            // Phase2: 使用 beanId + method 模式
+            requestBody.put("beanId", beanId);
+            requestBody.put("method", beanMethod);
+            requestBody.put("parameters", parameters != null ? parameters : Map.of());
+        } else {
+            // 向后兼容：纯 datasourceName + datasetName 模式
+            requestBody.put("datasourceName", datasourceName);
+            requestBody.put("datasetName", datasetName);
+            requestBody.put("parameters", parameters != null ? parameters : Map.of());
+        }
 
         String url = config.getUrl();
         String method = config.getMethod() != null ? config.getMethod().toUpperCase() : "POST";

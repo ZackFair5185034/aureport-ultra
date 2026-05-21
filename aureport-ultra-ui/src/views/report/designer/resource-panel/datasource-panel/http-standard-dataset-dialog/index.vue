@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'save', name: string, method: string, clazz: string, oldName: string, beanId: string): void
+  (e: 'save', name: string, beanMethod: string, clazz: string, oldName: string, beanId: string): void
   (e: 'close'): void
 }>()
 
@@ -128,7 +128,7 @@ function initData() {
   if (props.dataset) {
     oldName.value = props.dataset.name
     name.value = props.dataset.name
-    method.value = props.dataset.method || ''
+    method.value = props.dataset.beanMethod || props.dataset.method || ''
     clazz.value = props.dataset.clazz || ''
     selectedBeanId.value = props.dataset.beanId || ''
   }

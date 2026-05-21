@@ -126,6 +126,10 @@ public class DatasourceParser implements Parser<DatasourceDefinition> {
                 if (body != null) dataset.setBody(body);
                 String responsePath = ele.attributeValue("responsePath");
                 if (responsePath != null) dataset.setResponsePath(responsePath);
+                String beanId = ele.attributeValue("beanId");
+                if (beanId != null) dataset.setBeanId(beanId);
+                String beanMethod = ele.attributeValue("beanMethod");
+                if (beanMethod != null) dataset.setBeanMethod(beanMethod);
                 dataset.setFields(parseFields(ele));
                 dataset.setRequestParameters(parseHttpParameters(ele));
                 list.add(dataset);

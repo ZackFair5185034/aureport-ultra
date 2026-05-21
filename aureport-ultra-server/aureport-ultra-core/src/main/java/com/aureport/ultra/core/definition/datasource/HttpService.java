@@ -21,12 +21,16 @@ public interface HttpService {
      * @param config 请求配置（URL、方法、头、请求参数）
      * @param datasourceName 数据源名称
      * @param datasetName 数据集名称
+     * @param beanId 标准协议：远程 Bean ID
+     * @param beanMethod 标准协议：远程 Bean 方法名
      * @param parameters 查询参数
      * @return 数据行列表
      */
     List<Map<String, Object>> executeStandard(HttpRequestConfig config,
                                               String datasourceName,
                                               String datasetName,
+                                              String beanId,
+                                              String beanMethod,
                                               Map<String, Object> parameters);
 
     /**

@@ -526,7 +526,9 @@ public class DatasourceController {
                 config.setMethod(req.getParameter("method"));
                 config.setHeaders(req.getParameter("headers"));
                 String dsName = req.getParameter("datasourceName");
-                data = httpService.executeStandard(config, dsName, datasetName, Map.of());
+                String beanId = req.getParameter("beanId");
+                String beanMethod = req.getParameter("beanMethod");
+                data = httpService.executeStandard(config, dsName, datasetName, beanId, beanMethod, Map.of());
             }
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();

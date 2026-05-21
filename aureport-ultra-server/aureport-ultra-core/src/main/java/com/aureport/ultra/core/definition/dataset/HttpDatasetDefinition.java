@@ -30,6 +30,12 @@ public class HttpDatasetDefinition implements DatasetDefinition {
     /** 响应 JSONPath（RESTFUL 时使用） */
     private String responsePath;
 
+    /** 标准协议：Bean ID（远程服务上的 Spring Bean 名称） */
+    private String beanId;
+
+    /** 标准协议：Bean 方法名 */
+    private String beanMethod;
+
     /** 请求参数 */
     private List<HttpParameter> requestParameters;
 
@@ -57,6 +63,12 @@ public class HttpDatasetDefinition implements DatasetDefinition {
 
     public String getResponsePath() { return responsePath; }
     public void setResponsePath(String responsePath) { this.responsePath = responsePath; }
+
+    public String getBeanId() { return beanId; }
+    public void setBeanId(String beanId) { this.beanId = beanId; }
+
+    public String getBeanMethod() { return beanMethod; }
+    public void setBeanMethod(String beanMethod) { this.beanMethod = beanMethod; }
 
     public List<HttpParameter> getRequestParameters() { return requestParameters; }
     public void setRequestParameters(List<HttpParameter> requestParameters) { this.requestParameters = requestParameters; }

@@ -168,10 +168,14 @@ const propertyOptions = computed(() => {
 })
 
 const nestPropertyOptions = computed(() =>
-  props.currentFields.map((field: any) => ({
-    value: field.name,
-    label: field.label ? `${field.name} (${field.label})` : field.name,
-  })),
+  // Only show fields that have children — these represent iterable nested fields
+  // (object/array fields that can be iterated to expand rows)
+  props.currentFields
+    .filter(field => field.children?.length)
+    .map((field: any) => ({
+      value: field.name,
+      label: field.label ? `${field.name} (${field.label})` : field.name,
+    })),
 )
 
 const aggregateOptions = computed(() => [

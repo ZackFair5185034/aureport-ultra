@@ -358,7 +358,7 @@ function _updateTableData() {
 
         case 'dataset': {
           let text = `${value.datasetName}.${value.aggregate}(`
-          if (value.aggregate === 'iterate' as any) {
+          if (value.aggregate === 'iterate') {
             text += value.nestProperty || ''
             text += ')'
             if (value.property) {

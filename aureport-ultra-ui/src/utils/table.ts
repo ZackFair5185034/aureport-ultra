@@ -975,6 +975,8 @@ export function tableToXml(context: ReportContext): string {
           ds += `<dataset name="${encode(dataset.name)}" type="http"`
           if (dataset.url) ds += ` url="${encode(dataset.url)}"`
           if (dataset.method) ds += ` method="${encode(dataset.method)}"`
+          if (dataset.beanId) ds += ` beanId="${encode(dataset.beanId)}"`
+          if (dataset.beanMethod) ds += ` beanMethod="${encode(dataset.beanMethod)}"`
           if (dataset.headers) ds += ` headers="${encode(dataset.headers)}"`
           if (dataset.body) ds += ` body="${encode(dataset.body)}"`
           if (dataset.responsePath) ds += ` responsePath="${encode(dataset.responsePath)}"`

@@ -173,12 +173,12 @@ function handleDatasetSave(nameVal: string, data: any, oldName: string) {
   emit('update-datasets', newDatasets)
 }
 
-function handleStandardDatasetSave(nameVal: string, methodVal: string, clazz: string, oldName: string, beanId: string) {
+function handleStandardDatasetSave(nameVal: string, beanMethod: string, clazz: string, oldName: string, beanId: string) {
   const newDatasets = deepCopy(localDatasets.value)
   if (oldName && oldName !== '') {
     const index = newDatasets.findIndex((d: any) => d.name === oldName)
     if (index !== -1) {
-      newDatasets[index] = { ...newDatasets[index], name: nameVal, method: methodVal, clazz, beanId, fields: [] }
+      newDatasets[index] = { ...newDatasets[index], name: nameVal, beanMethod, clazz, beanId, fields: [] }
       emit('update-datasets', newDatasets)
       if (clazz) {
         refreshDatasetFields(newDatasets[index], index)
@@ -186,7 +186,7 @@ function handleStandardDatasetSave(nameVal: string, methodVal: string, clazz: st
       return
     }
   }
-  const dataset = { name: nameVal, method: methodVal, clazz, beanId, fields: [] }
+  const dataset = { name: nameVal, beanMethod, clazz, beanId, fields: [] }
   newDatasets.push(dataset)
   datasetExpanded.value[newDatasets.length - 1] = true
   emit('update-datasets', newDatasets)
