@@ -75,7 +75,7 @@ public class HeaderFooterBuilder {
         String date = dateSD.format(D);
         String time = timeSD.format(D);
         if (StringUtils.isNotBlank(left)) {
-            ctp = CTP.Factory.newInstance();
+            ctp = (CTP) CTP.Factory.newInstance();
             para = new XWPFParagraph(ctp, document);
             para.setAlignment(ParagraphAlignment.LEFT);
             paras.add(para);
@@ -178,7 +178,7 @@ public class HeaderFooterBuilder {
             }
         }
         if (StringUtils.isNotBlank(center)) {
-            ctp = CTP.Factory.newInstance();
+            ctp = (CTP) CTP.Factory.newInstance();
             para = new XWPFParagraph(ctp, document);
             para.setAlignment(ParagraphAlignment.CENTER);
             paras.add(para);
@@ -281,7 +281,7 @@ public class HeaderFooterBuilder {
             }
         }
         if (StringUtils.isNotBlank(right)) {
-            ctp = CTP.Factory.newInstance();
+            ctp = (CTP) CTP.Factory.newInstance();
             para = new XWPFParagraph(ctp, document);
             para.setAlignment(ParagraphAlignment.RIGHT);
             paras.add(para);

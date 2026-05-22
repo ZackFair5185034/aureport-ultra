@@ -7,7 +7,7 @@
 | 维度 | 数据                                           |
 |------|----------------------------------------------|
 | 定位 | Java 报表引擎 + Vue 3 可视化设计器                     |
-| 技术栈 | SpringBoot 3.2.5 + Vue 3 + Vite + TypeScript |
+| 技术栈 | SpringBoot 3.2.5 + Vue 3 + Vite + TypeScript + Router 5 + Pinia 3 |
 | 后端模块 | 4 个 Maven 模块（core/web/font/pub）              |
 | Java 文件 | 490 个                                        |
 | 数据库 | MySQL / Oracle / SQLServer / 达梦（仅用作数据源）      |
@@ -21,7 +21,7 @@
 ### 1. 后端启动
 
 ```bash
-cd /home/coding/aureport-ultra/aureport-ultra-server/aureport-ultra-pub
+cd aureport-ultra-server/aureport-ultra-pub
 
 # 方式一：Maven 启动（推荐开发用，自动监听文件变化）
 mvn spring-boot:run
@@ -38,7 +38,7 @@ curl http://localhost:8050/report/datasource/loadBuildinDatasources
 ### 2. 前端启动
 
 ```bash
-cd /home/coding/aureport-ultra/aureport-ultra-ui
+cd aureport-ultra-ui
 
 # ⚠️ 必须用 npx vite，不能用 pnpm dev（@parcel/watcher postinstall 问题）
 npx vite --port 3000 --host
@@ -110,7 +110,7 @@ aureport-ultra/
 ### 加载报表
 ```bash
 # 列出可用报表
-ls /home/coding/aureport-ultra/reports/
+ls reports/
 
 # 预览报表（HTTP 方式）
 curl "http://localhost:8050/report/html/loadHtml?reportPath=file:sales_report.ureport.xml"
