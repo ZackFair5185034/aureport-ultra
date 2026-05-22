@@ -156,6 +156,8 @@ export interface Dataset {
   sql?: string
   method?: string
   clazz?: string
+  beanId?: string
+  beanMethod?: string
   /** HTTP 请求 URL（三方协议完整 URL） */
   url?: string
   /** HTTP 请求头 JSON */
