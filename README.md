@@ -46,9 +46,9 @@ UReport2 (Apache-2.0) → luck-report (Apache-2.0) → Aureport Ultra (Apache-2.
 - ✅ **嵌套迭代聚合（IterateAggregate）**：解决一对多主子表场景，UReport2/luck-report 均不支持
 - ✅ **HTTP 数据源**：标准协议（类 SpringBean 远程调用）+ 三方协议（JSONPath 解析）
 - ✅ **SpringBean 自动发现**：通过 `@ReportBean` 注解 + Starter 自动暴露 REST 端点
-- ✅ **进度条单元格（ProgressBarValue）**：内置百分比进度条展示
-- ✅ **Tooltip 悬浮提示**：单元格鼠标悬停显示提示
 - ✅ **GroupStatAggregate 分组聚合**：从父格 BindData 读取统计字段
+- ⏳ **ProgressBarValue 进度条**（后端框架就绪，前端 UI 待开发）：支持百分比进度条展示
+- ⏳ **Tooltip 悬浮提示**（后端框架就绪，前端 UI 待开发）：单元格鼠标悬停显示提示
 - ✅ **父子格循环引用修复**：解决 StackOverflowError 问题
 - ✅ **四向单元格扩展**（左/右/上/下 expand + fill）
 - ✅ **多数据库支持**：MySQL、Oracle、SQLServer、达梦
