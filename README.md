@@ -174,8 +174,8 @@ aureport-ultra/
 | 框架 | Vue 3.5 + Composition API |
 | 语言 | TypeScript 5.8（严格模式） |
 | 构建 | Vite 8 |
-| 状态管理 | Pinia 2 |
-| 路由 | Vue Router 4 |
+| 状态管理 | Pinia 3 |
+| 路由 | Vue Router 5 |
 | 国际化 | Vue I18n 10 |
 | 表格编辑器 | Handsontable 6.2.2 |
 | 图表 | Chart.js 4 |
