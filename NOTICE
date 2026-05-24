@@ -1,0 +1,17 @@
+Aureport Ultra
+Copyright 2024 Aureport Ultra Authors
+
+This product includes software developed by Bstek (http://www.bstek.com/)
+and licensed under the Apache License, Version 2.0.
+
+This product is based on UReport2 (https://github.com/youseries/ureport),
+originally licensed under Apache-2.0.
+
+UReport2:
+- Repository: https://github.com/youseries/ureport
+- License: Apache License 2.0
+- Copyright 2017 Bstek
+
+Aureport Ultra 对 UReport2 的架构和核心设计思想进行了深度重构，
+包名从 com.bstek.ureport 改为 com.aureport.ultra，技术栈从 
+Spring Boot 2 升级到 Spring Boot 3，前端从 Vue 2 升级到 Vue 3。
