@@ -5,12 +5,19 @@ This product includes software developed by Bstek (http://www.bstek.com/)
 and licensed under the Apache License, Version 2.0.
 
 This product is based on UReport2 (https://github.com/youseries/ureport),
-originally licensed under Apache-2.0.
+Aureport Ultra includes software derived from [UReport2](https://github.com/youseries/ureport) and references [luck-report](https://gitee.com/LuckyPools/luck-report), both originally licensed under Apache-2.0.
+
+继承链：UReport2 → luck-report → Aureport Ultra
 
 UReport2:
 - Repository: https://github.com/youseries/ureport
 - License: Apache License 2.0
 - Copyright 2017 Bstek
+
+luck-report:
+- Repository: https://gitee.com/LuckyPools/luck-report
+- License: Apache License 2.0
+- 基于 UReport2 的 SpringBoot + Vue 重构版本
 
 Aureport Ultra 对 UReport2 的架构和核心设计思想进行了深度重构，
 包名从 com.bstek.ureport 改为 com.aureport.ultra，技术栈从 

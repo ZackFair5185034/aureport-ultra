@@ -24,7 +24,14 @@ Aureport Ultra 起源于对 [UReport2](https://github.com/youseries/ureport) 的
 - **架构重写**：核心引擎完全重写，移除对旧版本 Spring 的依赖
 - **新增功能**：HTTP 数据源、SpringBean 自动发现、嵌套迭代聚合、进度条单元格、二维码/条形码等
 
-UReport2 是第一个基于 Apache-2.0 协议的中国式报表引擎，项目地址：https://github.com/youseries/ureport
+**继承链**：
+```
+UReport2 (Apache-2.0) → luck-report (Apache-2.0) → Aureport Ultra (Apache-2.0)
+```
+
+- [UReport2](https://github.com/youseries/ureport) — 第一个基于 Apache-2.0 的中国式报表引擎
+- [luck-report](https://gitee.com/LuckyPools/luck-report) — 基于 UReport2 的 SpringBoot + Vue 重构版本，Aureport Ultra 的重要参考
+- Aureport Ultra — 在 luck-report 基础上进一步升级技术栈（SpringBoot 3 + Vue 3）
 
 ## 功能特性
 
